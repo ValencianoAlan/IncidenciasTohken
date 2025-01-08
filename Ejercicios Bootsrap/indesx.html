@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Bootstrap Example</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  </head>
+  <body
+    class="d-flex justify-content-center align-items-center bg-light"
+    style="height: 100vh"
+    data-bs-spy="scroll"
+    data-bs-target=".navbar"
+    data-bs-offset="50"
+  >
+    <style>
+      span {
+        display: inline-block;
+        width: 70px;
+        height: 70px;
+        margin: 6px;
+        background-color: #f9f9f9;
+      }
+    </style>
+
+    <div style="display: none">
+      <div id="demo" class="carousel slide" data-bs-ride="carousel">
+        <!-- Indicators/dots -->
+        <div class="carousel-indicators">
+          <button
+            type="button"
+            data-bs-target="#demo"
+            data-bs-slide-to="0"
+            class="active"
+          ></button>
+          <button
+            type="button"
+            data-bs-target="#demo"
+            data-bs-slide-to="1"
+          ></button>
+          <button
+            type="button"
+            data-bs-target="#demo"
+            data-bs-slide-to="2"
+          ></button>
+        </div>
+
+        <!-- The slideshow/carousel -->
+        <div class="carousel-inner">
+          <div class="carousel-item active">
+            <img
+              src="img/la.jpg"
+              alt="Los Angeles"
+              class="d-block"
+              style="width: 100%"
+            />
+            <div class="carousel-caption">
+              <h3>Los Angeles</h3>
+              <p>We had such a great time in LA!</p>
+            </div>
+          </div>
+          <div class="carousel-item">
+            <img
+              src="img/chicago.jpg"
+              alt="Chicago"
+              class="d-block"
+              style="width: 100%"
+            />
+            <div class="carousel-caption">
+              <h3>Chicago</h3>
+              <p>Thank you, Chicago!</p>
+            </div>
+          </div>
+          <div class="carousel-item">
+            <img
+              src="img/ny.jpg"
+              alt="New York"
+              class="d-block"
+              style="width: 100%"
+            />
+            <div class="carousel-caption">
+              <h3>New York</h3>
+              <p>We love the Big Apple!</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Left and right controls/icons -->
+        <button
+          class="carousel-control-prev"
+          type="button"
+          data-bs-target="#demo"
+          data-bs-slide="prev"
+        >
+          <span class="carousel-control-prev-icon"></span>
+        </button>
+        <button
+          class="carousel-control-next"
+          type="button"
+          data-bs-target="#demo"
+          data-bs-slide="next"
+        >
+          <span class="carousel-control-next-icon"></span>
+        </button>
+      </div>
+
+      <div class="container-fluid mt-3">
+        <h3>Carousel Example</h3>
+        <p>
+          The following example shows how to create a basic carousel with
+          indicators and controls.
+        </p>
+      </div>
+
+      <div class="container-fluid">
+        <h1>My First Bootstrap Page</h1>
+        <p>This part is inside a .container-fluid class.</p>
+        <p>
+          The .container-fluid class provides a full width container, spanning
+          the entire width of the viewport.
+        </p>
+      </div>
+
+      <div class="container p-5 my-5 border">
+        <h1>My First Bootstrap Page</h1>
+        <p>This is some text.</p>
+      </div>
+
+      <div class="container p-5 my-5 bg-dark text-white">
+        <h1>My First Bootstrap Page</h1>
+        <p>This is some text.</p>
+      </div>
+
+      <div class="container p-5 my-5 bg-primary text-white">
+        <h1>My First Bootstrap Page</h1>
+        <p>This is some text.</p>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-3 p-5 bg-primary text-white border border-dark m">
+          .col-sm-3
+        </div>
+        <div class="col-sm-3 p-5 bg-primary text-white border border-dark m">
+          .col-sm-3
+        </div>
+        <div class="col-sm-3 p-5 bg-primary text-white border border-dark m">
+          .col-sm-3
+        </div>
+        <div class="col-sm-3 p-5 bg-primary text-white border border-dark m">
+          .col-sm-3
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-4 p-5 bg-primary text-white border border-dark m">
+          .col-sm-4
+        </div>
+        <div class="col-sm-8 p-5 bg-primary text-white border border-dark m">
+          .col-sm-8
+        </div>
+      </div>
+
+      <p class="h1">h1</p>
+      <p class="h2">h2</p>
+      <p class="h3">h3</p>
+      <p class="h4">h4</p>
+      <p class="h5">h5</p>
+      <p class="h6">h6</p>
+
+      <p class="display-1">display-1</p>
+      <p class="display-2">display-2</p>
+      <p class="display-3">display-3</p>
+      <p class="display-4">display-4</p>
+      <p class="display-5">display-5</p>
+      <p class="display-6">display-6</p>
+
+      <h1>h1 heading <small>seconday text</small></h1>
+      <h2>h2 heading <small>seconday text</small></h2>
+      <h3>h3 heading <small>seconday text</small></h3>
+      <h4>h4 heading <small>seconday text</small></h4>
+      <h5>h5 heading <small>seconday text</small></h5>
+      <h6>h6 heading <small>seconday text</small></h6>
+
+      <div class="container m-5">
+        <h1>Highlight Text</h1>
+        <p>
+          Use the mark element (or the .mark classk) to
+          <mark>highlight</mark>text
+        </p>
+      </div>
+
+      <div class="container m-5">
+        <p>
+          The <abbr title="World Health Organization">WHO</abbr> was founded in
+          1948.
+        </p>
+      </div>
+
+      <p class="text-bg-primary">The text is important</p>
+      <p class="text-bg-success">The text indactes success</p>
+      <p class="text-bg-info">The text represents some information</p>
+      <p class="text-bg-warning">The text represents a warning</p>
+      <p class="text-bg-danger">The text represents danger</p>
+      <p class="text-bg-secondary">Secondary background color</p>
+      <p class="text-bg-dark">Dark background color</p>
+      <p class="text-bg-light">Light grey background color</p>
+
+      <div class="container mt-3">
+        <h2>Basic Table</h2>
+        <p>
+          The .table class adds basic styling (light padding and horizontal
+          dividers) to a table:
+        </p>
+
+        <table class="table table-striped table-bordered table-hover">
+          <thead>
+            <tr>
+              <th>Firstname</th>
+              <th>Lastname</th>
+              <th>Email</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="table-primary">
+              <td>John</td>
+              <td>Doe</td>
+              <td>john@example.com</td>
+            </tr>
+            <tr>
+              <td>Mary</td>
+              <td>Moe</td>
+              <td>mary@example.com</td>
+            </tr>
+            <tr>
+              <td>July</td>
+              <td>Dooley</td>
+              <td>july@example.com</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="alert alert-success alert-dismissible">
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+        ></button>
+        <strong>Success!</strong> This alert box could indicate a successful or
+        positive action.
+      </div>
+      <div class="alert alert-danger alert-dismissible fade show">
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+        ></button>
+        <strong>Success!</strong> This alert box could indicate a successful or
+        positive action.
+      </div>
+
+      <div class="d-grid gap-3">
+        <button type="button" class="btn btn-primary btn-block">
+          Full-Width Button
+        </button>
+        <button type="button" class="btn btn-primary btn-block">
+          Full-Width Button
+        </button>
+        <button type="button" class="btn btn-primary btn-block">
+          Full-Width Button
+        </button>
+      </div>
+
+      <div class="m-5 progress" style="height: 25px">
+        <div
+          class="progress-bar progress-bar-striped progress-bar-animated"
+          style="width: 70%"
+        ></div>
+      </div>
+
+      <div class="spinner-border text-muted"></div>
+      <div class="spinner-border text-primary"></div>
+      <div class="spinner-border text-success"></div>
+      <div class="spinner-border text-info"></div>
+      <div class="spinner-border text-warning"></div>
+      <div class="spinner-border text-danger"></div>
+      <div class="spinner-border text-secondary"></div>
+      <div class="spinner-border text-dark"></div>
+      <div class="spinner-border text-light"></div>
+
+      <div class="spinner-grow text-muted"></div>
+      <div class="spinner-grow text-primary"></div>
+      <div class="spinner-grow text-success"></div>
+      <div class="spinner-grow text-info"></div>
+      <div class="spinner-grow text-warning"></div>
+      <div class="spinner-grow text-danger"></div>
+      <div class="spinner-grow text-secondary"></div>
+      <div class="spinner-grow text-dark"></div>
+      <div class="spinner-grow text-light"></div>
+
+      <div class="spinner-border spinner-border-sm"></div>
+      <div class="spinner-grow spinner-grow-sm"></div>
+
+      <div class="card" style="width: 400px">
+        <img class="card-img-top" src="img_avatar1.png" alt="Card image" />
+        <div class="card-body">
+          <h4 class="card-title">John Doe</h4>
+          <p class="card-text">Some example text.</p>
+          <a href="#" class="btn btn-primary">See Profile</a>
+        </div>
+      </div>
+
+      <div
+        class="colapse my-5 bg-primary d-inline-flex p-4 justify-content-center"
+        style="height: 100px"
+      >
+        <button
+          data-bs-toggle="collapse"
+          data-bs-target="#demo"
+          class="btn btn-light flex-fill border-dark"
+        >
+          Collapsible
+        </button>
+
+        <div id="demo" class="collapse mx-5 text-light">
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
+          incidunt beatae sunt consequuntur id quos sit dicta, placeat
+          excepturi, natus odit ducimus veritatis ipsam alias cum aspernatur
+          nesciunt quasi quis.
+        </div>
+      </div>
+
+      <!-- Button to Open the Modal -->
+      <button
+        type="button"
+        class="btn btn-primary"
+        data-bs-toggle="modal"
+        data-bs-target="#myModal"
+      >
+        Open modal
+      </button>
+
+      <!-- The Modal -->
+      <div class="modal" id="myModal">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+              <h4 class="modal-title">Modal Heading</h4>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+              ></button>
+            </div>
+
+            <!-- Modal body -->
+            <div class="modal-body">Modal body..</div>
+
+            <!-- Modal footer -->
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-danger"
+                data-bs-dismiss="modal"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="toast show">
+        <div class="toast-header">
+          Toast Header
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="toast"
+          ></button>
+        </div>
+        <div class="toast-body">Some text inside the toast body</div>
+      </div>
+
+      <script>
+        document.getElementById("toastbtn").onclick = function () {
+          var toastElList = [].slice.call(document.querySelectorAll(".toast"));
+          var toastList = toastElList.map(function (toastEl) {
+            return new bootstrap.Toast(toastEl);
+          });
+          toastList.forEach((toast) => toast.show());
+        };
+      </script>
+
+      <nav class="navbar navbar-expand-sm bg-dark navbar-dark fixed-top">
+        <div class="container-fluid">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" href="#section1">Section 1</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#section2">Section 2</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#section3">Section 3</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <div
+        id="section1"
+        class="container-fluid bg-success text-white"
+        style="padding: 100px 20px"
+      >
+        <h1>Section 1</h1>
+        <p>
+          Try to scroll this section and look at the navigation bar while
+          scrolling! Try to scroll this section and look at the navigation bar
+          while scrolling!
+        </p>
+        <p>
+          Try to scroll this section and look at the navigation bar while
+          scrolling! Try to scroll this section and look at the navigation bar
+          while scrolling!
+        </p>
+      </div>
+
+      <div
+        id="section2"
+        class="container-fluid bg-warning"
+        style="padding: 100px 20px"
+      >
+        <h1>Section 2</h1>
+        <p>
+          Try to scroll this section and look at the navigation bar while
+          scrolling! Try to scroll this section and look at the navigation bar
+          while scrolling!
+        </p>
+        <p>
+          Try to scroll this section and look at the navigation bar while
+          scrolling! Try to scroll this section and look at the navigation bar
+          while scrolling!
+        </p>
+      </div>
+
+      <div
+        id="section3"
+        class="container-fluid bg-secondary text-white"
+        style="padding: 100px 20px"
+      >
+        <h1>Section 3</h1>
+        <p>
+          Try to scroll this section and look at the navigation bar while
+          scrolling! Try to scroll this section and look at the navigation bar
+          while scrolling!
+        </p>
+        <p>
+          Try to scroll this section and look at the navigation bar while
+          scrolling! Try to scroll this section and look at the navigation bar
+          while scrolling!
+        </p>
+      </div>
+
+      <div class="container mt-3">
+        <h2>Borders</h2>
+        <p>Use the border classes to add or remove borders from an element:</p>
+
+        <span class="border"></span>
+        <span class="border border-0"></span>
+        <span class="border border-top-0"></span>
+        <span class="border border-end-0"></span>
+        <span class="border border-bottom-0"></span>
+        <span class="border border-start-0"></span>
+        <br />
+
+        <span class="border-top"></span>
+        <span class="border-end"></span>
+        <span class="border-bottom"></span>
+        <span class="border-start"></span><br />
+
+        <span class="border border-0 border-1"></span>
+        <span class="border border-top-0 border-2"></span>
+        <span class="border border-end-0 border-4"></span>
+        <span class="border border-bottom-0 border-4"></span>
+        <span class="border border-start-0 border-5"></span><br />
+
+        <span class="border border-primary"></span>
+        <span class="border border-info"></span>
+        <span class="border border-succes"></span>
+        <span class="border border-danger"></span>
+        <span class="border border-warning"></span>
+        <span class="border border-secondary"></span>
+        <span class="border border-light"></span>
+        <span class="border border-dark"></span>
+        <span class="border border-white"></span>
+
+        <span class="rounded"></span>
+        <span class="rounded-top"></span>
+        <span class="rounded-end"></span>
+        <span class="rounded-bottom"></span>
+        <span class="rounded-start"></span>
+        <span class="rounded-circle"></span>
+        <span class="rounded-pill" style="width: 130px"></span>
+        <span class="rounded-0"></span>
+        <span class="rounded-1"></span>
+        <span class="rounded-2"></span>
+        <span class="rounded-3"></span>
+        <span class="rounded-4"></span>
+        <span class="rounded-5"></span>
+
+        <div class="clearfix">
+          <span class="float-start">Float left</span>
+          <span class="float-end">Float right</span>
+        </div>
+
+        <div class="float-sm-end">Float right on small screens or wider</div>
+        <br />
+        <div class="float-md-end">Float right on medium screens or wider</div>
+        <br />
+        <div class="float-lg-end">Float right on large screens or wider</div>
+        <br />
+        <div class="float-xl-end">
+          Float right on extra large screens or wider
+        </div>
+        <br />
+        <div class="float-xxl-end">Float right on XXL screens or wider</div>
+        <br />
+        <div class="float-none">Float none</div>
+      </div>
+
+      <div class="mx-auto bg-warning" style="width: 150px">Centered</div>
+      <div class="w-25 bg-warning">Width 25%</div>
+      <div class="w-50 bg-warning">Width 50%</div>
+      <div class="w-75 bg-warning">Width 75%</div>
+      <div class="w-100 bg-warning">Width 100%</div>
+      <div class="w-auto bg-warning">Auto Width</div>
+      <div class="mw-100 bg-warning">Max Width 100%</div>
+
+      <div style="height: 200px; background-color: #ddd">
+        <div class="h-25 bg-warning">Height 25%</div>
+        <div class="h-50 bg-warning">Height 50%</div>
+        <div class="h-75 bg-warning">Height 75%</div>
+        <div class="h-100 bg-warning">Height 100%</div>
+        <div class="h-auto bg-warning">Auto Height</div>
+        <div class="mh-100 bg-warning" style="height: 500px">
+          Max Height 100%
+        </div>
+      </div>
+
+      <div class="shadow-none p-4 mb-4 bg-light">No shadow</div>
+      <div class="shadow-sm p-4 mb-4 bg-white">Small shadow</div>
+      <div class="shadow p-4 mb-4 bg-white">Default shadow</div>
+      <div class="shadow-lg p-4 mb-4 bg-white">Large shadow</div>
+
+      <div class="d-flex">
+        <div class="p-2 bg-info flex-fill">Flex item 1</div>
+        <div class="p-2 bg-warning flex-fill">Flex item 2</div>
+        <div class="p-2 bg-primary flex-fill">Flex item 3</div>
+      </div>
+
+      <div class="d-flex">
+        <div class="p-2 bg-info">Flex item 1</div>
+        <div class="p-2 bg-warning">Flex item 2</div>
+        <div class="p-2 bg-primary flex-grow-1">Flex item 3</div>
+      </div>
+
+      <div class="d-flex bg-secondary">
+        <div class="p-2 bg-info order-3">Flex item 1</div>
+        <div class="p-2 bg-warning order-2">Flex item 2</div>
+        <div class="p-2 bg-primary order-1">Flex item 3</div>
+      </div>
+
+      <div class="d-flex bg-secondary">
+        <div class="p-2 ms-auto bg-info">Flex item 1</div>
+        <div class="p-2 bg-warning">Flex item 2</div>
+        <div class="p-2 bg-primary">Flex item 3</div>
+      </div>
+
+      <div class="d-flex bg-secondary">
+        <div class="p-2 bg-info">Flex item 1</div>
+        <div class="p-2 bg-warning">Flex item 2</div>
+        <div class="p-2 me-auto bg-primary">Flex item 3</div>
+      </div>
+
+      <div class="container mt-3">
+        <h2>Wrap</h2>
+        <p>
+          Control how flex items wrap in a flex container with .flex-nowrap
+          (default), .flex-wrap or .flex-wrap-reverse.
+        </p>
+        <p><code>.flex-wrap:</code></p>
+        <div class="d-flex flex-wrap bg-light">
+          <div class="p-2 border">Flex item 1</div>
+          <div class="p-2 border">Flex item 2</div>
+          <div class="p-2 border">Flex item 3</div>
+          <div class="p-2 border">Flex item 4</div>
+          <div class="p-2 border">Flex item 5</div>
+          <div class="p-2 border">Flex item 6</div>
+          <div class="p-2 border">Flex item 7</div>
+          <div class="p-2 border">Flex item 8</div>
+          <div class="p-2 border">Flex item 9</div>
+          <div class="p-2 border">Flex item 10</div>
+          <div class="p-2 border">Flex item 11</div>
+          <div class="p-2 border">Flex item 12</div>
+          <div class="p-2 border">Flex item 13</div>
+          <div class="p-2 border">Flex item 14</div>
+          <div class="p-2 border">Flex item 15</div>
+          <div class="p-2 border">Flex item 16</div>
+          <div class="p-2 border">Flex item 17</div>
+          <div class="p-2 border">Flex item 18</div>
+          <div class="p-2 border">Flex item 19</div>
+          <div class="p-2 border">Flex item 20</div>
+          <div class="p-2 border">Flex item 21</div>
+          <div class="p-2 border">Flex item 22</div>
+          <div class="p-2 border">Flex item 23</div>
+          <div class="p-2 border">Flex item 24</div>
+          <div class="p-2 border">Flex item 25</div>
+        </div>
+        <br />
+        <p><code>.flex-wrap-reverse:</code></p>
+        <div class="d-flex flex-wrap-reverse bg-light">
+          <div class="p-2 border">Flex item 1</div>
+          <div class="p-2 border">Flex item 2</div>
+          <div class="p-2 border">Flex item 3</div>
+          <div class="p-2 border">Flex item 4</div>
+          <div class="p-2 border">Flex item 5</div>
+          <div class="p-2 border">Flex item 6</div>
+          <div class="p-2 border">Flex item 7</div>
+          <div class="p-2 border">Flex item 8</div>
+          <div class="p-2 border">Flex item 9</div>
+          <div class="p-2 border">Flex item 10</div>
+          <div class="p-2 border">Flex item 11</div>
+          <div class="p-2 border">Flex item 12</div>
+          <div class="p-2 border">Flex item 13</div>
+          <div class="p-2 border">Flex item 14</div>
+          <div class="p-2 border">Flex item 15</div>
+          <div class="p-2 border">Flex item 16</div>
+          <div class="p-2 border">Flex item 17</div>
+          <div class="p-2 border">Flex item 18</div>
+          <div class="p-2 border">Flex item 19</div>
+          <div class="p-2 border">Flex item 20</div>
+          <div class="p-2 border">Flex item 21</div>
+          <div class="p-2 border">Flex item 22</div>
+          <div class="p-2 border">Flex item 23</div>
+          <div class="p-2 border">Flex item 24</div>
+          <div class="p-2 border">Flex item 25</div>
+        </div>
+        <br />
+        <p><code>.flex-nowrap:</code></p>
+        <div class="d-flex flex-nowrap bg-light">
+          <div class="p-2 border">Flex item 1</div>
+          <div class="p-2 border">Flex item 2</div>
+          <div class="p-2 border">Flex item 3</div>
+          <div class="p-2 border">Flex item 4</div>
+          <div class="p-2 border">Flex item 5</div>
+          <div class="p-2 border">Flex item 6</div>
+          <div class="p-2 border">Flex item 7</div>
+          <div class="p-2 border">Flex item 8</div>
+          <div class="p-2 border">Flex item 9</div>
+          <div class="p-2 border">Flex item 10</div>
+          <div class="p-2 border">Flex item 11</div>
+          <div class="p-2 border">Flex item 12</div>
+          <div class="p-2 border">Flex item 13</div>
+          <div class="p-2 border">Flex item 14</div>
+          <div class="p-2 border">Flex item 15</div>
+          <div class="p-2 border">Flex item 16</div>
+          <div class="p-2 border">Flex item 17</div>
+          <div class="p-2 border">Flex item 18</div>
+          <div class="p-2 border">Flex item 19</div>
+          <div class="p-2 border">Flex item 20</div>
+          <div class="p-2 border">Flex item 21</div>
+          <div class="p-2 border">Flex item 22</div>
+          <div class="p-2 border">Flex item 23</div>
+          <div class="p-2 border">Flex item 24</div>
+          <div class="p-2 border">Flex item 25</div>
+          <div class="p-2 border">Flex item 26</div>
+          <div class="p-2 border">Flex item 27</div>
+          <div class="p-2 border">Flex item 28</div>
+          <div class="p-2 border">Flex item 29</div>
+          <div class="p-2 border">Flex item 30</div>
+          <div class="p-2 border">Flex item 31</div>
+          <div class="p-2 border">Flex item 32</div>
+          <div class="p-2 border">Flex item 33</div>
+          <div class="p-2 border">Flex item 34</div>
+          <div class="p-2 border">Flex item 35</div>
+        </div>
+        <br />
+      </div>
+    </div>
+
+      <div class="card shadow-sm" style="width: 100%; max-width: 400px">
+        <div class="card-body">
+          <form>
+            <div class="mb-3">
+              <label for="email" class="form-label">Email:</label>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                placeholder="Ingresa tu email"
+              />
+            </div>
+            <div class="mb-3">
+              <label for="password" class="form-label">Contraseña:</label>
+              <input
+                type="password"
+                class="form-control"
+                id="contraseña"
+                placeholder="Ingresa tu contraseña"
+              />
+            </div>
+            <div class="form-check mb-3">
+              <input type="checkbox" class="form-check-input" id="remember" />
+              <label class="form-check-label" for="remember">Remember me</label>
+            </div>
+            <button type="button" class="btn btn-primary w-100">
+              Ingresar
+            </button>
+          </form>
+        </div>
+      </div>
+  </body>
+</html>
