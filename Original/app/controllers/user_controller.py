@@ -10,17 +10,20 @@ def agregar_usuario():
     mensaje = None
     if request.method == 'POST':
         nombre = request.form.get('nombre')
-        apellido_paterno = request.form.get('apellidoPaterno')
-        apellido_materno = request.form.get('apellidoMaterno')
+        apellido_paterno = request.form.get('apellidoPaterno', '')  # Valor por defecto vacío
+        apellido_materno = request.form.get('apellidoMaterno', '')   # Valor por defecto vacío
         username = request.form.get('username')
         password = request.form.get('password')
-        if nombre and apellido_paterno and apellido_materno and username and password:
+
+        # Validación actualizada (solo nombre, username y password son obligatorios)
+        if nombre and username and password:  # <- Apellido paterno ya no es requerido
             if user_model.add_user(nombre, apellido_paterno, apellido_materno, username, password):
                 mensaje = "Usuario agregado exitosamente."
             else:
                 mensaje = "Error al agregar usuario."
         else:
-            mensaje = "Por favor, completa todos los campos."
+            mensaje = "Nombre, usuario y contraseña son obligatorios."  # Mensaje ajustado
+
     return render_template('agregar_usuario.html', mensaje=mensaje)
 
 @user_bp.route('/ver_registros', methods=['GET', 'POST'])

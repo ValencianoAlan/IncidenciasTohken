@@ -38,7 +38,7 @@ class UserModel:
                 INSERT INTO usuarios (nombre, apellidoPaterno, apellidoMaterno)
                 OUTPUT INSERTED.idUsuario
                 VALUES (?, ?, ?)
-            """, (nombre, apellido_paterno, apellido_materno))
+            """, (nombre, apellido_paterno if apellido_paterno else '', apellido_materno if apellido_materno else ''))
             id_usuario = cursor.fetchone()[0]
             cursor.execute("""
                 INSERT INTO credenciales (idUsuario, username, password)
@@ -169,3 +169,5 @@ class UserModel:
         except Exception as e:
             print(f"Error al enviar correo: {e}")
             return False
+    
+
