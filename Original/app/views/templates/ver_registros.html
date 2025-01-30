@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ver Registros</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <header class="bg-light py-3 mb-2">
+        <div class="container d-flex justify-content-between align-items-center">
+            <h1 class="h3 mb-0">{{ session['user'] }}</h1>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-danger">Cerrar Sesión</a>
+        </div>
+    </header>
+    <div class="container py-5">
+        <h1 class="h3 mb-3">Registros</h1>
+        <form method="POST" class="mb-4">
+            <div class="input-group">
+                <input type="text" name="idUsuario" class="form-control" placeholder="Buscar por ID" value="{{ busqueda if busqueda else '' }}">
+                <button class="btn btn-success" type="submit">Buscar</button>
+            </div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID Usuario</th>
+                        <th>Nombre</th>
+                        <th>Apellido Paterno</th>
+                        <th>Apellido Materno</th>
+                        <th>Username</th>
+                        <th class="text-center">Movimientos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if registros %} {% for registro in registros %}
+                    <tr>
+                        <td class="align-middle border border-1">{{ registro.idUsuario }}</td>
+                        <td class="align-middle border border-1">{{ registro.nombre }}</td>
+                        <td class="align-middle border border-1">{{ registro.apellidoPaterno }}</td>
+                        <td class="align-middle border border-1">{{ registro.apellidoMaterno }}</td>
+                        <td class="align-middle border border-1">{{ registro.username }}</td>
+                        <td class="align-middle border border-1">
+                            <div class="d-flex justify-content-center">
+                                <a href="{{ url_for('user.editar_usuario', id=registro.idUsuario) }}" class="btn btn-warning me-2">Editar Usuario</a>
+                                <form method="POST" action="{{ url_for('user.borrar_usuario', id=registro.idUsuario) }}">
+                                    <button type="submit" class="btn btn-danger">Borrar Usuario</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %} {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center">No se encontraron registros</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+            <div class="container d-flex justify-content-between align-items-center ps-0">
+                <a href="{{ url_for('auth.bienvenida') }}" class="btn btn-secondary mt-3">Regresar</a>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+</body>
+</html>

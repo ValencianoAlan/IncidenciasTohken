@@ -1,0 +1,34 @@
+bienvenida.css
+.pricing-card {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 30px;
+    text-align: center;
+    transition: transform 0.3s ease;
+    margin-top: 30px;
+}
+
+.pricing-card:hover {
+    transform: translateY(-10px);
+    background-color: #eeebeb;
+    border: 2px solid black;
+    cursor: pointer;
+    
+}
+
+.pricing-card-header {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.pricing-card-footer {
+    margin-top: 20px;
+}
+
+.pricing-card {
+    border-color: black;
+}
+
+.btn-custom {
+    font-weight: bold;
+}
