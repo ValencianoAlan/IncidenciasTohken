@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.models.user_model import UserModel
+import re
 
 # Crear un Blueprint en lugar de una app Flask
 auth_bp = Blueprint('auth', __name__, template_folder="views/templates")
@@ -35,19 +36,40 @@ def logout():
     session.pop('user', None)
     return redirect(url_for('auth.login'))
 
+# Función de validación (agrégala al inicio del archivo)
+def es_correo_valido(correo):
+    patron = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+    return re.match(patron, correo) is not None
+
+# ... (otras rutas y código existente)
+
 @auth_bp.route("/enviar_correo", methods=["POST"])
 def enviar_correo():
     if "user" not in session:
         return redirect(url_for("auth.login"))
 
-    # Obtener datos del formulario
-    destinatario = request.form.get("destinatario")
-    asunto = request.form.get("asunto")
-    cuerpo = request.form.get("cuerpo")
+    # Obtener y procesar correos
+    destinatarios_raw = request.form.get("destinatario", "")
+    destinatarios = [email.strip() for email in destinatarios_raw.split(",") if email.strip()]
+
+    # Validar correos
+    correos_invalidos = [email for email in destinatarios if not es_correo_valido(email)]
+    
+    if correos_invalidos:
+        flash(f"Correos inválidos: {', '.join(correos_invalidos)}", "error")
+        return redirect(url_for("auth.bienvenida"))
+
+    if not destinatarios:
+        flash("Debes ingresar al menos un correo válido", "error")
+        return redirect(url_for("auth.bienvenida"))
+
+    # Obtener asunto y cuerpo
+    asunto = request.form.get("asunto", "")
+    cuerpo = request.form.get("cuerpo", "")
 
     # Enviar correo
-    if user_model.enviar_correo(destinatario, asunto, cuerpo):
-        flash("Correo enviado exitosamente", "success")
+    if user_model.enviar_correo(destinatarios, asunto, cuerpo):
+        flash(f"Correo enviado exitosamente a {len(destinatarios)} destinatarios", "success")
     else:
         flash("Error al enviar el correo", "error")
 

@@ -142,3 +142,30 @@ class UserModel:
         except Exception as e:
             print(f"Error al enviar correo: {e}")
             return False
+        
+    def enviar_correo(self, destinatarios, asunto, cuerpo):
+        try:
+            mensaje = MIMEText(cuerpo)
+            mensaje["Subject"] = asunto
+            mensaje["From"] = current_app.config["MAIL_USERNAME"]
+            mensaje["To"] = ", ".join(destinatarios)  # Unir correos con comas
+
+            with smtplib.SMTP(
+                current_app.config["MAIL_SERVER"],
+                current_app.config["MAIL_PORT"]
+            ) as server:
+                server.starttls()
+                server.login(
+                    current_app.config["MAIL_USERNAME"],
+                    current_app.config["MAIL_PASSWORD"]
+                )
+                # Enviar a todos los destinatarios
+                server.sendmail(
+                    current_app.config["MAIL_USERNAME"],
+                    destinatarios,
+                    mensaje.as_string()
+                )
+            return True
+        except Exception as e:
+            print(f"Error al enviar correo: {e}")
+            return False
