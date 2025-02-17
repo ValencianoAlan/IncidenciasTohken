@@ -54,10 +54,8 @@ def ver_registros():
 
     return render_template('ver_registros.html', registros=registros, busqueda=busqueda, username=session['user'])
 
-# Ruta para borrar usuario
 @user_bp.route('/borrar_usuario/<int:numNomina>', methods=['POST'])
 def borrar_usuario(numNomina):
-    # Verificar si el usuario tiene permisos de administrador
     if 'rol' not in session or session['rol'] != 'Admin':
         flash("No tienes permiso para realizar esta acción", "error")
         return redirect(url_for('auth.bienvenida'))
@@ -69,29 +67,25 @@ def borrar_usuario(numNomina):
 
     return redirect(url_for('user.ver_registros'))
 
-# Ruta para editar usuario
 @user_bp.route('/editar_usuario/<int:numNomina>', methods=['GET', 'POST'])
 def editar_usuario(numNomina):
-    # Verificar si el usuario tiene permisos de administrador
     if 'rol' not in session or session['rol'] != 'Admin':
         flash("No tienes permiso para acceder a esta página", "error")
         return redirect(url_for('auth.bienvenida'))
 
     usuario = user_model.get_user_by_numNomina(numNomina)
-    roles = user_model.get_roles()  # Obtener la lista de roles
+    roles = user_model.get_roles()
 
     if not usuario:
         return "Usuario no encontrado", 404
 
     if request.method == 'POST':
-        # Obtener datos del formulario
         nombre = request.form['nombre']
         apellido_paterno = request.form['apellidoPaterno']
         apellido_materno = request.form['apellidoMaterno']
         username = request.form['username']
         idRol = request.form['idRol']
 
-        # Actualizar usuario
         if user_model.update_user(numNomina, nombre, apellido_paterno, apellido_materno, username, idRol):
             flash("Usuario actualizado exitosamente", "success")
             return redirect(url_for('user.ver_registros'))

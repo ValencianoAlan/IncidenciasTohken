@@ -43,7 +43,11 @@
                         <td class="align-middle border border-1">{{ registro.username }}</td>
                         <td class="align-middle border border-1">
                             <div class="d-flex justify-content-center">
-                                <a href="{{ url_for('user.editar_usuario', numNomina=registro.numNomina) }}" class="btn btn-warning me-2">Editar Usuario</a>
+                                <!-- Botón de editar -->
+                                <a href="{{ url_for('user.editar_usuario', numNomina=registro.numNomina) }}" 
+                                class="btn btn-warning me-2">Editar Usuario</a>
+
+                                <!-- Botón de borrar -->
                                 <form method="POST" action="{{ url_for('user.borrar_usuario', numNomina=registro.numNomina) }}">
                                     <button type="submit" class="btn btn-danger">Borrar Usuario</button>
                                 </form>

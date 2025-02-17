@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,30 +13,118 @@
             <a href="{{ url_for('auth.logout') }}" class="btn btn-danger">Cerrar Sesión</a>
         </div>
     </header>
+
     <div class="container py-5">
         <h1 class="h3 mb-3">Editar Usuario</h1>
+
+        <!-- Mensajes de error/éxito -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Formulario de edición -->
         <form method="POST">
             <div class="mb-3">
-                <label for="nombre" class="form-label">Nombre</label>
-                <input type="text" class="form-control" id="nombre" name="nombre" value="{{ usuario.nombre }}" required>
+                <label for="numNomina" class="form-label">Número de Nómina</label>
+                <input 
+                    type="number" 
+                    class="form-control" 
+                    id="numNomina" 
+                    name="numNomina" 
+                    value="{{ usuario.numNomina }}"
+                    readonly  <!-- No se puede modificar -->
+                >
             </div>
+
+            <div class="mb-3">
+                <label for="nombre" class="form-label">Nombre</label>
+                <input 
+                    type="text" 
+                    class="form-control" 
+                    id="nombre" 
+                    name="nombre" 
+                    value="{{ usuario.nombre }}" 
+                    required
+                >
+            </div>
+
             <div class="mb-3">
                 <label for="apellidoPaterno" class="form-label">Apellido Paterno</label>
-                <input type="text" class="form-control" id="apellidoPaterno" name="apellidoPaterno" value="{{ usuario.apellidoPaterno }}" required>
+                <input 
+                    type="text" 
+                    class="form-control" 
+                    id="apellidoPaterno" 
+                    name="apellidoPaterno" 
+                    value="{{ usuario.apellidoPaterno }}"
+                >
             </div>
+
             <div class="mb-3">
                 <label for="apellidoMaterno" class="form-label">Apellido Materno</label>
-                <input type="text" class="form-control" id="apellidoMaterno" name="apellidoMaterno" value="{{ usuario.apellidoMaterno }}" required>
+                <input 
+                    type="text" 
+                    class="form-control" 
+                    id="apellidoMaterno" 
+                    name="apellidoMaterno" 
+                    value="{{ usuario.apellidoMaterno }}"
+                >
             </div>
+
             <div class="mb-3">
-                <label for="username" class="form-label">Username</label>
-                <input type="text" class="form-control" id="username" name="username" value="{{ usuario.username }}" required>
+                <label for="username" class="form-label">Usuario</label>
+                <input 
+                    type="text" 
+                    class="form-control" 
+                    id="username" 
+                    name="username" 
+                    value="{{ usuario.username }}" 
+                    required
+                >
             </div>
-            <button type="submit" class="btn btn-success">Guardar Cambios</button>
-            <a href="{{ url_for('user.ver_registros') }}" class="btn btn-secondary">Cancelar</a>
+
+            <div class="mb-3">
+                <label for="idRol" class="form-label">Rol</label>
+                <select class="form-select" id="idRol" name="idRol" required>
+                    {% for rol in roles %}
+                        <option 
+                            value="{{ rol.idRol }}" 
+                            {% if rol.idRol == usuario.idRol %}selected{% endif %}
+                        >
+                            {{ rol.nombreRol }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-success">Guardar Cambios</button>
+                <a href="{{ url_for('user.ver_registros') }}" class="btn btn-secondary">Cancelar</a>
+            </div>
         </form>
     </div>
+
+    <!-- Scripts de Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+
+    <!-- Script para ocultar mensajes automáticamente -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.opacity = '0';
+                    setTimeout(() => alert.remove(), 500);
+                }, 2000);
+            });
+        });
+    </script>
 </body>
 </html>

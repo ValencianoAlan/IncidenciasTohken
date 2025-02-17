@@ -77,34 +77,57 @@ class UserModel:
         conn.close()
         return registros
 
-    def get_user_by_id(self, id):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT u.numNomina, u.nombre, u.apellidoPaterno, u.apellidoMaterno, c.username
-            FROM usuarios u
-            INNER JOIN credenciales c ON u.numNomina = c.numNomina
-            WHERE u.numNomina = ?
-        """, id)
-        usuario = cursor.fetchone()
-        cursor.close()
-        conn.close()
-        return usuario
-
-    def update_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username):
+    def get_user_by_numNomina(self, numNomina):
         conn = self.get_connection()
         cursor = conn.cursor()
         try:
             cursor.execute("""
-                UPDATE usuarios
+                SELECT 
+                    u.numNomina, 
+                    u.nombre, 
+                    u.apellidoPaterno, 
+                    u.apellidoMaterno, 
+                    c.username, 
+                    ur.idRol AS idRol  # Alias para evitar conflictos
+                FROM usuarios u
+                INNER JOIN credenciales c ON u.numNomina = c.numNomina
+                INNER JOIN usuario_rol ur ON u.numNomina = ur.numNomina
+                WHERE u.numNomina = ?
+            """, numNomina)
+            usuario = cursor.fetchone()
+            return usuario
+        except Exception as e:
+            print(f"Error al obtener usuario: {e}")
+            return None
+        finally:
+            cursor.close()
+            conn.close()
+
+    def update_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username, idRol):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            # Actualizar tabla usuarios
+            cursor.execute("""
+                UPDATE usuarios 
                 SET nombre = ?, apellidoPaterno = ?, apellidoMaterno = ?
                 WHERE numNomina = ?
             """, (nombre, apellido_paterno, apellido_materno, numNomina))
+
+            # Actualizar tabla credenciales
             cursor.execute("""
-                UPDATE credenciales
+                UPDATE credenciales 
                 SET username = ?
                 WHERE numNomina = ?
             """, (username, numNomina))
+
+            # Actualizar tabla usuario_rol
+            cursor.execute("""
+                UPDATE usuario_rol 
+                SET idRol = ?
+                WHERE numNomina = ?
+            """, (idRol, numNomina))
+
             conn.commit()
             return True
         except Exception as e:
@@ -114,11 +137,16 @@ class UserModel:
             cursor.close()
             conn.close()
 
+    # En app/models/user_model.py
     def delete_user(self, numNomina):
         conn = self.get_connection()
         cursor = conn.cursor()
         try:
+            # Eliminar de usuario_rol
+            cursor.execute("DELETE FROM usuario_rol WHERE numNomina = ?", numNomina)
+            # Eliminar de credenciales
             cursor.execute("DELETE FROM credenciales WHERE numNomina = ?", numNomina)
+            # Eliminar de usuarios
             cursor.execute("DELETE FROM usuarios WHERE numNomina = ?", numNomina)
             conn.commit()
             return True
@@ -167,5 +195,27 @@ class UserModel:
             finally:
                 cursor.close()
                 conn.close()
+
+        # En app/models/user_model.py
+    def get_user_by_numNomina(self, numNomina):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                SELECT u.numNomina, u.nombre, u.apellidoPaterno, u.apellidoMaterno, 
+                    c.username, ur.idRol 
+                FROM usuarios u
+                INNER JOIN credenciales c ON u.numNomina = c.numNomina
+                INNER JOIN usuario_rol ur ON u.numNomina = ur.numNomina
+                WHERE u.numNomina = ?
+            """, numNomina)
+            usuario = cursor.fetchone()
+            return usuario
+        except Exception as e:
+            print(f"Error al obtener usuario: {e}")
+            return None
+        finally:
+            cursor.close()
+            conn.close()
             
 
