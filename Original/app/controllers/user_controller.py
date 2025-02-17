@@ -8,16 +8,14 @@ user_model = UserModel()
 # Ruta para agregar usuario
 @user_bp.route('/agregar_usuario', methods=['GET', 'POST'])
 def agregar_usuario():
-    # Verificar si el usuario tiene permisos de administrador
     if 'rol' not in session or session['rol'] != 'Admin':
         flash("No tienes permiso para acceder a esta página", "error")
         return redirect(url_for('auth.bienvenida'))
 
     mensaje = None
-    roles = user_model.get_roles()  # Obtener la lista de roles desde el modelo
+    roles = user_model.get_roles()
 
     if request.method == 'POST':
-        # Obtener datos del formulario
         numNomina = request.form.get('numNomina')
         nombre = request.form.get('nombre')
         apellido_paterno = request.form.get('apellidoPaterno', '')
@@ -26,14 +24,14 @@ def agregar_usuario():
         password = request.form.get('password')
         idRol = request.form.get('idRol')
 
-        # Validar campos obligatorios
         if numNomina and nombre and username and password and idRol:
             if user_model.add_user(numNomina, nombre, apellido_paterno, apellido_materno, username, password, idRol):
-                mensaje = "Usuario agregado exitosamente."
+                flash("Usuario agregado exitosamente", "success")
+                return redirect(url_for('auth.bienvenida'))
             else:
-                mensaje = "Error al agregar usuario."
+                flash("Error al agregar usuario", "error")
         else:
-            mensaje = "Por favor, completa todos los campos obligatorios."
+            flash("Por favor, completa todos los campos obligatorios", "error")
 
     return render_template('agregar_usuario.html', mensaje=mensaje, roles=roles)
 
@@ -64,8 +62,7 @@ def borrar_usuario(numNomina):
         flash("Usuario borrado exitosamente", "success")
     else:
         flash("Error al borrar usuario", "error")
-
-    return redirect(url_for('user.ver_registros'))
+    return redirect(url_for('auth.bienvenida'))
 
 @user_bp.route('/editar_usuario/<int:numNomina>', methods=['GET', 'POST'])
 def editar_usuario(numNomina):
@@ -77,7 +74,8 @@ def editar_usuario(numNomina):
     roles = user_model.get_roles()
 
     if not usuario:
-        return "Usuario no encontrado", 404
+        flash("Usuario no encontrado", "error")
+        return redirect(url_for('auth.bienvenida'))
 
     if request.method == 'POST':
         nombre = request.form['nombre']
@@ -88,7 +86,7 @@ def editar_usuario(numNomina):
 
         if user_model.update_user(numNomina, nombre, apellido_paterno, apellido_materno, username, idRol):
             flash("Usuario actualizado exitosamente", "success")
-            return redirect(url_for('user.ver_registros'))
+            return redirect(url_for('auth.bienvenida'))
         else:
             flash("Error al actualizar usuario", "error")
 

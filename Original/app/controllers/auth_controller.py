@@ -19,7 +19,8 @@ def do_login():
         if usuario:
             session['user_id'] = usuario.numNomina
             session['user'] = f"{usuario.nombre} {usuario.apellidoPaterno} {usuario.apellidoMaterno}"
-            session['rol'] = usuario.nombreRol  # Guardar el rol en la sesión
+            session['rol'] = usuario.nombreRol
+            flash("Inicio de sesión exitoso", "success")
             return redirect(url_for('auth.bienvenida'))
         else:
             flash("Usuario o contraseña incorrectos", "error")
