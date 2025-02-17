@@ -8,7 +8,7 @@ class UserModel:
         self.connection_string = (
             "DRIVER={ODBC Driver 17 for SQL Server};"
             "SERVER=localhost;"
-            "DATABASE=Prueba_2;"
+            "DATABASE=Prueba_3;"
             "UID=sa;"
             "PWD=root"
         )
@@ -20,9 +20,11 @@ class UserModel:
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT u.idUsuario, u.nombre, u.apellidoPaterno, u.apellidoMaterno, c.username
+            SELECT u.numNomina, u.nombre, u.apellidoPaterno, u.apellidoMaterno, c.username, r.nombreRol
             FROM usuarios u
-            INNER JOIN credenciales c ON u.idUsuario = c.idUsuario
+            INNER JOIN credenciales c ON u.numNomina = c.numNomina
+            INNER JOIN usuario_rol ur ON u.numNomina = ur.numNomina
+            INNER JOIN roles r ON ur.idRol = r.idRol
             WHERE c.username = ? AND c.password = ?
         """, (username, password))
         usuario = cursor.fetchone()
@@ -30,20 +32,29 @@ class UserModel:
         conn.close()
         return usuario
 
-    def add_user(self, nombre, apellido_paterno, apellido_materno, username, password):
-        conn = self.get_connection()
-        cursor = conn.cursor()
+    def add_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username, password, idRol):
         try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            
+            # Insertar en usuarios
             cursor.execute("""
-                INSERT INTO usuarios (nombre, apellidoPaterno, apellidoMaterno)
-                OUTPUT INSERTED.idUsuario
-                VALUES (?, ?, ?)
-            """, (nombre, apellido_paterno if apellido_paterno else '', apellido_materno if apellido_materno else ''))
-            id_usuario = cursor.fetchone()[0]
+                INSERT INTO usuarios (numNomina, nombre, apellidoPaterno, apellidoMaterno)
+                VALUES (?, ?, ?, ?)
+            """, (numNomina, nombre, apellido_paterno, apellido_materno))
+            
+            # Insertar en credenciales
             cursor.execute("""
-                INSERT INTO credenciales (idUsuario, username, password)
+                INSERT INTO credenciales (numNomina, username, password)
                 VALUES (?, ?, ?)
-            """, (id_usuario, username, password))
+            """, (numNomina, username, password))
+            
+            # Asignar rol
+            cursor.execute("""
+                INSERT INTO usuario_rol (numNomina, idRol)
+                VALUES (?, ?)
+            """, (numNomina, idRol))
+            
             conn.commit()
             return True
         except Exception as e:
@@ -57,9 +68,9 @@ class UserModel:
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT u.idUsuario, u.nombre, u.apellidoPaterno, u.apellidoMaterno, c.username
+            SELECT u.numNomina, u.nombre, u.apellidoPaterno, u.apellidoMaterno, c.username
             FROM usuarios u
-            INNER JOIN credenciales c ON u.idUsuario = c.idUsuario
+            INNER JOIN credenciales c ON u.numNomina = c.numNomina
         """)
         registros = cursor.fetchall()
         cursor.close()
@@ -70,30 +81,30 @@ class UserModel:
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT u.idUsuario, u.nombre, u.apellidoPaterno, u.apellidoMaterno, c.username
+            SELECT u.numNomina, u.nombre, u.apellidoPaterno, u.apellidoMaterno, c.username
             FROM usuarios u
-            INNER JOIN credenciales c ON u.idUsuario = c.idUsuario
-            WHERE u.idUsuario = ?
+            INNER JOIN credenciales c ON u.numNomina = c.numNomina
+            WHERE u.numNomina = ?
         """, id)
         usuario = cursor.fetchone()
         cursor.close()
         conn.close()
         return usuario
 
-    def update_user(self, id, nombre, apellido_paterno, apellido_materno, username):
+    def update_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username):
         conn = self.get_connection()
         cursor = conn.cursor()
         try:
             cursor.execute("""
                 UPDATE usuarios
                 SET nombre = ?, apellidoPaterno = ?, apellidoMaterno = ?
-                WHERE idUsuario = ?
-            """, (nombre, apellido_paterno, apellido_materno, id))
+                WHERE numNomina = ?
+            """, (nombre, apellido_paterno, apellido_materno, numNomina))
             cursor.execute("""
                 UPDATE credenciales
                 SET username = ?
-                WHERE idUsuario = ?
-            """, (username, id))
+                WHERE numNomina = ?
+            """, (username, numNomina))
             conn.commit()
             return True
         except Exception as e:
@@ -103,12 +114,12 @@ class UserModel:
             cursor.close()
             conn.close()
 
-    def delete_user(self, id):
+    def delete_user(self, numNomina):
         conn = self.get_connection()
         cursor = conn.cursor()
         try:
-            cursor.execute("DELETE FROM credenciales WHERE idUsuario = ?", id)
-            cursor.execute("DELETE FROM usuarios WHERE idUsuario = ?", id)
+            cursor.execute("DELETE FROM credenciales WHERE numNomina = ?", numNomina)
+            cursor.execute("DELETE FROM usuarios WHERE numNomina = ?", numNomina)
             conn.commit()
             return True
         except Exception as e:
@@ -143,31 +154,18 @@ class UserModel:
             print(f"Error al enviar correo: {e}")
             return False
         
-    def enviar_correo(self, destinatarios, asunto, cuerpo):
-        try:
-            mensaje = MIMEText(cuerpo)
-            mensaje["Subject"] = asunto
-            mensaje["From"] = current_app.config["MAIL_USERNAME"]
-            mensaje["To"] = ", ".join(destinatarios)  # Unir correos con comas
-
-            with smtplib.SMTP(
-                current_app.config["MAIL_SERVER"],
-                current_app.config["MAIL_PORT"]
-            ) as server:
-                server.starttls()
-                server.login(
-                    current_app.config["MAIL_USERNAME"],
-                    current_app.config["MAIL_PASSWORD"]
-                )
-                # Enviar a todos los destinatarios
-                server.sendmail(
-                    current_app.config["MAIL_USERNAME"],
-                    destinatarios,
-                    mensaje.as_string()
-                )
-            return True
-        except Exception as e:
-            print(f"Error al enviar correo: {e}")
-            return False
-    
+    def get_roles(self):
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            try:
+                cursor.execute("SELECT idRol, nombreRol FROM roles")
+                roles = cursor.fetchall()
+                return roles
+            except Exception as e:
+                print(f"Error al obtener roles: {e}")
+                return []
+            finally:
+                cursor.close()
+                conn.close()
+            
 

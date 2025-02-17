@@ -17,7 +17,7 @@
         <h1 class="h3 mb-3">Registros</h1>
         <form method="POST" class="mb-4">
             <div class="input-group">
-                <input type="text" name="idUsuario" class="form-control" placeholder="Buscar por ID" value="{{ busqueda if busqueda else '' }}">
+                <input type="text" name="numNomina" class="form-control" placeholder="Buscar por ID" value="{{ busqueda if busqueda else '' }}">
                 <button class="btn btn-success" type="submit">Buscar</button>
             </div>
         </form>
@@ -36,15 +36,15 @@
                 <tbody>
                     {% if registros %} {% for registro in registros %}
                     <tr>
-                        <td class="align-middle border border-1">{{ registro.idUsuario }}</td>
+                        <td class="align-middle border border-1">{{ registro.numNomina }}</td>
                         <td class="align-middle border border-1">{{ registro.nombre }}</td>
                         <td class="align-middle border border-1">{{ registro.apellidoPaterno }}</td>
                         <td class="align-middle border border-1">{{ registro.apellidoMaterno }}</td>
                         <td class="align-middle border border-1">{{ registro.username }}</td>
                         <td class="align-middle border border-1">
                             <div class="d-flex justify-content-center">
-                                <a href="{{ url_for('user.editar_usuario', id=registro.idUsuario) }}" class="btn btn-warning me-2">Editar Usuario</a>
-                                <form method="POST" action="{{ url_for('user.borrar_usuario', id=registro.idUsuario) }}">
+                                <a href="{{ url_for('user.editar_usuario', numNomina=registro.numNomina) }}" class="btn btn-warning me-2">Editar Usuario</a>
+                                <form method="POST" action="{{ url_for('user.borrar_usuario', numNomina=registro.numNomina) }}">
                                     <button type="submit" class="btn btn-danger">Borrar Usuario</button>
                                 </form>
                             </div>
