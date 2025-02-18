@@ -16,21 +16,50 @@ class UserModel:
     def get_connection(self):
         return pyodbc.connect(self.connection_string)
 
-    def authenticate_user(self, username, password):
+    def authenticate_user(self, login_input, password):
         conn = self.get_connection()
         cursor = conn.cursor()
-        cursor.execute("""
-            SELECT u.numNomina, u.nombre, u.apellidoPaterno, u.apellidoMaterno, c.username, r.nombreRol
-            FROM usuarios u
-            INNER JOIN credenciales c ON u.numNomina = c.numNomina
-            INNER JOIN usuario_rol ur ON u.numNomina = ur.numNomina
-            INNER JOIN roles r ON ur.idRol = r.idRol
-            WHERE c.username = ? AND c.password = ? 
-        """, (username, password))
-        usuario = cursor.fetchone()
-        cursor.close()
-        conn.close()
-        return usuario
+        try:
+            # Primero verificar si existe el usuario/nómina
+            if login_input.isdigit():
+                query_user = "SELECT numNomina FROM usuarios WHERE numNomina = ?"
+                query_credenciales = "SELECT password FROM credenciales WHERE numNomina = ?"
+            else:
+                query_user = "SELECT numNomina FROM credenciales WHERE username = ?"
+                query_credenciales = "SELECT password FROM credenciales WHERE username = ?"
+
+            # 1. Verificar existencia del usuario
+            cursor.execute(query_user, (login_input,))
+            usuario_existente = cursor.fetchone()
+            if not usuario_existente:
+                return {"success": False, "error": "user_not_found"}
+
+            # 2. Verificar contraseña
+            cursor.execute(query_credenciales, (login_input,))
+            credencial = cursor.fetchone()
+            if credencial.password != password:
+                return {"success": False, "error": "wrong_password"}
+
+            # 3. Obtener datos completos del usuario
+            cursor.execute("""
+                SELECT u.numNomina, u.nombre, u.apellidoPaterno, u.apellidoMaterno, 
+                    c.username, r.nombreRol
+                FROM usuarios u
+                INNER JOIN credenciales c ON u.numNomina = c.numNomina
+                INNER JOIN usuario_rol ur ON u.numNomina = ur.numNomina
+                INNER JOIN roles r ON ur.idRol = r.idRol
+                WHERE c.username = ? OR u.numNomina = ?
+            """, (login_input, login_input))
+            
+            usuario = cursor.fetchone()
+            return {"success": True, "data": usuario}
+
+        except Exception as e:
+            print(f"Error en autenticación: {e}")
+            return {"success": False, "error": "server_error"}
+        finally:
+            cursor.close()
+            conn.close()
 
     def add_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username, password, idRol):
         try:

@@ -10,23 +10,52 @@
     <div class="login-container">
         <h2>Login</h2>
         <form action="{{ url_for('auth.do_login') }}" method="POST">
+            <!-- Campo de entrada -->
             <div class="form-group">
-                <label for="username">Iniciar sesión</label>
-                <input type="text" id="username" name="username" placeholder="Ingresa tu usuario" required>
+                <label for="login_input">Usuario o Número de Nómina</label>
+                <input 
+                    type="text" 
+                    class="form-control" 
+                    id="login_input" 
+                    name="login_input" 
+                    placeholder="Ej: nombre.apellido o 12345" 
+                    required
+                >
             </div>
+    
+            <!-- Campo de contraseña -->
             <div class="form-group">
                 <label for="password">Contraseña</label>
-                <input type="password" id="password" name="password" placeholder="Ingresa tu contraseña" required>
+                <input 
+                    type="password" 
+                    class="form-control" 
+                    id="password" 
+                    name="password" 
+                    placeholder="Ingresa tu contraseña" 
+                    required
+                >
             </div>
-            {% with messages = get_flashed_messages(category_filter=["error"]) %}
+    
+            <!-- Dentro del formulario -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
-                    <div class="error-message">
-                        {{ messages[0] }}
-                    </div>
+                    {% for category, message in messages %}
+                        <div class="alert alert-custom alert-{{ category }} d-flex align-items-center gap-3">
+                            {% if category == "user_not_found" %}
+                                <i class="bi bi-person-x fs-4"></i>
+                            {% elif category == "wrong_password" %}
+                                <i class="bi bi-shield-lock fs-4"></i>
+                            {% endif %}
+                            <span class="flex-grow-1">{{ message }}</span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
                 {% endif %}
             {% endwith %}
-            <button type="submit" class="btn">Iniciar Sesión</button>
+    
+            <button type="submit" class="btn btn-primary mt-3 w-100">Iniciar Sesión</button>
         </form>
     </div>
+    
 </body>
 </html>

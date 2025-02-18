@@ -75,4 +75,49 @@ body {
   font-size: 0.9rem;
   margin-top: 10px;
   text-align: center;
-} 
+}
+
+    /* Alertas personalizadas */
+    .alert-custom {
+        border: none;
+        border-radius: 10px;
+        padding: 1rem 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 10px;
+    }
+
+    .alert-user_not_found {
+        background: #fff3cd;
+        color: #856404;
+        border-left: 4px solid #ffc107;
+    }
+
+    .alert-wrong_password {
+        background: #f8d7da;
+        color: #721c24;
+        border-left: 4px solid #dc3545;
+        
+    }
+
+    /* Íconos */
+    .bi-person-x { color: #ffc107; }
+    .bi-shield-lock { color: #dc3545; }
+
+    .alert-custom {
+      animation: slideIn 0.3s ease-out;
+  }
+  
+  @keyframes slideIn {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+  }
+
+  .alert-custom {
+    border: none;
+    border-radius: 10px;
+    padding: 1rem 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: all 0.5s ease-out;
+    opacity: 1;
+    margin: 10px 0;
+}

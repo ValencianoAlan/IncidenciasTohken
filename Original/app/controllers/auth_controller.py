@@ -13,17 +13,26 @@ def login():
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def do_login():
     if request.method == 'POST':
-        username = request.form['username']
+        login_input = request.form['login_input']
         password = request.form['password']
-        usuario = user_model.authenticate_user(username, password)
-        if usuario:
-            session['user_id'] = usuario.numNomina
+        
+        resultado = user_model.authenticate_user(login_input, password)
+        
+        if resultado["success"]:
+            usuario = resultado["data"]
+            session['numNomina'] = usuario.numNomina
             session['user'] = f"{usuario.nombre} {usuario.apellidoPaterno} {usuario.apellidoMaterno}"
             session['rol'] = usuario.nombreRol
-            flash("Inicio de sesión exitoso", "success")
             return redirect(url_for('auth.bienvenida'))
         else:
-            flash("Usuario o contraseña incorrectos", "error")
+            # En la sección de flash:
+            if resultado["error"] == "user_not_found":
+                flash("Usuario o número de nómina no registrado", "user_not_found")
+            elif resultado["error"] == "wrong_password":
+                flash("Contraseña incorrecta", "wrong_password")
+            else:
+                flash("Error en el servidor. Intente nuevamente", "error")
+                
     return render_template('login.html')
 
 @auth_bp.route('/bienvenida')
