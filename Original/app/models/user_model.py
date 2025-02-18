@@ -25,7 +25,7 @@ class UserModel:
             INNER JOIN credenciales c ON u.numNomina = c.numNomina
             INNER JOIN usuario_rol ur ON u.numNomina = ur.numNomina
             INNER JOIN roles r ON ur.idRol = r.idRol
-            WHERE c.username = ? AND c.password = ?
+            WHERE c.username = ? AND c.password = ? 
         """, (username, password))
         usuario = cursor.fetchone()
         cursor.close()

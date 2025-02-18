@@ -17,9 +17,10 @@ def do_login():
         password = request.form['password']
         usuario = user_model.authenticate_user(username, password)
         if usuario:
-            session['numNomina'] = usuario.numNomina  # Guardar número de nómina
+            session['user_id'] = usuario.numNomina
             session['user'] = f"{usuario.nombre} {usuario.apellidoPaterno} {usuario.apellidoMaterno}"
             session['rol'] = usuario.nombreRol
+            flash("Inicio de sesión exitoso", "success")
             return redirect(url_for('auth.bienvenida'))
         else:
             flash("Usuario o contraseña incorrectos", "error")
