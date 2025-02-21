@@ -1,3 +1,5 @@
+Use Prueba_4
+
 CREATE TABLE usuarios (
     numNomina INT PRIMARY KEY,  -- Cambiamos idUsuario por numNomina (no autoincrementable)
     nombre NVARCHAR(100) NOT NULL,
