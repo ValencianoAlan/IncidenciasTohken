@@ -8,7 +8,7 @@ class UserModel:
         self.connection_string = (
             "DRIVER={ODBC Driver 17 for SQL Server};"
             "SERVER=localhost;"
-            "DATABASE=Prueba_3;"
+            "DATABASE=Prueba_4;"
             "UID=sa;"
             "PWD=root"
         )
