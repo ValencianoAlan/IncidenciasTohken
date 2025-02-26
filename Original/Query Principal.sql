@@ -177,7 +177,20 @@ and u.idPuesto = p.idPuesto
 ALTER TABLE puestos
 ADD idDepartamento INT;
 
--- Establecer idDepartamento como clave foránea
 ALTER TABLE puestos
-ADD CONSTRAINT fk_puesto_departamento
-FOREIGN KEY (idDepartamento) REFERENCES departamentos(idDepartamento);
+ADD CONSTRAINT uq_nombrePuesto UNIQUE (nombrePuesto);
+
+ALTER TABLE departamento_puesto
+ADD CONSTRAINT fk_departamento
+FOREIGN KEY (idDepartamento) REFERENCES departamentos(idDepartamento)
+ON DELETE CASCADE;
+
+ALTER TABLE departamento_puesto
+ADD CONSTRAINT fk_puesto
+FOREIGN KEY (idPuesto) REFERENCES puestos(idPuesto)
+ON DELETE CASCADE;
+
+select dp.idDepartamento, d.nombreDepartamento, p.nombrePuesto 
+from departamento_puesto dp, departamentos d, puestos p
+where dp.idDepartamento = d.idDepartamento
+and dp.idPuesto = p.idPuesto
