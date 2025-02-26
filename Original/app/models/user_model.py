@@ -61,29 +61,29 @@ class UserModel:
             cursor.close()
             conn.close()
 
-    def add_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username, password, idRol):
+    def add_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username, password, idRol, idDepartamento, idPuesto):
         try:
             conn = self.get_connection()
             cursor = conn.cursor()
-            
+
             # Insertar en usuarios
             cursor.execute("""
-                INSERT INTO usuarios (numNomina, nombre, apellidoPaterno, apellidoMaterno)
-                VALUES (?, ?, ?, ?)
-            """, (numNomina, nombre, apellido_paterno, apellido_materno))
-            
+                INSERT INTO usuarios (numNomina, nombre, apellidoPaterno, apellidoMaterno, idDepartamento, idPuesto)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (numNomina, nombre, apellido_paterno, apellido_materno, idDepartamento, idPuesto))
+
             # Insertar en credenciales
             cursor.execute("""
                 INSERT INTO credenciales (numNomina, username, password)
                 VALUES (?, ?, ?)
             """, (numNomina, username, password))
-            
+
             # Asignar rol
             cursor.execute("""
                 INSERT INTO usuario_rol (numNomina, idRol)
                 VALUES (?, ?)
             """, (numNomina, idRol))
-            
+
             conn.commit()
             return True
         except Exception as e:
@@ -105,6 +105,27 @@ class UserModel:
         cursor.close()
         conn.close()
         return registros
+    
+    def get_all_users_with_details(self):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                SELECT u.numNomina, u.nombre, u.apellidoPaterno, u.apellidoMaterno, c.username,
+                    d.nombreDepartamento, p.nombrePuesto
+                FROM usuarios u
+                INNER JOIN credenciales c ON u.numNomina = c.numNomina
+                LEFT JOIN departamentos d ON u.idDepartamento = d.idDepartamento
+                LEFT JOIN puestos p ON u.idPuesto = p.idPuesto
+            """)
+            registros = cursor.fetchall()
+            return registros
+        except Exception as e:
+            print(f"Error al obtener usuarios con detalles: {e}")
+            return []
+        finally:
+            cursor.close()
+            conn.close()
 
     def get_user_by_numNomina(self, numNomina):
         conn = self.get_connection()
@@ -132,27 +153,27 @@ class UserModel:
             cursor.close()
             conn.close()
 
-    def update_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username, idRol):
+    def update_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username, idDepartamento, idPuesto, idRol):
         conn = self.get_connection()
         cursor = conn.cursor()
         try:
             # Actualizar tabla usuarios
             cursor.execute("""
-                UPDATE usuarios 
-                SET nombre = ?, apellidoPaterno = ?, apellidoMaterno = ?
+                UPDATE usuarios
+                SET nombre = ?, apellidoPaterno = ?, apellidoMaterno = ?, idDepartamento = ?, idPuesto = ?
                 WHERE numNomina = ?
-            """, (nombre, apellido_paterno, apellido_materno, numNomina))
+            """, (nombre, apellido_paterno, apellido_materno, idDepartamento, idPuesto, numNomina))
 
             # Actualizar tabla credenciales
             cursor.execute("""
-                UPDATE credenciales 
+                UPDATE credenciales
                 SET username = ?
                 WHERE numNomina = ?
             """, (username, numNomina))
 
             # Actualizar tabla usuario_rol
             cursor.execute("""
-                UPDATE usuario_rol 
+                UPDATE usuario_rol
                 SET idRol = ?
                 WHERE numNomina = ?
             """, (idRol, numNomina))
@@ -166,17 +187,16 @@ class UserModel:
             cursor.close()
             conn.close()
 
-    # En app/models/user_model.py
     def delete_user(self, numNomina):
         conn = self.get_connection()
         cursor = conn.cursor()
         try:
             # Eliminar de usuario_rol
-            cursor.execute("DELETE FROM usuario_rol WHERE numNomina = ?", numNomina)
+            cursor.execute("DELETE FROM usuario_rol WHERE numNomina = ?", (numNomina,))
             # Eliminar de credenciales
-            cursor.execute("DELETE FROM credenciales WHERE numNomina = ?", numNomina)
+            cursor.execute("DELETE FROM credenciales WHERE numNomina = ?", (numNomina,))
             # Eliminar de usuarios
-            cursor.execute("DELETE FROM usuarios WHERE numNomina = ?", numNomina)
+            cursor.execute("DELETE FROM usuarios WHERE numNomina = ?", (numNomina,))
             conn.commit()
             return True
         except Exception as e:
@@ -293,3 +313,42 @@ class UserModel:
         conn.close()
         return vacaciones[0] if vacaciones else 0
 
+    def get_departamentos(self):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT idDepartamento, nombreDepartamento FROM departamentos")
+        departamentos = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return departamentos
+
+    def get_puestos(self):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT idPuesto, nombrePuesto FROM puestos")
+        puestos = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return puestos
+    
+    def get_puestos_por_departamento(self, idDepartamento):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            # Obtener los puestos asociados al departamento
+            cursor.execute("""
+                SELECT p.idPuesto, p.nombrePuesto
+                FROM puestos p
+                INNER JOIN departamento_puesto dp ON p.idPuesto = dp.idPuesto
+                WHERE dp.idDepartamento = ?
+            """, (idDepartamento,))
+            puestos = cursor.fetchall()
+            return [{"idPuesto": puesto.idPuesto, "nombrePuesto": puesto.nombrePuesto} for puesto in puestos]
+        except Exception as e:
+            print(f"Error al obtener puestos por departamento: {e}")
+            return []
+        finally:
+            cursor.close()
+            conn.close()
+
+            

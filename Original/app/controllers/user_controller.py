@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.models.user_model import UserModel
+from flask import jsonify
 
 # Crear un Blueprint para las rutas de usuario
 user_bp = Blueprint('user', __name__)
@@ -13,7 +14,8 @@ def agregar_usuario():
         return redirect(url_for('auth.bienvenida'))
 
     mensaje = None
-    roles = user_model.get_roles()
+    departamentos = user_model.get_departamentos()  # Obtener departamentos
+    roles = user_model.get_roles()  # Obtener roles
 
     if request.method == 'POST':
         numNomina = request.form.get('numNomina')
@@ -23,9 +25,11 @@ def agregar_usuario():
         username = request.form.get('username')
         password = request.form.get('password')
         idRol = request.form.get('idRol')
+        idDepartamento = request.form.get('idDepartamento')  # Obtener el departamento
+        idPuesto = request.form.get('idPuesto')  # Obtener el puesto
 
-        if numNomina and nombre and username and password and idRol:
-            if user_model.add_user(numNomina, nombre, apellido_paterno, apellido_materno, username, password, idRol):
+        if numNomina and nombre and username and password and idRol and idDepartamento and idPuesto:
+            if user_model.add_user(numNomina, nombre, apellido_paterno, apellido_materno, username, password, idRol, idDepartamento, idPuesto):
                 flash("Usuario agregado exitosamente", "success")
                 return redirect(url_for('auth.bienvenida'))
             else:
@@ -33,17 +37,15 @@ def agregar_usuario():
         else:
             flash("Por favor, completa todos los campos obligatorios", "error")
 
-    return render_template('agregar_usuario.html', mensaje=mensaje, roles=roles)
+    return render_template('agregar_usuario.html', mensaje=mensaje, departamentos=departamentos, roles=roles)
 
-# Ruta para ver registros de usuarios
 @user_bp.route('/ver_registros', methods=['GET', 'POST'])
 def ver_registros():
-    # Verificar si el usuario está autenticado
     if 'user' not in session:
         return redirect(url_for('auth.login'))
 
     busqueda = request.form.get('numNomina') if request.method == 'POST' else None
-    registros = user_model.get_all_users()  # Obtener todos los usuarios
+    registros = user_model.get_all_users_with_details()  # Obtener todos los usuarios con detalles
 
     # Filtrar por número de nómina si se proporciona una búsqueda
     if busqueda:
@@ -62,49 +64,43 @@ def borrar_usuario(numNomina):
         flash("Usuario borrado exitosamente", "success")
     else:
         flash("Error al borrar usuario", "error")
+
     return redirect(url_for('auth.bienvenida'))
 
 @user_bp.route('/editar_usuario/<int:numNomina>', methods=['GET', 'POST'])
 def editar_usuario(numNomina):
-    # Verificar si el usuario está autenticado y tiene permisos
     if 'rol' not in session or session['rol'] not in ['Admin', 'Supervisor', 'Gerente']:
         flash("No tienes permiso para acceder a esta página", "error")
         return redirect(url_for('auth.bienvenida'))
 
     # Obtener el usuario que se va a editar
     usuario = user_model.get_user_by_numNomina(numNomina)
-    roles = user_model.get_roles()
+    departamentos = user_model.get_departamentos()  # Obtener departamentos
+    roles = user_model.get_roles()  # Obtener roles
 
     if not usuario:
         flash("Usuario no encontrado", "error")
         return redirect(url_for('auth.bienvenida'))
 
     if request.method == 'POST':
-        # Obtener los datos del formulario
         nombre = request.form['nombre']
         apellido_paterno = request.form['apellidoPaterno']
         apellido_materno = request.form['apellidoMaterno']
         username = request.form['username']
+        idDepartamento = request.form['idDepartamento']  # Obtener el departamento
+        idPuesto = request.form['idPuesto']  # Obtener el puesto
+        idRol = request.form['idRol']  # Obtener el rol
 
-        # Restricción para Gerente y Supervisor: No pueden cambiar el rol
-        if session['rol'] in ['Gerente', 'Supervisor']:
-            idRol = usuario.idRol  # Mantener el rol actual
-        else:
-            idRol = request.form['idRol']  # Admin puede cambiar el rol
-
-        # Solo el Admin puede cambiar el número de nómina
-        if session['rol'] == 'Admin':
-            nuevo_numNomina = request.form['numNomina']
-        else:
-            nuevo_numNomina = numNomina  # Mantener el número de nómina actual
-
-        # Actualizar el usuario en la base de datos
-        if user_model.update_user(nuevo_numNomina, nombre, apellido_paterno, apellido_materno, username, idRol):
+        if user_model.update_user(numNomina, nombre, apellido_paterno, apellido_materno, username, idDepartamento, idPuesto, idRol):
             flash("Usuario actualizado exitosamente", "success")
             return redirect(url_for('user.ver_registros'))
         else:
             flash("Error al actualizar usuario", "error")
 
-    # Renderizar la plantilla de edición
-    return render_template('editar_usuario.html', usuario=usuario, roles=roles, username=session['user'])
+    return render_template('editar_usuario.html', usuario=usuario, departamentos=departamentos, roles=roles, username=session['user'])
+
+@user_bp.route('/obtener_puestos_por_departamento/<int:idDepartamento>', methods=['GET'])
+def obtener_puestos_por_departamento(idDepartamento):
+    puestos = user_model.get_puestos_por_departamento(idDepartamento)
+    return jsonify(puestos)
 

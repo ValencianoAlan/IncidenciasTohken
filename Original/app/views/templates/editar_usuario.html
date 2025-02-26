@@ -5,13 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Usuario</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link
-    rel="stylesheet"
-    href="{{ url_for('static', filename='css/bienvenida.css') }}"
-  />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bienvenida.css') }}">
 </head>
 <body>
-
     <header class="bg-light py-3 mb-2">
         <div
           class="container d-flex justify-content-between align-items-center gap-3"
@@ -48,67 +44,57 @@
         <form method="POST">
             <div class="mb-3">
                 <label for="numNomina" class="form-label">Número de Nómina</label>
-                <input
-                    type="number"
-                    class="form-control"
-                    id="numNomina"
-                    name="numNomina"
-                    value="{{ usuario.numNomina }}"
-                    {% if session['rol'] != 'Admin' %}readonly{% endif %}
-                >
+                <input type="number" class="form-control" id="numNomina" name="numNomina" value="{{ usuario.numNomina }}" readonly />
             </div>
-        
+
             <div class="mb-3">
                 <label for="nombre" class="form-label">Nombre</label>
-                <input
-                    type="text"
-                    class="form-control"
-                    id="nombre"
-                    name="nombre"
-                    value="{{ usuario.nombre }}"
-                    required
-                >
+                <input type="text" class="form-control" id="nombre" name="nombre" value="{{ usuario.nombre }}" required />
             </div>
-        
+
             <div class="mb-3">
                 <label for="apellidoPaterno" class="form-label">Apellido Paterno</label>
-                <input
-                    type="text"
-                    class="form-control"
-                    id="apellidoPaterno"
-                    name="apellidoPaterno"
-                    value="{{ usuario.apellidoPaterno }}"
-                >
+                <input type="text" class="form-control" id="apellidoPaterno" name="apellidoPaterno" value="{{ usuario.apellidoPaterno }}" />
             </div>
-        
+
             <div class="mb-3">
                 <label for="apellidoMaterno" class="form-label">Apellido Materno</label>
-                <input
-                    type="text"
-                    class="form-control"
-                    id="apellidoMaterno"
-                    name="apellidoMaterno"
-                    value="{{ usuario.apellidoMaterno }}"
-                >
+                <input type="text" class="form-control" id="apellidoMaterno" name="apellidoMaterno" value="{{ usuario.apellidoMaterno }}" />
             </div>
-        
+
             <div class="mb-3">
                 <label for="username" class="form-label">Usuario</label>
-                <input
-                    type="text"
-                    class="form-control"
-                    id="username"
-                    name="username"
-                    value="{{ usuario.username }}"
-                    required
-                >
+                <input type="text" class="form-control" id="username" name="username" value="{{ usuario.username }}" required />
             </div>
-        
-            <!-- Mostrar el campo de rol solo si el usuario es Admin -->
-            {% if session['rol'] == 'Admin' %}
+
+            <!-- Campo de Departamento -->
+            <div class="mb-3">
+                <label for="idDepartamento" class="form-label">Departamento</label>
+                <select class="form-select" id="idDepartamento" name="idDepartamento" required>
+                    {% for departamento in departamentos %}
+                        <option value="{{ departamento.idDepartamento }}" {% if departamento.idDepartamento == usuario.idDepartamento %}selected{% endif %}>
+                            {{ departamento.nombreDepartamento }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Campo de Puesto -->
+            <div class="mb-3">
+                <label for="idPuesto" class="form-label">Puesto</label>
+                <select class="form-select" id="idPuesto" name="idPuesto" required>
+                    {% for puesto in puestos %}
+                        <option value="{{ puesto.idPuesto }}" {% if puesto.idPuesto == usuario.idPuesto %}selected{% endif %}>
+                            {{ puesto.nombrePuesto }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Campo de Rol -->
             <div class="mb-3">
                 <label for="idRol" class="form-label">Rol</label>
-                <select class="form-select" id="idRol" name="idRol">
+                <select class="form-select" id="idRol" name="idRol" required>
                     {% for rol in roles %}
                         <option value="{{ rol.idRol }}" {% if rol.idRol == usuario.idRol %}selected{% endif %}>
                             {{ rol.nombreRol }}
@@ -116,8 +102,7 @@
                     {% endfor %}
                 </select>
             </div>
-            {% endif %}
-        
+
             <div class="mt-4">
                 <button type="submit" class="btn btn-success">Guardar Cambios</button>
                 <a href="{{ url_for('user.ver_registros') }}" class="btn btn-secondary">Cancelar</a>
@@ -125,22 +110,65 @@
         </form>
     </div>
 
-    <!-- Scripts de Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
 
-    <!-- Script para ocultar mensajes automáticamente -->
+    <!-- Al final del body -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(alert => {
-                setTimeout(() => {
-                    alert.style.opacity = '0';
-                    setTimeout(() => alert.remove(), 500);
-                }, 2000);
+        document.addEventListener('DOMContentLoaded', function () {
+            const selectDepartamento = document.getElementById('idDepartamento');
+            const selectPuesto = document.getElementById('idPuesto');
+    
+            // Función para cargar los puestos según el departamento seleccionado
+            function cargarPuestos(idDepartamento) {
+                fetch(`/obtener_puestos_por_departamento/${idDepartamento}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Limpiar el select de puestos
+                        selectPuesto.innerHTML = '';
+    
+                        // Agregar las opciones de puestos
+                        data.forEach(puesto => {
+                            const option = document.createElement('option');
+                            option.value = puesto.idPuesto;
+                            option.textContent = puesto.nombrePuesto;
+                            selectPuesto.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error al cargar puestos:', error));
+            }
+    
+            // Cargar puestos cuando se seleccione un departamento
+            selectDepartamento.addEventListener('change', function () {
+                const idDepartamento = this.value;
+                cargarPuestos(idDepartamento);
             });
+    
+            // Cargar puestos al cargar la página (según el primer departamento)
+            const idDepartamentoInicial = selectDepartamento.value;
+            if (idDepartamentoInicial) {
+                cargarPuestos(idDepartamentoInicial);
+            }
         });
     </script>
+
+    <!-- Script para ocultar mensajes automáticamente -->
+     <script >
+        document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.opacity = '0';
+            setTimeout(() => alert.remove(), 500);
+        }, 2000);
+    });
+});
+     </script>
 </body>
 </html>

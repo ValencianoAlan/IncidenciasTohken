@@ -47,13 +47,12 @@ CREATE TABLE departamentos (
     nombreDepartamento NVARCHAR(100) NOT NULL UNIQUE  -- Nombre del departamento
 );
 
--- Tabla para relacionar usuarios con departamentos
-CREATE TABLE usuario_departamento (
-    numNomina INT NOT NULL,
+CREATE TABLE departamento_puesto (
     idDepartamento INT NOT NULL,
-    PRIMARY KEY (numNomina, idDepartamento),
-    FOREIGN KEY (numNomina) REFERENCES usuarios(numNomina),
-    FOREIGN KEY (idDepartamento) REFERENCES departamentos(idDepartamento)
+    idPuesto INT NOT NULL,
+    PRIMARY KEY (idDepartamento, idPuesto),
+    FOREIGN KEY (idDepartamento) REFERENCES departamentos(idDepartamento),
+    FOREIGN KEY (idPuesto) REFERENCES puestos(idPuesto)
 );
 
 CREATE TABLE vacaciones (
@@ -66,9 +65,9 @@ select * from credenciales;
 select * from roles;
 select * from usuario_rol;
 select * from usuarios;
-select * from puestos;
-select * from usuario_puesto;
+select * from puestos order by idPuesto;
 select * from departamentos ORDER BY idDepartamento;
+select * from departamento_puesto;
 
 INSERT INTO roles (nombreRol) VALUES ('Admin'), ('Usuario');
 insert into usuarios (numNomina,nombre,apellidoPaterno,apellidoMaterno)
@@ -91,7 +90,6 @@ INSERT INTO roles (idRol,nombreRol) VALUES
 (3,'Gerente'),
 (4, 'Supervisor')
 
-
 INSERT INTO departamentos (nombreDepartamento) VALUES
 ('Administración'),
 ('Compras'),
@@ -104,8 +102,82 @@ INSERT INTO departamentos (nombreDepartamento) VALUES
 ('Seguridad e Higiene y Medio Ambiente');
 
 INSERT INTO puestos (nombrePuesto) VALUES
+('Director General'),
+('Gerente General de Administración'),
+('Gerente de Planta'),
+('Gerente General de Ventas'),
+('Gerente Senior de Finanzas'),
 ('Gerente'),
+('Asistente para el Gerente General de Administración'),
 ('Asistente de Gerente'),
+('Supervisor Senior de APQP'),
+('Supervisor Senior de Producción'),
+('Supervisor ISO'),
+('Supervisor de Atención a Cliente'),
 ('Supervisor'),
+('Traductor'),
+('Medico'),
 ('Lider'),
-('Auxiliar');
+('Auxiliar'),
+('Tecnico'),
+('Enfermero(a)'),
+('Inspector'),
+('Almacenista'),
+('Operario');
+
+-- Agregar la columna idDepartamento a la tabla usuarios
+ALTER TABLE usuarios
+ADD idDepartamento INT;
+
+-- Establecer idDepartamento como clave foránea
+ALTER TABLE usuarios
+ADD CONSTRAINT fk_usuario_departamento
+FOREIGN KEY (idDepartamento) REFERENCES departamentos(idDepartamento);
+
+UPDATE usuarios
+SET idDepartamento = 5
+WHERE numNomina = 1035;
+
+UPDATE usuarios
+SET idDepartamento = 5
+WHERE numNomina = 712;
+
+UPDATE usuarios
+SET idDepartamento = 1
+WHERE numNomina = 1242;
+
+-- Agregar la columna idPuesto a la tabla usuarios
+ALTER TABLE usuarios
+ADD idPuesto INT;
+
+-- Establecer idPuesto como clave foránea
+ALTER TABLE usuarios
+ADD CONSTRAINT fk_usuario_puesto
+FOREIGN KEY (idPuesto) REFERENCES puestos(idPuesto);
+
+-- Asignar el usuario con numNomina 1242 al puesto con idPuesto 16
+UPDATE usuarios
+SET idPuesto = 16
+WHERE numNomina = 1242;
+
+-- Asignar el usuario con numNomina 712 al puesto con idPuesto 16
+UPDATE usuarios
+SET idPuesto = 16
+WHERE numNomina = 712;
+
+UPDATE usuarios
+SET idPuesto = 17
+WHERE numNomina = 1035;
+
+select u.nombre as 'Nombre', u.apellidoPaterno as 'Apellido Paterno', d.nombreDepartamento as 'Departamento' , p.nombrePuesto as 'Puesto'
+from usuarios u, departamentos d, puestos p
+where u.idDepartamento = d.idDepartamento
+and u.idPuesto = p.idPuesto
+
+ALTER TABLE puestos
+ADD idDepartamento INT;
+
+-- Establecer idDepartamento como clave foránea
+ALTER TABLE puestos
+ADD CONSTRAINT fk_puesto_departamento
+FOREIGN KEY (idDepartamento) REFERENCES departamentos(idDepartamento);
