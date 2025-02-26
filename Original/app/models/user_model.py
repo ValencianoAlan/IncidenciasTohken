@@ -8,7 +8,7 @@ class UserModel:
         self.connection_string = (
             "DRIVER={ODBC Driver 17 for SQL Server};"
             "SERVER=localhost;"
-            "DATABASE=Prueba_4;"
+            "DATABASE=Prueba_5;"
             "UID=sa;"
             "PWD=root"
         )
@@ -265,5 +265,31 @@ class UserModel:
         finally:
             cursor.close()
             conn.close()
-            
+
+    def get_puestos(self):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT idPuesto, nombrePuesto FROM puestos")
+        puestos = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return puestos
+
+    def get_departamentos(self):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT idDepartamento, nombreDepartamento FROM departamentos")
+        departamentos = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return departamentos
+
+    def get_vacaciones(self, numNomina):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT diasVacaciones FROM vacaciones WHERE numNomina = ?", (numNomina,))
+        vacaciones = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return vacaciones[0] if vacaciones else 0
 

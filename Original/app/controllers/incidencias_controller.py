@@ -1,12 +1,22 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session
+from app.models.user_model import UserModel
 
 incidencias_bp = Blueprint('incidencias', __name__)
+user_model = UserModel()
 
 @incidencias_bp.route('/ver_incidencias')
 def ver_incidencias():
     if 'user' not in session:
         return redirect(url_for('auth.login'))
-    return render_template('incidencia.html')
+
+    # Obtener puestos y departamentos desde la base de datos
+    puestos = user_model.get_puestos()
+    departamentos = user_model.get_departamentos()
+
+    # Obtener los días de vacaciones restantes del usuario actual
+    vacaciones = user_model.get_vacaciones(session['numNomina'])
+
+    return render_template('incidencia.html', puestos=puestos, departamentos=departamentos, vacaciones=vacaciones)
 
 @incidencias_bp.route('/crear_incidencia', methods=['POST'])
 def crear_incidencia():

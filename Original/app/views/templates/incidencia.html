@@ -148,18 +148,16 @@
 
             <!-- Información adicional -->
             <div class="row mb-2" style="font-size: 14px">
-              <div class="col-md-3">
-                <label for="puesto" class="form-label">Puesto</label>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="puesto"
-                  name="puesto"
-                  placeholder="Puesto"
-                  style="font-size: 12px"
-                  required
-                />
+              <!-- Campo de Puesto -->
+              <div class="col-md-3 style="font-size: 12px"">
+                  <label for="puesto" class="form-label">Puesto</label>
+                  <select class="form-select" id="puesto" name="puesto" style="font-size: 12px;" required>
+                      {% for puesto in puestos %}
+                          <option value="{{ puesto.idPuesto }}">{{ puesto.nombrePuesto }}</option>
+                      {% endfor %}
+                  </select>
               </div>
+
               <div class="col-md-3">
                 <label for="no_nomina" class="form-label">No. Nómina</label>
                 <input
@@ -174,33 +172,16 @@
                   required
                 />
               </div>
-              <div class="col-md-3">
-                <label for="departamento" class="form-label"
-                  >Departamento</label
-                >
-                <select
-                  class="form-select"
-                  id="departamento"
-                  name="departamento"
-                  style="font-size: 14px"
-                  required
-                >
-                  <option value="Administración">Administración</option>
-                  <option value="Ventas">Ventas</option>
-                  <option value="Finanzas">Finanzas</option>
-                  <option value="Sistemas">Sistemas</option>
-                  <option value="Producción">Producción</option>
-                  <option value="Control de Producción">
-                    Control de Producción
-                  </option>
-                  <option value="Control de Calidad">Control de Calidad</option>
-                  <option value="Mantenimiento">Mantenimiento</option>
-                  <option value="Seguridad e Higiene y Medio Ambiente">
-                    Seguridad e Higiene y Medio Ambiente
-                  </option>
+            <!-- Campo de Departamento -->
+            <div class="col-md-3"">
+                <label for="departamento" class="form-label">Departamento</label>
+                <select class="form-select" id="departamento" name="departamento" style="font-size: 12px;" required>
+                    {% for departamento in departamentos %}
+                        <option value="{{ departamento.idDepartamento }}">{{ departamento.nombreDepartamento }}</option>
+                    {% endfor %}
                 </select>
-              </div>
-              <div class="col-md-3">
+            </div>
+              <div class="col-md-3" >
                 <label for="vacaciones" class="form-label"
                   >Días de Vacaciones Restantes</label
                 >
@@ -212,20 +193,21 @@
                   placeholder="00"
                   min="0"
                   max="22"
+                  style="font-size: 12px;"
                   disabled
                 />
               </div>
             </div>
 
             <!-- Vacaciones restantes, Fecha de inicio y Fecha de fin -->
-            <div class="row mb-2">
+            <div class="row mb-2" style="font-size: 14px;">
               <div class="col-md-3">
                 <label for="motivo_ausencia" class="form-label">Motivo</label>
                 <select
                   class="form-select"
                   id="motivo_ausencia"
                   name="motivo"
-                  style="font-size: 14px"
+                  style="font-size: 12px"
                   required
                 >
                   <option value="goce_sueldo">
@@ -253,6 +235,7 @@
                   min="0"
                   max="10"
                   maxlength="2"
+                  style="font-size: 12px;"
                 />
               </div>
 
@@ -265,21 +248,23 @@
                   class="form-control"
                   id="fecha_inicio"
                   name="fecha_inicio"
+                  style="font-size: 12px;"
                   required
                 />
               </div>
               <div class="col-md-2">
-                <label for="fecha_fin" class="form-label">Fecha de Fin</label>
+                <label for="fecha_fin" class="form-label" style="font-size: 14px;">Fecha de Fin</label>
                 <input
                   type="date"
                   class="form-control"
                   id="fecha_fin"
                   name="fecha_fin"
+                  style="font-size: 12px;"
                   required
                 />
               </div>
               <div class="col-md-2 hora-fields">
-                <label for="hora_entrada" class="form-label"
+                <label for="hora_entrada" class="form-label" style="font-size: 14px;"
                   >Hora de Entrada</label
                 >
                 <input
@@ -287,6 +272,7 @@
                   class="form-control"
                   id="hora_entrada"
                   name="hora_entrada"
+                  style="font-size: 14px;"
                 />
               </div>
               <div class="col-md-2 hora-fields">
@@ -298,12 +284,13 @@
                   class="form-control"
                   id="hora_salida"
                   name="hora_salida"
+                  style="font-size: 14px;"
                 />
               </div>
             </div>
 
             <!-- Observaciones -->
-            <div class="mb-4">
+            <div class="mb-4" style="font-size: 14px;">
               <label for="comentarios" class="form-label"
                 ><b>Observaciones:</b></label
               >
@@ -314,6 +301,7 @@
                 rows="4"
                 maxlength="250"
                 placeholder="Escribe aquí tu comentario (máximo 250 caracteres)..."
+                style="font-size: 12px;"
                 required
               ></textarea>
               <small class="form-text text-muted">Máximo 250 caracteres.</small>
