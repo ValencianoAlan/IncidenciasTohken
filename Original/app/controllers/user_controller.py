@@ -66,10 +66,12 @@ def borrar_usuario(numNomina):
 
 @user_bp.route('/editar_usuario/<int:numNomina>', methods=['GET', 'POST'])
 def editar_usuario(numNomina):
-    if 'rol' not in session or session['rol'] != 'Admin':
+    # Verificar si el usuario está autenticado y tiene permisos
+    if 'rol' not in session or session['rol'] not in ['Admin', 'Supervisor', 'Gerente']:
         flash("No tienes permiso para acceder a esta página", "error")
         return redirect(url_for('auth.bienvenida'))
 
+    # Obtener el usuario que se va a editar
     usuario = user_model.get_user_by_numNomina(numNomina)
     roles = user_model.get_roles()
 
@@ -78,16 +80,31 @@ def editar_usuario(numNomina):
         return redirect(url_for('auth.bienvenida'))
 
     if request.method == 'POST':
+        # Obtener los datos del formulario
         nombre = request.form['nombre']
         apellido_paterno = request.form['apellidoPaterno']
         apellido_materno = request.form['apellidoMaterno']
         username = request.form['username']
-        idRol = request.form['idRol']
 
-        if user_model.update_user(numNomina, nombre, apellido_paterno, apellido_materno, username, idRol):
+        # Restricción para Gerente y Supervisor: No pueden cambiar el rol
+        if session['rol'] in ['Gerente', 'Supervisor']:
+            idRol = usuario.idRol  # Mantener el rol actual
+        else:
+            idRol = request.form['idRol']  # Admin puede cambiar el rol
+
+        # Solo el Admin puede cambiar el número de nómina
+        if session['rol'] == 'Admin':
+            nuevo_numNomina = request.form['numNomina']
+        else:
+            nuevo_numNomina = numNomina  # Mantener el número de nómina actual
+
+        # Actualizar el usuario en la base de datos
+        if user_model.update_user(nuevo_numNomina, nombre, apellido_paterno, apellido_materno, username, idRol):
             flash("Usuario actualizado exitosamente", "success")
-            return redirect(url_for('auth.bienvenida'))
+            return redirect(url_for('user.ver_registros'))
         else:
             flash("Error al actualizar usuario", "error")
 
+    # Renderizar la plantilla de edición
     return render_template('editar_usuario.html', usuario=usuario, roles=roles, username=session['user'])
+

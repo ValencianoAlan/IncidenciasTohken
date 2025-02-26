@@ -15,24 +15,21 @@ def do_login():
     if request.method == 'POST':
         login_input = request.form['login_input']
         password = request.form['password']
-        
         resultado = user_model.authenticate_user(login_input, password)
-        
+
         if resultado["success"]:
             usuario = resultado["data"]
             session['numNomina'] = usuario.numNomina
             session['user'] = f"{usuario.nombre} {usuario.apellidoPaterno} {usuario.apellidoMaterno}"
             session['rol'] = usuario.nombreRol
-            return redirect(url_for('auth.bienvenida'))
-        else:
-            # En la sección de flash:
-            if resultado["error"] == "user_not_found":
-                flash("Usuario o número de nómina no registrado", "user_not_found")
-            elif resultado["error"] == "wrong_password":
-                flash("Contraseña incorrecta", "wrong_password")
+
+            # Redirigir según el rol
+            if usuario.nombreRol == 'Usuario':
+                return redirect(url_for('auth.bienvenida'))  # Página de incidencias (futuro)
             else:
-                flash("Error en el servidor. Intente nuevamente", "error")
-                
+                return redirect(url_for('auth.bienvenida'))  # Página de bienvenida estándar
+        else:
+            flash("Credenciales incorrectas", "error")
     return render_template('login.html')
 
 @auth_bp.route('/bienvenida')

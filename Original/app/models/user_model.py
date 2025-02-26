@@ -246,5 +246,24 @@ class UserModel:
         finally:
             cursor.close()
             conn.close()
+
+    def crear_incidencia(self, nombre, apellido_paterno, apellido_materno, fecha_solicitud, puesto, no_nomina, departamento, motivo, num_dias, fecha_inicio, fecha_fin, comentarios):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                INSERT INTO incidencias (
+                    nombre, apellido_paterno, apellido_materno, fecha_solicitud, puesto, no_nomina, 
+                    departamento, motivo, num_dias, fecha_inicio, fecha_fin, comentarios
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (nombre, apellido_paterno, apellido_materno, fecha_solicitud, puesto, no_nomina, departamento, motivo, num_dias, fecha_inicio, fecha_fin, comentarios))
+            conn.commit()
+            return True
+        except Exception as e:
+            print(f"Error al crear incidencia: {e}")
+            return False
+        finally:
+            cursor.close()
+            conn.close()
             
 

@@ -1,6 +1,8 @@
 from flask import Flask
 from app.controllers.auth_controller import auth_bp
 from app.controllers.user_controller import user_bp
+from app.controllers.incidencias_controller import incidencias_bp
+
 
 
 def create_app():
@@ -19,4 +21,5 @@ def create_app():
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(user_bp)
+    app.register_blueprint(incidencias_bp)
     return app

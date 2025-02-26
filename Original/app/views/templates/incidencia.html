@@ -4,332 +4,338 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Control de Ausencia y Salidas de Planta</title>
-
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
-      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-      crossorigin="anonymous"
     />
-
-    <link rel="stylesheet" href="../static/css/incidencia.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/bienvenida.css') }}"
+    />
   </head>
-
   <body>
-    <div class="container mt-4">
-      <div class="border p-3 border-0">
-        <div class="table-responsive">
-          <table class="table table-bordered">
-            <thead class="text-center table-active">
-              <tr>
-                <th rowspan="2" style="width: 8rem;"><img src="../static/img/Logo-transparente.ico" alt="logo_tohken" style="width: 100px;"></th>
-                <th rowspan="2" class="pb-3" style="width: 60rem;">
-                  TIO-702.01.03/B<br />Control de Ausencia y Salidas de Planta
-                </th>
-                <th>Edición 1ra.</th>
-              </tr>
-              <tr>
-                <th>Fecha: 10-Ene-20</th>
-              </tr>
-            </thead>
-          </table>
+    <header class="bg-light py-3 mb-2">
+      <div
+        class="container d-flex justify-content-between align-items-center gap-3"
+      >
+        <div class="d-flex align-items-center gap-3">
+          <span class="badge bg-primary badge-nomina rounded-pill">
+            <i class="bi bi-person-badge me-2"></i>
+            {{ session['numNomina'] }}
+          </span>
+          <h1 class="h3 mb-0 text-nowrap">{{ session['user'] }}</h1>
         </div>
-        <div class="table-responsive">
-          <table class="table table-bordered">
-            <tbody>
-              <tr>
-                <th>Nombre(s) del Solicitante:</th>
-                <td>
-                  <input
-                    type="text"
-                    name="nombre"
-                    id="nombre"
-                    placeholder="Nombre"
-                    class="form-control"
-                  />
-                </td>
-
-                <th style="width: 10rem">Apellido Paterno:</th>
-                <td>
-                  <input
-                    type="text"
-                    name="apellido_paterno"
-                    id="apellido_paterno"
-                    placeholder="Apellido Paterno"
-                    class="form-control"
-                  />
-                </td>
-
-                <th>Apellido Materno:</th>
-                <td>
-                  <input
-                    type="text"
-                    name="apellido_materno"
-                    id="apellido_materno"
-                    placeholder="Apellido Materno"
-                    class="form-control"
-                  />
-                </td>
-
-                <th>Fecha de Solicitud:</th>
-                <td>
-                  <input
-                    type="date"
-                    name="fecha_solicitud"
-                    id="fecha_solicitud"
-                    class="form-control"
-                  />
-                </td>
-              </tr>
-              <tr>
-                <th>Puesto:</th>
-                <td>
-                  <input
-                    type="text"
-                    name="puesto"
-                    id="puesto"
-                    placeholder="Puesto"
-                    class="form-control"
-                  />
-                </td>
-
-                <th>No. Nómina:</th>
-                <td>
-                  <input
-                    type="number"
-                    name="no_nomina"
-                    id="no_nomina"
-                    min="0"
-                    max="9999"
-                    class="form-control text-end"
-                    placeholder="0000"
-                  />
-                </td>
-
-                <th>Días de vacaciones restantes</th>
-                <td>
-                  <input
-                    type="number"
-                    name="vacaciones"
-                    id="vacaciones"
-                    min="0"
-                    max="22"
-                    class="form-control text-en"
-                    placeholder="00"
-                    maxlength="2"
-                    disabled
-                  />
-                </td>
-
-                <th>Departamento:</th>
-                <td colspan="3" style="width: 15rem;">
-                  <select name="departamento" id="departamento" class="form-select">
-                    <option value="Administración">Administración</option>
-                    <option value="Ventas">Ventas</option>
-                    <option value="Finanzas">Finanzas</option>
-                    <option value="Sistemas">Sistemas</option>
-                    <option value="Producción">Producción</option>
-                    <option value="Control de Producción">Control de Producción</option>
-                    <option value="Control de Calidad">Control de Calidad</option>
-                    <option value="Mantenimiento">Mantenimiento</option>
-                    <option value="Seguridad e Higiene y Medio Ambiente">Seguridad e Higiene y Medio Ambiente</option>
-                  </select>
-                </td>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="table-responsive">
-          <table class="table table-bordered">
-            <thead class="text-center">
-              <tr>
-                <th>Motivo</th>
-                <th>No. de Días</th>
-                <th>Fecha de Inicio</th>
-                <th>Fecha de Fin</th>
-                <th>Hora de Entrada</th>
-                <th>Hora de Salida</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>
-                  <select
-                    name="motivo"
-                    id="motivo_ausencia"
-                    class="form-select"
-                  >
-                    <option value="goce_sueldo">
-                      Permiso con goce de sueldo
-                    </option>
-                    <option value="sin_goce_sueldo">
-                      Permiso sin goce de sueldo
-                    </option>
-                    <option value="entrada_tarde">
-                      Permiso para entrada tarde
-                    </option>
-                    <option value="salida_antes">
-                      Permiso para salir antes de terminar turno
-                    </option>
-                    <option value="motivos_trabajo">
-                      Entrada o salida por motivos de trabajo
-                    </option>
-                    <option value="vacaciones">Vacaciones</option>
-                    <option value="olvido_gafete">Olvido de gafete</option>
-                    <option value="tiempo_x_tiempo">Tiempo x Tiempo</option>
-                  </select>
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    name="num_dias"
-                    id="num_dias"
-                    class="form-control"
-                    min="0"
-                    max="10"
-                    maxlength="2"
-                  />
-                </td>
-                <td>
-                  <input
-                    type="date"
-                    name="fecha_inicio"
-                    id="fecha_inicio"
-                    class="form-control"
-                  />
-                </td>
-                <td>
-                  <input
-                    type="date"
-                    name="fecha_fin"
-                    id="fecha_fin"
-                    class="form-control"
-                  />
-                </td>
-                <td>
-                  <input
-                    type="time"
-                    name="hora_entrada"
-                    id="hora_entrada"
-                    class="form-control"
-                    disabled
-                  />
-                </td>
-                <td>
-                  <input
-                    type="time"
-                    name="hora_salida"
-                    id="hora_salida"
-                    class="form-control"
-                    disabled
-                  />
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Tabla Tiempo x Tiempo -->
-        <div
-          class="table-responsive"
-          id="tiempo_x_tiempo_fields"
-          style="display: none"
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-danger"
+          >Cerrar Sesión</a
         >
-          <table class="table table-bordered">
-            <thead class="text-center">
-              <tr>
-                <th colspan="4">Información Tiempo x Tiempo</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>Día a Trabajar/Reposición</strong></td>
-                <td>
-                  <input type="date" name="dia_trabajar" class="form-control" />
-                </td>
-                <td><strong>Día/Turno</strong></td>
-                <td>
-                  <select name="turno_trabajo" class="form-select">
-                    <option value="manana">Mañana</option>
-                    <option value="tarde">Tarde</option>
-                    <option value="noche">Noche</option>
-                  </select>
-                </td>
-              </tr>
+      </div>
+    </header>
 
-              <tr>
-                <td><strong>Día a Pagar/Reposición</strong></td>
-                <td>
-                  <input type="date" name="dia_pagar" class="form-control" />
-                </td>
-                <td><strong>Turno</strong></td>
-                <td>
-                  <select name="turno_pago" class="form-select">
-                    <option value="manana">Mañana</option>
-                    <option value="tarde">Tarde</option>
-                    <option value="noche">Noche</option>
-                  </select>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+    <div class="container mt-2">
+      <!-- Encabezado de la página -->
+      <div class="card mb-2 shadow">
+        <div class="card-header bg-primary">
+          <h5 class="mb-0 text-white">Solicitud de Incidencia</h5>
         </div>
+        <div class="card-body">
+          <div class="row">
+            <!-- Logo a la izquierda -->
+            <div class="col-md-4 d-flex align-items-center">
+              <img
+                src="{{ url_for('static', filename='img/Logo-transparente.ico') }}"
+                alt="logo_tohken"
+                class="img-fluid"
+                style="width: 75px"
+              />
+            </div>
 
-        <div class="container mt-1">
-          <form>
-            <div class="mb-3">
-              <label for="comentarios" class="form-label mt-2"
+            <!-- TIO-702.01.03/B en el centro -->
+            <div
+              class="col-md-4 d-flex align-items-center justify-content-center text-center"
+            >
+              <p class="mb-0" style="font-weight: bold; font-size: 16px">
+                TIO-702.01.03/B <br />
+                Control de Ausencia y Salidas de Planta
+              </p>
+            </div>
+
+            <!-- Control de Ausencia y Salidas de Planta / Edición a la derecha -->
+            <div
+              class="col-md-4 d-flex align-items-center justify-content-end text-center"
+            >
+              <div class="text-end">
+                <p
+                  class="text-muted mb-0"
+                  style="font-weight: bold; font-size: 16px"
+                >
+                  Edición 1ra. <br />
+                  Fecha: 10-Ene-20
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulario de incidencia -->
+      <div class="card shadow">
+        <div class="card-body">
+          <form
+            method="POST"
+            action="{{ url_for('incidencias.crear_incidencia') }}"
+          >
+            <!-- Información del solicitante -->
+            <div class="row mb-2" style="font-size: 14px">
+              <div class="col-md-3">
+                <label for="nombre" class="form-label"
+                  >Nombre(s) del Solicitante</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="nombre"
+                  name="nombre"
+                  placeholder="Nombre"
+                  style="font-size: 12px"
+                  required
+                />
+              </div>
+              <div class="col-md-3">
+                <label for="apellido_paterno" class="form-label"
+                  >Apellido Paterno</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="apellido_paterno"
+                  name="apellido_paterno"
+                  placeholder="Apellido Paterno"
+                  style="font-size: 12px"
+                  required
+                />
+              </div>
+              <div class="col-md-3">
+                <label for="apellido_materno" class="form-label"
+                  >Apellido Materno</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="apellido_materno"
+                  name="apellido_materno"
+                  placeholder="Apellido Materno"
+                  style="font-size: 12px"
+                />
+              </div>
+              <div class="col-md-3">
+                <label for="fecha_solicitud" class="form-label"
+                  >Fecha de Solicitud</label
+                >
+                <input
+                  type="date"
+                  class="form-control"
+                  id="fecha_solicitud"
+                  name="fecha_solicitud"
+                  style="font-size: 12px"
+                  required
+                />
+              </div>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="row mb-2" style="font-size: 14px">
+              <div class="col-md-3">
+                <label for="puesto" class="form-label">Puesto</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="puesto"
+                  name="puesto"
+                  placeholder="Puesto"
+                  style="font-size: 12px"
+                  required
+                />
+              </div>
+              <div class="col-md-3">
+                <label for="no_nomina" class="form-label">No. Nómina</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="no_nomina"
+                  name="no_nomina"
+                  placeholder="0000"
+                  style="font-size: 12px"
+                  min="0"
+                  max="9999"
+                  required
+                />
+              </div>
+              <div class="col-md-3">
+                <label for="departamento" class="form-label"
+                  >Departamento</label
+                >
+                <select
+                  class="form-select"
+                  id="departamento"
+                  name="departamento"
+                  style="font-size: 14px"
+                  required
+                >
+                  <option value="Administración">Administración</option>
+                  <option value="Ventas">Ventas</option>
+                  <option value="Finanzas">Finanzas</option>
+                  <option value="Sistemas">Sistemas</option>
+                  <option value="Producción">Producción</option>
+                  <option value="Control de Producción">
+                    Control de Producción
+                  </option>
+                  <option value="Control de Calidad">Control de Calidad</option>
+                  <option value="Mantenimiento">Mantenimiento</option>
+                  <option value="Seguridad e Higiene y Medio Ambiente">
+                    Seguridad e Higiene y Medio Ambiente
+                  </option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label for="vacaciones" class="form-label"
+                  >Días de Vacaciones Restantes</label
+                >
+                <input
+                  type="number"
+                  class="form-control"
+                  id="vacaciones"
+                  name="vacaciones"
+                  placeholder="00"
+                  min="0"
+                  max="22"
+                  disabled
+                />
+              </div>
+            </div>
+
+            <!-- Vacaciones restantes, Fecha de inicio y Fecha de fin -->
+            <div class="row mb-2">
+              <div class="col-md-3">
+                <label for="motivo_ausencia" class="form-label">Motivo</label>
+                <select
+                  class="form-select"
+                  id="motivo_ausencia"
+                  name="motivo"
+                  style="font-size: 14px"
+                  required
+                >
+                  <option value="goce_sueldo">
+                    Permiso con goce de sueldo
+                  </option>
+                  <option value="sin_goce_sueldo">
+                    Permiso sin goce de sueldo
+                  </option>
+                  <option value="motivos_trabajo">
+                    Entrada o salida por motivos de trabajo
+                  </option>
+                  <option value="vacaciones">Vacaciones</option>
+                  <option value="olvido_gafete">Olvido de gafete</option>
+                  <option value="tiempo_x_tiempo">Tiempo x Tiempo</option>
+                </select>
+              </div>
+
+              <div class="col-md-1">
+                <label for="num_dias" class="form-label">No de Días</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="num_dias"
+                  name="num_dias"
+                  min="0"
+                  max="10"
+                  maxlength="2"
+                />
+              </div>
+
+              <div class="col-md-2">
+                <label for="fecha_inicio" class="form-label"
+                  >Fecha de Inicio</label
+                >
+                <input
+                  type="date"
+                  class="form-control"
+                  id="fecha_inicio"
+                  name="fecha_inicio"
+                  required
+                />
+              </div>
+              <div class="col-md-2">
+                <label for="fecha_fin" class="form-label">Fecha de Fin</label>
+                <input
+                  type="date"
+                  class="form-control"
+                  id="fecha_fin"
+                  name="fecha_fin"
+                  required
+                />
+              </div>
+              <div class="col-md-2 hora-fields">
+                <label for="hora_entrada" class="form-label"
+                  >Hora de Entrada</label
+                >
+                <input
+                  type="time"
+                  class="form-control"
+                  id="hora_entrada"
+                  name="hora_entrada"
+                />
+              </div>
+              <div class="col-md-2 hora-fields">
+                <label for="hora_salida" class="form-label"
+                  >Hora de Salida</label
+                >
+                <input
+                  type="time"
+                  class="form-control"
+                  id="hora_salida"
+                  name="hora_salida"
+                />
+              </div>
+            </div>
+
+            <!-- Observaciones -->
+            <div class="mb-4">
+              <label for="comentarios" class="form-label"
                 ><b>Observaciones:</b></label
               >
               <textarea
                 class="form-control"
                 id="comentarios"
+                name="comentarios"
                 rows="4"
                 maxlength="250"
                 placeholder="Escribe aquí tu comentario (máximo 250 caracteres)..."
                 required
               ></textarea>
-              <div class="form-text">Máximo 250 caracteres.</div>
+              <small class="form-text text-muted">Máximo 250 caracteres.</small>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="d-flex justify-content-between">
+              <button type="submit" class="btn btn-success">
+                Enviar Solicitud
+              </button>
+              <button type="button" class="btn btn-danger">Cancelar</button>
             </div>
           </form>
         </div>
-        <div class="table-responsive">
-          <table class="table table-bordered text-center">
-            <thead>
-              <tr>
-                <th>Aprobación del Solicitante</th>
-                <th>Aprobación del Jefe Inmediato</th>
-                <th>Aprobación del Gerente de Área</th>
-              </tr>
-              <tr>
-                <td>
-                  <button class="btn btn-danger border-black">Cancelar</button>
-                  <button class="btn btn-success border-black">
-                    Enviar Solicitud
-                  </button>
-                </td>
-                <td>
-                  <button class="btn btn-danger border-black">Rechazar</button>
-                  <button class="btn btn-success border-black">Aprobar</button>
-                </td>
-                <td>
-                  <button class="btn btn-danger border-black">Rechazar</button>
-                  <button class="btn btn-success border-black">Aprobar</button>
-                </td>
-              </tr>
-            </thead>
-          </table>
-        </div>
       </div>
     </div>
-    
-    <script src="../../js/incidencia.js"></script>
 
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-      crossorigin="anonymous"
-    ></script>
+    <!-- Scripts de Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
+
+    <!-- Script para mostrar/ocultar campos de hora -->
+    <script src="../static/js/incidencia.js"></script>
   </body>
 </html>

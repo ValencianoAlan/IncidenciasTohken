@@ -30,8 +30,11 @@
         >
       </div>
     </header>
-    <div class="container py-3">
+
+    <div class="container py-5">
       <div class="row justify-content-center">
+        <!-- Mostrar tarjetas solo para Admin, Supervisor y Gerente -->
+        {% if session['rol'] in ['Admin', 'Supervisor', 'Gerente'] %}
         <div class="col-md-4">
           <div class="pricing-card agregar">
             <div class="pricing-card-footer">
@@ -43,11 +46,13 @@
               <a
                 href="{{ url_for('user.agregar_usuario') }}"
                 class="btn btn-success btn-custom"
-                >Agregar Usuario</a
               >
+                Agregar Usuario
+              </a>
             </div>
           </div>
         </div>
+
         <div class="col-md-4">
           <div class="pricing-card ver">
             <div class="pricing-card-footer">
@@ -64,85 +69,121 @@
             </div>
           </div>
         </div>
-      </div>
-      <!-- Dentro del <div class="container py-5"> -->
+        {% endif %}
 
-      <!-- Dentro de <div class="container py-5"> -->
-      <div class="row justify-content-center mt-4">
-        <div class="col-md-8">
-          <div class="card">
-            <div class="card-header">
-              <h5 class="mb-0">Enviar Correo Electrónico</h5>
+        <!-- Tarjeta de incidencias para todos los roles -->
+        <div class="col-md-4">
+          <div class="pricing-card incidencias">
+            <div class="pricing-card-footer">
+              <img
+                src="../static/img/Incidencia.png"
+                alt="incidencias"
+                style="width: 100px; margin-bottom: 20px"
+              /><br />
+              <a
+                href="{{ url_for('incidencias.ver_incidencias') }}"
+                class="btn btn-warning btn-custom"
+                >Crear Incidencia</a
+              >
             </div>
-            <div class="card-body">
-              <form method="POST" action="{{ url_for('auth.enviar_correo') }}">
-                <div class="mb-3">
-                  <label for="destinatario" class="form-label"
-                    >Destinatarios (separados por comas)</label
-                  >
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="destinatario"
-                    name="destinatario"
-                    placeholder="ejemplo1@gmail.com, ejemplo2@hotmail.com"
-                    required
-                  />
-                </div>
-                <div class="mb-3">
-                  <label for="asunto" class="form-label">Asunto</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="asunto"
-                    name="asunto"
-                    required
-                  />
-                </div>
-                <div class="mb-3">
-                  <label for="cuerpo" class="form-label">Mensaje</label>
-                  <textarea
-                    class="form-control"
-                    id="cuerpo"
-                    name="cuerpo"
-                    rows="2"
-                    required
-                  ></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary">
-                  <i class="bi bi-send"></i> Enviar Correo
-                </button>
-              </form>
+          </div>
+        </div>
+
+        <!-- Mostrar tarjeta de incidencias para todos los roles -->
+        <div class="container">
+          <div class="row justify-content-center">
+            {% if session['rol'] in ['Admin', 'Supervisor', 'Gerente'] %}
+            <!-- Tarjetas de agregar y ver usuarios -->
+            {% endif %}
+          </div>
+        </div>
+
+        
+
+        <div class="row justify-content-center mt-4">
+          <div class="col-md-8">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">Enviar Correo Electrónico</h5>
+              </div>
+              <div class="card-body">
+                <form
+                  method="POST"
+                  action="{{ url_for('auth.enviar_correo') }}"
+                >
+                  <div class="mb-3">
+                    <label for="destinatario" class="form-label"
+                      >Destinatarios (separados por comas)</label
+                    >
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="destinatario"
+                      name="destinatario"
+                      placeholder="ejemplo1@gmail.com, ejemplo2@hotmail.com"
+                      required
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label for="asunto" class="form-label">Asunto</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="asunto"
+                      name="asunto"
+                      required
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label for="cuerpo" class="form-label">Mensaje</label>
+                    <textarea
+                      class="form-control"
+                      id="cuerpo"
+                      name="cuerpo"
+                      rows="2"
+                      required
+                    ></textarea>
+                  </div>
+                  <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-send"></i> Enviar Correo
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Mensajes Flash -->
-      <div id="flash-container">
-        {% with messages = get_flashed_messages(with_categories=true) %} {% if
-        messages %} {% for category, message in messages %}
 
-        <div
-          class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-autoclose d-flex justify-content-between align-items-center mt-3"
-          role="alert"
-        >
-          <span>{{ message }}</span>
-          <!-- Mensaje a la izquierda -->
-          <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="alert"
-            aria-label="Close"
-          ></button>
-        </div>
-        {% endfor %} {% endif %} {% endwith %}
+
+    <!-- Mensajes Flash -->
+    <div id="flash-container">
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+
+      <div
+        class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-autoclose d-flex justify-content-between align-items-center mt-3"
+        role="alert"
+      >
+        <span>{{ message }}</span>
+        <!-- Mensaje a la izquierda -->
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+          aria-label="Close"
+        ></button>
       </div>
+      {% endfor %} {% endif %} {% endwith %}
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
 
     <!-- Al final del body -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
