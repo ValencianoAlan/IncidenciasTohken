@@ -55,11 +55,6 @@ CREATE TABLE departamento_puesto (
     FOREIGN KEY (idPuesto) REFERENCES puestos(idPuesto)
 );
 
-CREATE TABLE vacaciones (
-    numNomina INT PRIMARY KEY,  -- Relación directa con el usuario
-    diasVacaciones INT NOT NULL,  -- Días de vacaciones restantes
-    FOREIGN KEY (numNomina) REFERENCES usuarios(numNomina)
-);
 
 select * from credenciales;
 select * from roles;
@@ -194,3 +189,19 @@ select dp.idDepartamento, d.nombreDepartamento, p.nombrePuesto
 from departamento_puesto dp, departamentos d, puestos p
 where dp.idDepartamento = d.idDepartamento
 and dp.idPuesto = p.idPuesto
+
+SELECT 
+    u.numNomina, 
+    u.nombre, 
+    u.apellidoPaterno, 
+    u.apellidoMaterno, 
+    c.username, 
+    ur.idRol, 
+    u.idDepartamento, 
+    u.idPuesto
+FROM usuarios u
+INNER JOIN credenciales c ON u.numNomina = c.numNomina
+INNER JOIN usuario_rol ur ON u.numNomina = ur.numNomina
+INNER JOIN departamento_puesto dp ON u.idDepartamento = dp.idDepartamento
+AND u.idPuesto = dp.idPuesto
+WHERE u.numNomina = 1035

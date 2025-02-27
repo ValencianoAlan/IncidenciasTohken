@@ -76,6 +76,7 @@ def editar_usuario(numNomina):
     # Obtener el usuario que se va a editar
     usuario = user_model.get_user_by_numNomina(numNomina)
     departamentos = user_model.get_departamentos()  # Obtener departamentos
+    puestos = user_model.get_puestos();
     roles = user_model.get_roles()  # Obtener roles
 
     if not usuario:
@@ -97,7 +98,7 @@ def editar_usuario(numNomina):
         else:
             flash("Error al actualizar usuario", "error")
 
-    return render_template('editar_usuario.html', usuario=usuario, departamentos=departamentos, roles=roles, username=session['user'])
+    return render_template('editar_usuario.html', usuario=usuario, departamentos=departamentos, puestos=puestos,roles=roles, username=session['user'])
 
 @user_bp.route('/obtener_puestos_por_departamento/<int:idDepartamento>', methods=['GET'])
 def obtener_puestos_por_departamento(idDepartamento):

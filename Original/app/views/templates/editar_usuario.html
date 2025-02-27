@@ -140,6 +140,14 @@
                             option.textContent = puesto.nombrePuesto;
                             selectPuesto.appendChild(option);
                         });
+
+                        // Seleccionar el puesto actual del usuario
+                        const puestoActual = "{{ usuario.idPuesto }}";  // Asegúrate de que esto esté correctamente pasado desde el controlador
+                        if (puestoActual) {
+                            selectPuesto.value = puestoActual;
+                            console.log(`Puesto actual seleccionado: ${puestoActual}`);  // Depuración
+                        }
+
                     })
                     .catch(error => console.error('Error al cargar puestos:', error));
             }

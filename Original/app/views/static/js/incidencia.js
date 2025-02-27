@@ -28,3 +28,5 @@ document.addEventListener("DOMContentLoaded", function () {
     // Ejecutar el cambio al cargar la página para establecer el estado inicial
     motivoAusencia.dispatchEvent(new Event("change"));
   });
+
+doc

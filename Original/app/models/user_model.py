@@ -127,32 +127,6 @@ class UserModel:
             cursor.close()
             conn.close()
 
-    def get_user_by_numNomina(self, numNomina):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("""
-                SELECT 
-                    u.numNomina, 
-                    u.nombre, 
-                    u.apellidoPaterno, 
-                    u.apellidoMaterno, 
-                    c.username, 
-                    ur.idRol AS idRol  # Alias para evitar conflictos
-                FROM usuarios u
-                INNER JOIN credenciales c ON u.numNomina = c.numNomina
-                INNER JOIN usuario_rol ur ON u.numNomina = ur.numNomina
-                WHERE u.numNomina = ?
-            """, numNomina)
-            usuario = cursor.fetchone()
-            return usuario
-        except Exception as e:
-            print(f"Error al obtener usuario: {e}")
-            return None
-        finally:
-            cursor.close()
-            conn.close()
-
     def update_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username, idDepartamento, idPuesto, idRol):
         conn = self.get_connection()
         cursor = conn.cursor()
@@ -245,17 +219,25 @@ class UserModel:
                 cursor.close()
                 conn.close()
 
-        # En app/models/user_model.py
     def get_user_by_numNomina(self, numNomina):
         conn = self.get_connection()
         cursor = conn.cursor()
         try:
             cursor.execute("""
-                SELECT u.numNomina, u.nombre, u.apellidoPaterno, u.apellidoMaterno, 
-                    c.username, ur.idRol 
+                SELECT 
+                    u.numNomina, 
+                    u.nombre, 
+                    u.apellidoPaterno, 
+                    u.apellidoMaterno, 
+                    c.username, 
+                    u.idDepartamento, 
+                    u.idPuesto,
+                    ur.idRol 
                 FROM usuarios u
                 INNER JOIN credenciales c ON u.numNomina = c.numNomina
                 INNER JOIN usuario_rol ur ON u.numNomina = ur.numNomina
+                INNER JOIN departamento_puesto dp ON u.idDepartamento = dp.idDepartamento
+                OR u.idPuesto = dp.idPuesto
                 WHERE u.numNomina = ?
             """, numNomina)
             usuario = cursor.fetchone()
@@ -266,43 +248,6 @@ class UserModel:
         finally:
             cursor.close()
             conn.close()
-
-    def crear_incidencia(self, nombre, apellido_paterno, apellido_materno, fecha_solicitud, puesto, no_nomina, departamento, motivo, num_dias, fecha_inicio, fecha_fin, comentarios):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("""
-                INSERT INTO incidencias (
-                    nombre, apellido_paterno, apellido_materno, fecha_solicitud, puesto, no_nomina, 
-                    departamento, motivo, num_dias, fecha_inicio, fecha_fin, comentarios
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (nombre, apellido_paterno, apellido_materno, fecha_solicitud, puesto, no_nomina, departamento, motivo, num_dias, fecha_inicio, fecha_fin, comentarios))
-            conn.commit()
-            return True
-        except Exception as e:
-            print(f"Error al crear incidencia: {e}")
-            return False
-        finally:
-            cursor.close()
-            conn.close()
-
-    def get_puestos(self):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT idPuesto, nombrePuesto FROM puestos")
-        puestos = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return puestos
-
-    def get_departamentos(self):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT idDepartamento, nombreDepartamento FROM departamentos")
-        departamentos = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return departamentos
 
     def get_vacaciones(self, numNomina):
         conn = self.get_connection()
