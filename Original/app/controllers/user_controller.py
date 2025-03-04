@@ -9,6 +9,7 @@ user_model = UserModel()
 # Ruta para agregar usuario
 @user_bp.route('/agregar_usuario', methods=['GET', 'POST'])
 def agregar_usuario():
+    # Solo el Admin puede agregar usuarios
     if 'rol' not in session or session['rol'] != 'Admin':
         flash("No tienes permiso para acceder a esta página", "error")
         return redirect(url_for('auth.bienvenida'))
