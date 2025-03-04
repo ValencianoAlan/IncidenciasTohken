@@ -74,20 +74,14 @@
         <!-- Tarjeta de incidencias para todos los roles -->
         <div class="col-md-4">
           <div class="pricing-card incidencias">
-            <div class="pricing-card-footer">
-              <img
-                src="../static/img/Incidencia.png"
-                alt="incidencias"
-                style="width: 100px; margin-bottom: 20px"
-              /><br />
-              <a
-                href="{{ url_for('incidencias.ver_incidencias') }}"
-                class="btn btn-warning btn-custom"
-                >Crear Incidencia</a
-              >
-            </div>
+              <div class="pricing-card-footer">
+                  <img src="./static/img/Incidencia.png" alt="incidencias" style="width: 100px; margin-bottom: 20px" /><br />
+                  <a href="{{ url_for('incidencias.crear_incidencia_usuario', numNomina=session['numNomina'], origen='bienvenida') }}" class="btn btn-warning btn-custom">
+                    Crear Incidencia
+                </a>
+              </div>
           </div>
-        </div>
+      </div>
 
         <!-- Mostrar tarjeta de incidencias para todos los roles -->
         <div class="container">

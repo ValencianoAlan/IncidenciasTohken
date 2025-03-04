@@ -60,14 +60,16 @@
                                         <a href="{{ url_for('user.editar_usuario', numNomina=registro.numNomina) }}" class="btn btn-warning me-2">
                                             Editar Usuario
                                         </a>
-                                        <!-- Botón de borrar -->
+                                
+                                        <!-- Botón de borrar (solo visible para Admin) -->
+                                        {% if session['rol'] == 'Admin' %}
                                         <form method="POST" action="{{ url_for('user.borrar_usuario', numNomina=registro.numNomina) }}">
-                                            <button type="submit" class="btn btn-danger me-2">
-                                                Borrar Usuario
-                                            </button>
+                                            <button type="submit" class="btn btn-danger">Borrar Usuario</button>
                                         </form>
-                                        <!-- Nuevo botón para crear incidencia -->
-                                        <a href="{{ url_for('incidencias.ver_incidencias') }}"class="btn btn-primary">
+                                        {% endif %}
+                                
+                                        <!-- Botón de crear incidencia -->
+                                        <a href="{{ url_for('incidencias.crear_incidencia_usuario', numNomina=registro.numNomina, origen='ver_registros') }}" class="btn btn-primary ms-2">
                                             Crear Incidencia
                                         </a>
                                     </div>

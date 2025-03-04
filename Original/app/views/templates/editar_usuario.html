@@ -94,7 +94,7 @@
             <!-- Campo de Rol -->
             <div class="mb-3">
                 <label for="idRol" class="form-label">Rol</label>
-                <select class="form-select" id="idRol" name="idRol" required>
+                <select class="form-select" id="idRol" name="idRol" {% if session['rol'] in ['Gerente', 'Supervisor'] %}disabled{% endif %} required>
                     {% for rol in roles %}
                         <option value="{{ rol.idRol }}" {% if rol.idRol == usuario.idRol %}selected{% endif %}>
                             {{ rol.nombreRol }}

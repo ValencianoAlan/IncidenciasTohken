@@ -18,34 +18,39 @@ def ver_incidencias():
 
     return render_template('incidencia.html', puestos=puestos, departamentos=departamentos, vacaciones=vacaciones)
 
-@incidencias_bp.route('/crear_incidencia', methods=['POST'])
-def crear_incidencia():
+@incidencias_bp.route('/crear_incidencia_usuario/<int:numNomina>/<origen>', methods=['GET', 'POST'])
+def crear_incidencia_usuario(numNomina, origen):
     if 'user' not in session:
         return redirect(url_for('auth.login'))
 
-    # Obtener datos del formulario
-    nombre = request.form.get('nombre')
-    apellido_paterno = request.form.get('apellido_paterno')
-    apellido_materno = request.form.get('apellido_materno')
-    fecha_solicitud = request.form.get('fecha_solicitud')
-    puesto = request.form.get('puesto')
-    no_nomina = request.form.get('no_nomina')
-    departamento = request.form.get('departamento')
-    motivo = request.form.get('motivo')
-    num_dias = request.form.get('num_dias')
-    fecha_inicio = request.form.get('fecha_inicio')
-    fecha_fin = request.form.get('fecha_fin')
-    comentarios = request.form.get('comentarios')
+    # Obtener los datos del usuario
+    usuario = user_model.get_user_by_numNomina(numNomina)
+    if not usuario:
+        flash("Usuario no encontrado", "error")
+        return redirect(url_for('auth.bienvenida'))
 
-    # Validar datos (puedes agregar más validaciones aquí)
-    if not all([nombre, apellido_paterno, apellido_materno, fecha_solicitud, puesto, no_nomina, departamento, motivo, num_dias, fecha_inicio, fecha_fin, comentarios]):
-        flash("Por favor, completa todos los campos obligatorios", "error")
-        return redirect(url_for('incidencias.ver_incidencias'))
+    # Obtener la fecha actual
+    from datetime import datetime
+    fecha_solicitud = datetime.now().strftime('%Y-%m-%d')
 
-    # Guardar la incidencia en la base de datos (implementa esta función en el modelo)
-    if user_model.crear_incidencia(nombre, apellido_paterno, apellido_materno, fecha_solicitud, puesto, no_nomina, departamento, motivo, num_dias, fecha_inicio, fecha_fin, comentarios):
-        flash("Incidencia creada exitosamente", "success")
-    else:
-        flash("Error al crear la incidencia", "error")
+    # Obtener el nombre del departamento y puesto del usuario
+    departamento_usuario = user_model.get_departamento_by_id(usuario.idDepartamento)
+    puesto_usuario = user_model.get_puesto_by_id(usuario.idPuesto)
 
-    return redirect(url_for('incidencias.ver_incidencias'))
+    # Obtener todos los puestos y departamentos para los selectores
+    puestos = user_model.get_puestos()
+    departamentos = user_model.get_departamentos()
+
+    return render_template('incidencia.html', 
+                           nombre=usuario.nombre,
+                           apellido_paterno=usuario.apellidoPaterno,
+                           apellido_materno=usuario.apellidoMaterno,
+                           fecha_solicitud=fecha_solicitud,
+                           puesto=usuario.idPuesto,
+                           nombre_puesto=puesto_usuario.nombrePuesto,  # Nombre del puesto
+                           no_nomina=usuario.numNomina,
+                           departamento=usuario.idDepartamento,
+                           nombre_departamento=departamento_usuario.nombreDepartamento,  # Nombre del departamento
+                           puestos=puestos,
+                           departamentos=departamentos,
+                           origen=origen)  # Pasamos el origen a la plantilla

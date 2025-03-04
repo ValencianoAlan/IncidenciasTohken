@@ -86,234 +86,193 @@
         <div class="card-body">
           <form
             method="POST"
-            action="{{ url_for('incidencias.crear_incidencia') }}"
+            action="{{ url_for('incidencias.ver_incidencias') }}"
           >
-            <!-- Información del solicitante -->
-            <div class="row mb-2" style="font-size: 14px">
-              <div class="col-md-3">
-                <label for="nombre" class="form-label"
-                  >Nombre(s) del Solicitante</label
-                >
-                <input
-                  type="text"
-                  class="form-control"
-                  id="nombre"
-                  name="nombre"
-                  placeholder="Nombre"
-                  style="font-size: 12px"
-                  required
-                />
+              <!-- Información del solicitante -->
+              <div class="row mb-2" style="font-size: 14px">
+                <div class="col-md-3">
+                  <label for="nombre" class="form-label">Nombre(s) del Solicitante</label>
+                  <input type="text" class="form-control" id="nombre" name="nombre" value="{{ nombre }}" readonly />
               </div>
               <div class="col-md-3">
-                <label for="apellido_paterno" class="form-label"
-                  >Apellido Paterno</label
-                >
-                <input
-                  type="text"
-                  class="form-control"
-                  id="apellido_paterno"
-                  name="apellido_paterno"
-                  placeholder="Apellido Paterno"
-                  style="font-size: 12px"
-                  required
-                />
+                  <label for="apellido_paterno" class="form-label">Apellido Paterno</label>
+                  <input type="text" class="form-control" id="apellido_paterno" name="apellido_paterno" value="{{ apellido_paterno }}" readonly />
               </div>
               <div class="col-md-3">
-                <label for="apellido_materno" class="form-label"
-                  >Apellido Materno</label
-                >
-                <input
-                  type="text"
-                  class="form-control"
-                  id="apellido_materno"
-                  name="apellido_materno"
-                  placeholder="Apellido Materno"
-                  style="font-size: 12px"
-                />
+                  <label for="apellido_materno" class="form-label">Apellido Materno</label>
+                  <input type="text" class="form-control" id="apellido_materno" name="apellido_materno" value="{{ apellido_materno }}" readonly />
               </div>
               <div class="col-md-3">
-                <label for="fecha_solicitud" class="form-label"
-                  >Fecha de Solicitud</label
-                >
-                <input
-                  type="date"
-                  class="form-control"
-                  id="fecha_solicitud"
-                  name="fecha_solicitud"
-                  style="font-size: 12px"
-                  required
-                />
+                  <label for="fecha_solicitud" class="form-label">Fecha de Solicitud</label>
+                  <input type="date" class="form-control" id="fecha_solicitud" name="fecha_solicitud" value="{{ fecha_solicitud }}" readonly />
               </div>
-            </div>
-
-            <!-- Información adicional -->
-            <div class="row mb-2" style="font-size: 14px">
-              <!-- Campo de Puesto -->
-              <div class="col-md-3 style="font-size: 12px"">
-                  <label for="puesto" class="form-label">Puesto</label>
-                  <select class="form-select" id="puesto" name="puesto" style="font-size: 12px;" required>
-                      {% for puesto in puestos %}
-                          <option value="{{ puesto.idPuesto }}">{{ puesto.nombrePuesto }}</option>
-                      {% endfor %}
-                  </select>
-              </div>
-
-              <div class="col-md-3">
-                <label for="no_nomina" class="form-label">No. Nómina</label>
-                <input
-                  type="number"
-                  class="form-control"
-                  id="no_nomina"
-                  name="no_nomina"
-                  placeholder="0000"
-                  style="font-size: 12px"
-                  min="0"
-                  max="9999"
-                  required
-                />
-              </div>
-            <!-- Campo de Departamento -->
-            <div class="col-md-3"">
-                <label for="departamento" class="form-label">Departamento</label>
-                <select class="form-select" id="departamento" name="departamento" style="font-size: 12px;" required>
-                    {% for departamento in departamentos %}
-                        <option value="{{ departamento.idDepartamento }}">{{ departamento.nombreDepartamento }}</option>
+          </div>
+          
+          <!-- Información adicional -->
+          <div class="row mb-2" style="font-size: 14px">
+            <!-- Campo de Puesto -->
+            <div class="col-md-3">
+                <label for="puesto" class="form-label">Puesto</label>
+                <select class="form-select" id="puesto" name="puesto" style="font-size: 14px;" required disabled>
+                    {% for puesto in puestos %}
+                        <option value="{{ puesto.idPuesto }}" {% if puesto.idPuesto == puesto %}selected{% endif %}>
+                            {{ puesto.nombrePuesto }}
+                        </option>
                     {% endfor %}
                 </select>
-            </div>
-              <div class="col-md-3" >
-                <label for="vacaciones" class="form-label"
-                  >Días de Vacaciones Restantes</label
-                >
-                <input
-                  type="number"
-                  class="form-control"
-                  id="vacaciones"
-                  name="vacaciones"
-                  placeholder="00"
-                  min="0"
-                  max="22"
-                  style="font-size: 12px;"
-                  disabled
-                />
-              </div>
+                <input type="hidden" id="nombre_puesto" value="{{ nombre_puesto }}">
             </div>
 
-            <!-- Vacaciones restantes, Fecha de inicio y Fecha de fin -->
-            <div class="row mb-2" style="font-size: 14px;">
-              <div class="col-md-3">
-                <label for="motivo_ausencia" class="form-label">Motivo</label>
-                <select
-                  class="form-select"
-                  id="motivo_ausencia"
-                  name="motivo"
-                  style="font-size: 12px"
-                  required
-                >
-                  <option value="goce_sueldo">
-                    Permiso con goce de sueldo
-                  </option>
-                  <option value="sin_goce_sueldo">
-                    Permiso sin goce de sueldo
-                  </option>
-                  <option value="motivos_trabajo">
-                    Entrada o salida por motivos de trabajo
-                  </option>
-                  <option value="vacaciones">Vacaciones</option>
-                  <option value="olvido_gafete">Olvido de gafete</option>
-                  <option value="tiempo_x_tiempo">Tiempo x Tiempo</option>
+            <!-- Campo de Número de Nómina -->
+            <div class="col-md-3">
+                <label for="no_nomina" class="form-label">No. Nómina</label>
+                <input type="number" class="form-control" id="no_nomina" name="no_nomina" value="{{ no_nomina }}" readonly />
+            </div>
+
+            <!-- Campo de Departamento -->
+            <div class="col-md-3">
+                <label for="departamento" class="form-label">Departamento</label>
+                <select class="form-select" id="departamento" name="departamento" style="font-size: 14px;" required disabled>
+                    {% for departamento in departamentos %}
+                        <option value="{{ departamento.idDepartamento }}" {% if departamento.idDepartamento == departamento %}selected{% endif %}>
+                            {{ departamento.nombreDepartamento }}
+                        </option>
+                    {% endfor %}
                 </select>
-              </div>
+                <input type="hidden" id="nombre_departamento" value="{{ nombre_departamento }}">
+            </div>
+            <div class="col-md-3" >
+              <label for="vacaciones" class="form-label"
+              style="font-size: 14px;" >Días de Vacaciones Restantes</label
+              >
+              <input
+                type="number"
+                class="form-control"
+                id="vacaciones"
+                name="vacaciones"
+                placeholder="00"
+                min="0"
+                max="22"
+                style="font-size: 14px;"
+                disabled
+              />
+            </div>
+          </div>
 
-              <div class="col-md-1">
-                <label for="num_dias" class="form-label">No de Días</label>
-                <input
-                  type="number"
-                  class="form-control"
-                  id="num_dias"
-                  name="num_dias"
-                  min="0"
-                  max="10"
-                  maxlength="2"
-                  style="font-size: 12px;"
-                />
-              </div>
-
-              <div class="col-md-2">
-                <label for="fecha_inicio" class="form-label"
-                  >Fecha de Inicio</label
-                >
-                <input
-                  type="date"
-                  class="form-control"
-                  id="fecha_inicio"
-                  name="fecha_inicio"
-                  style="font-size: 12px;"
-                  required
-                />
-              </div>
-              <div class="col-md-2">
-                <label for="fecha_fin" class="form-label" style="font-size: 14px;">Fecha de Fin</label>
-                <input
-                  type="date"
-                  class="form-control"
-                  id="fecha_fin"
-                  name="fecha_fin"
-                  style="font-size: 12px;"
-                  required
-                />
-              </div>
-              <div class="col-md-2 hora-fields">
-                <label for="hora_entrada" class="form-label" style="font-size: 14px;"
-                  >Hora de Entrada</label
-                >
-                <input
-                  type="time"
-                  class="form-control"
-                  id="hora_entrada"
-                  name="hora_entrada"
-                  style="font-size: 14px;"
-                />
-              </div>
-              <div class="col-md-2 hora-fields">
-                <label for="hora_salida" class="form-label"
-                  >Hora de Salida</label
-                >
-                <input
-                  type="time"
-                  class="form-control"
-                  id="hora_salida"
-                  name="hora_salida"
-                  style="font-size: 14px;"
-                />
-              </div>
+          <!-- Vacaciones restantes, Fecha de inicio y Fecha de fin -->
+          <div class="row mb-2" style="font-size: 14px;">
+            <div class="col-md-3">
+              <label for="motivo_ausencia" class="form-label">Motivo</label>
+              <select
+                class="form-select"
+                id="motivo_ausencia"
+                name="motivo"
+                style="font-size: 14px"
+                required
+              >
+                <option value="goce_sueldo">
+                  Permiso con goce de sueldo
+                </option>
+                <option value="sin_goce_sueldo">
+                  Permiso sin goce de sueldo
+                </option>
+                <option value="motivos_trabajo">
+                  Entrada o salida por motivos de trabajo
+                </option>
+                <option value="vacaciones">Vacaciones</option>
+                <option value="olvido_gafete">Olvido de gafete</option>
+                <option value="tiempo_x_tiempo">Tiempo x Tiempo</option>
+              </select>
             </div>
 
-            <!-- Observaciones -->
-            <div class="mb-4" style="font-size: 14px;">
-              <label for="comentarios" class="form-label"
-                ><b>Observaciones:</b></label
-              >
-              <textarea
+            <div class="col-md-1">
+              <label for="num_dias" class="form-label">No de Días</label>
+              <input
+                type="number"
                 class="form-control"
-                id="comentarios"
-                name="comentarios"
-                rows="4"
-                maxlength="250"
-                placeholder="Escribe aquí tu comentario (máximo 250 caracteres)..."
+                id="num_dias"
+                name="num_dias"
+                min="0"
+                max="10"
+                maxlength="2"
+                style="font-size: 14px;"
+              />
+            </div>
+
+            <div class="col-md-2">
+              <label for="fecha_inicio" class="form-label"
+                >Fecha de Inicio</label
+              >
+              <input
+                type="date"
+                class="form-control"
+                id="fecha_inicio"
+                name="fecha_inicio"
+                style="font-size: 14px;"
+                required
+              />
+            </div>
+            <div class="col-md-2">
+              <label for="fecha_fin" class="form-label" style="font-size: 14px;">Fecha de Fin</label>
+              <input
+                type="date"
+                class="form-control"
+                id="fecha_fin"
+                name="fecha_fin"
                 style="font-size: 12px;"
                 required
-              ></textarea>
-              <small class="form-text text-muted">Máximo 250 caracteres.</small>
+              />
             </div>
+            <div class="col-md-2 hora-fields">
+              <label for="hora_entrada" class="form-label" style="font-size: 14px;"
+                >Hora de Entrada</label
+              >
+              <input
+                type="time"
+                class="form-control"
+                id="hora_entrada"
+                name="hora_entrada"
+                style="font-size: 14px;"
+              />
+            </div>
+            <div class="col-md-2 hora-fields">
+              <label for="hora_salida" class="form-label"
+                >Hora de Salida</label
+              >
+              <input
+                type="time"
+                class="form-control"
+                id="hora_salida"
+                name="hora_salida"
+                style="font-size: 14px;"
+              />
+            </div>
+          </div>
 
-            <!-- Botones de acción -->
-            <div class="d-flex justify-content-between">
-              <button type="submit" class="btn btn-success">
-                Enviar Solicitud
-              </button>
-              <button type="button" class="btn btn-danger">Cancelar</button>
-            </div>
+          <!-- Observaciones -->
+          <div class="mb-4" style="font-size: 14px;">
+            <label for="comentarios" class="form-label"
+              ><b>Observaciones:</b></label
+            >
+            <textarea
+              class="form-control"
+              id="comentarios"
+              name="comentarios"
+              rows="4"
+              maxlength="250"
+              placeholder="Escribe aquí tu comentario (máximo 250 caracteres)..."
+              style="font-size: 12px;"
+              required
+            ></textarea>
+            <small class="form-text text-muted">Máximo 250 caracteres.</small>
+          </div>
+
+          <!-- Botones de acción -->
+          <div class="d-flex justify-content-between">
+            <button type="submit" class="btn btn-success">Enviar Solicitud</button>
+            <a href="{{ url_for('auth.bienvenida') if origen == 'bienvenida' else url_for('user.ver_registros') }}" class="btn btn-danger">Cancelar</a>
+          </div>
+          </div>
           </form>
         </div>
       </div>
@@ -322,6 +281,32 @@
     <!-- Scripts de Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+          // Obtener los valores del departamento y puesto del usuario
+          const nombreDepartamento = document.getElementById('nombre_departamento').value;
+          const nombrePuesto = document.getElementById('nombre_puesto').value;
+      
+          // Seleccionar el departamento y puesto en los selectores
+          const selectDepartamento = document.getElementById('departamento');
+          const selectPuesto = document.getElementById('puesto');
+      
+          for (let option of selectDepartamento.options) {
+              if (option.text === nombreDepartamento) {
+                  option.selected = true;
+                  break;
+              }
+          }
+      
+          for (let option of selectPuesto.options) {
+              if (option.text === nombrePuesto) {
+                  option.selected = true;
+                  break;
+              }
+          }
+      });
+      </script>
 
     <!-- Script para mostrar/ocultar campos de hora -->
     <script src="../static/js/incidencia.js"></script>

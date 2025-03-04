@@ -295,5 +295,30 @@ class UserModel:
         finally:
             cursor.close()
             conn.close()
+    def get_departamento_by_id(self, idDepartamento):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("SELECT nombreDepartamento FROM departamentos WHERE idDepartamento = ?", (idDepartamento,))
+            departamento = cursor.fetchone()
+            return departamento
+        except Exception as e:
+            print(f"Error al obtener departamento: {e}")
+            return None
+        finally:
+            cursor.close()
+            conn.close()
 
-            
+    def get_puesto_by_id(self, idPuesto):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("SELECT nombrePuesto FROM puestos WHERE idPuesto = ?", (idPuesto,))
+            puesto = cursor.fetchone()
+            return puesto
+        except Exception as e:
+            print(f"Error al obtener puesto: {e}")
+            return None
+        finally:
+            cursor.close()
+            conn.close()
