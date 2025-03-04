@@ -105,3 +105,13 @@ def obtener_puestos_por_departamento(idDepartamento):
     puestos = user_model.get_puestos_por_departamento(idDepartamento)
     return jsonify(puestos)
 
+
+@user_bp.route('/incidencias_usuario')
+def incidencias_usuario():
+    if 'user' not in session:
+        return redirect(url_for('auth.login'))
+
+    # Obtener todos los usuarios con detalles
+    registros = user_model.get_all_users_with_details()
+
+    return render_template('incidencias_usuario.html', registros=registros, username=session['user'])

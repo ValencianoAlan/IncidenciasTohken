@@ -2,6 +2,7 @@ from flask import Flask
 from app.controllers.auth_controller import auth_bp
 from app.controllers.user_controller import user_bp
 from app.controllers.incidencias_controller import incidencias_bp
+from app.controllers.user_controller import user_bp
 
 
 

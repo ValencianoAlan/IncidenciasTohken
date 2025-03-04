@@ -270,7 +270,11 @@
           <!-- Botones de acción -->
           <div class="d-flex justify-content-between">
             <button type="submit" class="btn btn-success">Enviar Solicitud</button>
-            <a href="{{ url_for('auth.bienvenida') if origen == 'bienvenida' else url_for('user.ver_registros') }}" class="btn btn-danger">Cancelar</a>
+            <a href="{{ 
+                url_for('auth.bienvenida') if origen == 'bienvenida' 
+                else url_for('user.incidencias_usuario') if origen == 'incidencias_usuario' 
+                else url_for('user.ver_registros') 
+            }}" class="btn btn-danger">Cancelar</a>
           </div>
           </div>
           </form>
