@@ -33,65 +33,52 @@
 
     <div class="container py-5">
       <div class="row justify-content-center">
-        <!-- Mostrar tarjetas solo para Admin, Supervisor y Gerente -->
-        <div class="row justify-content-center">
-          <!-- Tarjeta de Agregar Usuario (solo para Admin, Gerente y Supervisor) -->
-          {% if session['rol'] in ['Admin', 'Gerente', 'Supervisor'] %}
-          <div class="col-md-3">
-              <div class="pricing-card agregar">
-                  <div class="pricing-card-footer">
-                      <img src="./static/img/Agregar Usuario.png" alt="agregar_usuario" style="width: 100px; margin-bottom: 20px" /><br />
-                      <a href="{{ url_for('user.agregar_usuario') }}" class="btn btn-success btn-custom">Agregar Usuario</a>
-                  </div>
-              </div>
-          </div>
-          {% endif %}
-      
-          <!-- Tarjeta de Ver Usuarios (solo para Admin) -->
-          {% if session['rol'] == 'Admin' %}
-          <div class="col-md-3">
-              <div class="pricing-card ver">
-                  <div class="pricing-card-footer">
-                      <img src="./static/img/Ver Usuario.png" alt="ver_usuario" style="width: 100px; margin-bottom: 20px" /><br />
-                      <a href="{{ url_for('user.ver_registros') }}" class="btn btn-primary btn-custom">Ver Usuarios</a>
-                  </div>
-              </div>
-          </div>
-          {% endif %}
-      
-          <!-- Tarjeta de Incidencias de Usuario (solo para Admin, Gerente y Supervisor) -->
-          {% if session['rol'] in ['Admin', 'Gerente', 'Supervisor'] %}
-          <div class="col-md-3">
-              <div class="pricing-card incidencias">
-                  <div class="pricing-card-footer">
-                      <img src="./static/img/Incidencia.png" alt="incidencias" style="width: 100px; margin-bottom: 20px" /><br />
-                      <a href="{{ url_for('user.incidencias_usuario') }}" class="btn btn-warning btn-custom">Incidencias de Usuario</a>
-                  </div>
-              </div>
-          </div>
-          {% endif %}
-      
-          <!-- Tarjeta de Crear Incidencia (para todos los roles) -->
-          <div class="col-md-3">
-              <div class="pricing-card incidencias">
-                  <div class="pricing-card-footer">
-                      <img src="./static/img/Incidencia.png" alt="incidencias" style="width: 100px; margin-bottom: 20px" /><br />
-                      <a href="{{ url_for('incidencias.crear_incidencia_usuario', numNomina=session['numNomina'], origen='bienvenida') }}" class="btn btn-warning btn-custom">Crear Incidencia</a>
-                  </div>
-              </div>
-          </div>
-      </div>
-
-        <!-- Mostrar tarjeta de incidencias para todos los roles -->
-        <div class="container">
-          <div class="row justify-content-center">
-            {% if session['rol'] in ['Admin', 'Supervisor', 'Gerente'] %}
-            <!-- Tarjetas de agregar y ver usuarios -->
+         <!-- Tarjeta de Agregar Usuario (solo para Admin, Gerente y Supervisor) -->
+            {% if session['rol'] in ['Admin', 'Gerente', 'Supervisor'] %}
+            <div class="col-md-3">
+                <div class="pricing-card agregar">
+                    <div class="pricing-card-footer">
+                        <img src="./static/img/Agregar Usuario.png" alt="agregar_usuario" style="width: 100px; margin-bottom: 20px" /><br />
+                        <a href="{{ url_for('user.agregar_usuario') }}" class="btn btn-success btn-custom">Agregar Usuario</a>
+                    </div>
+                </div>
+            </div>
             {% endif %}
-          </div>
-        </div>
 
-        
+            <!-- Tarjeta de Ver Usuarios (solo para Admin) -->
+            {% if session['rol'] == 'Admin' %}
+            <div class="col-md-3">
+                <div class="pricing-card ver">
+                    <div class="pricing-card-footer">
+                        <img src="./static/img/Ver Usuario.png" alt="ver_usuario" style="width: 100px; margin-bottom: 20px" /><br />
+                        <a href="{{ url_for('user.ver_registros') }}" class="btn btn-primary btn-custom">Ver Usuarios</a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Tarjeta de Crear Incidencia Por Usuario (solo para Admin, Gerente y Supervisor) -->
+            {% if session['rol'] in ['Admin', 'Gerente', 'Supervisor'] %}
+            <div class="col-md-3">
+                <div class="pricing-card incidencias">
+                    <div class="pricing-card-footer">
+                        <img src="./static/img/incidencia_usuario.png" alt="incidencias" style="width: 100px; margin-bottom: 20px" /><br />
+                        <a href="{{ url_for('user.incidencias_usuario') }}" class="btn btn-warning btn-custom">Crear Incidencia Por Usuario</a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Tarjeta de Crear Incidencia (para todos los roles) -->
+            <div class="col-md-3">
+                <div class="pricing-card incidencias">
+                    <div class="pricing-card-footer">
+                        <img src="./static/img/Incidencia.png" alt="incidencias" style="width: 100px; margin-bottom: 20px" /><br />
+                        <a href="{{ url_for('incidencias.crear_incidencia_usuario', numNomina=session['numNomina'], origen='bienvenida') }}" class="btn btn-warning btn-custom">Crear Incidencia</a>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div class="row justify-content-center mt-4">
           <div class="col-md-8">

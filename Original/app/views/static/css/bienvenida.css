@@ -4,6 +4,10 @@
     padding: 30px;
     text-align: center;
     transition: transform 0.3s ease;
+    height: 250px; /* Ajusta la altura según sea necesario */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .pricing-card:hover {
@@ -18,7 +22,7 @@
 }
 
 .pricing-card-footer {
-    margin-top: 20px;
+    margin-top: auto; /* Empuja el contenido hacia abajo */
 }
 
 .pricing-card {
@@ -27,6 +31,8 @@
 
 .btn-custom {
     font-weight: bold;
+    width: 100%; /* Asegura que el botón ocupe todo el ancho */
+    margin-top: 10px; /* Espacio entre la imagen y el botón */
 }
 
 /* Animación de desvanecimiento */
