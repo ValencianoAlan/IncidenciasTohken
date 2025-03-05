@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Incidencias de Usuario</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/bienvenida.css') }}" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bienvenida.css') }}"/>
 </head>
 <body>
     <header class="bg-light py-3 mb-2">
@@ -27,7 +27,7 @@
         <!-- Formulario de búsqueda -->
         <form method="POST" class="mb-4">
             <div class="input-group">
-                <input type="text" name="numNomina" class="form-control" placeholder="Buscar por Número de Nómina" value="{{ busqueda if busqueda else '' }}" />
+                <input type="text" name="numNomina" class="form-control" placeholder="Buscar por Número de Nómina" value="{{ busqueda if busqueda else '' }}"/>
                 <button class="btn btn-success" type="submit">Buscar</button>
             </div>
         </form>
@@ -41,9 +41,9 @@
                         <th>Nombre</th>
                         <th>Apellido Paterno</th>
                         <th>Apellido Materno</th>
-                        <th>Username</th>
                         <th>Departamento</th>
                         <th>Puesto</th>
+                        <th>Días de Vacaciones</th>
                         <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
@@ -55,9 +55,9 @@
                                 <td class="align-middle border border-1">{{ registro.nombre }}</td>
                                 <td class="align-middle border border-1">{{ registro.apellidoPaterno }}</td>
                                 <td class="align-middle border border-1">{{ registro.apellidoMaterno }}</td>
-                                <td class="align-middle border border-1">{{ registro.username }}</td>
                                 <td class="align-middle border border-1">{{ registro.nombreDepartamento }}</td>
                                 <td class="align-middle border border-1">{{ registro.nombrePuesto }}</td>
+                                <td class="align-middle border border-1">{{ registro.diasVacaciones }}</td>
                                 <td class="align-middle border border-1">
                                     <div class="d-flex justify-content-center">
                                         <!-- Botón de crear incidencia -->
@@ -85,6 +85,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
 </body>
 </html>

@@ -25,7 +25,7 @@
         </div>
       </header>
 
-    <div class="container py-5">
+      <div class="container py-5">
         <h1 class="h3 mb-3">Editar Usuario</h1>
 
         <!-- Mensajes de error/éxito -->
@@ -78,7 +78,7 @@
                     {% endfor %}
                 </select>
             </div>
-            
+
             <!-- Campo de Puesto -->
             <div class="mb-3">
                 <label for="idPuesto" class="form-label">Puesto</label>
@@ -91,10 +91,16 @@
                 </select>
             </div>
 
+            <!-- Campo de Días de Vacaciones -->
+            <div class="mb-3">
+                <label for="diasVacaciones" class="form-label">Días de Vacaciones</label>
+                <input type="number" class="form-control" id="diasVacaciones" name="diasVacaciones" value="{{ usuario.diasVacaciones }}" required />
+            </div>
+
             <!-- Campo de Rol -->
             <div class="mb-3">
                 <label for="idRol" class="form-label">Rol</label>
-                <select class="form-select" id="idRol" name="idRol" {% if session['rol'] in ['Gerente', 'Supervisor'] %}disabled{% endif %} required>
+                <select class="form-select" id="idRol" name="idRol" {% if session['rol'] != 'Admin' %}disabled{% endif %} required>
                     {% for rol in roles %}
                         <option value="{{ rol.idRol }}" {% if rol.idRol == usuario.idRol %}selected{% endif %}>
                             {{ rol.nombreRol }}
