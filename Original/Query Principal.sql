@@ -243,73 +243,8 @@ VALUES
 
 select * from motivos
 
-INSERT INTO incidencias (numNomina, idMotivo, fechaInicio, fechaFin, comentarios)
-VALUES 
-(1035, 3, '2023-10-01', '2023-10-05', 'Vacaciones de verano');
-
-SELECT i.idIncidencia, u.nombre, m.nombreMotivo, i.fechaSolicitud, i.fechaInicio, i.fechaFin, i.numDias, i.comentarios
-FROM incidencias i
-JOIN usuarios u ON i.numNomina = u.numNomina
-JOIN motivos m ON i.idMotivo = m.idMotivo
-WHERE u.numNomina = 1035;
-
-SELECT diasVacaciones
-FROM usuarios
-WHERE numNomina = 1035;
-
-CREATE TRIGGER calcular_dias_incidencia
-ON incidencias
-AFTER INSERT, UPDATE
-AS
-BEGIN
-    UPDATE incidencias
-    SET numDias = DATEDIFF(DAY, fechaInicio, fechaFin) + 1
-    WHERE idIncidencia IN (SELECT idIncidencia FROM inserted);
-END;
-
-INSERT INTO incidencias (numNomina, idMotivo, fechaInicio, fechaFin, comentarios)
-VALUES 
-(1035, 3, '2023-10-01', '2023-10-05', 'Vacaciones de verano');
-
-SELECT * from incidencias where numNomina=1035;
-
-UPDATE incidencias
-SET fechaInicio = '2023-10-02', fechaFin = '2023-10-06'
-WHERE idIncidencia = 1;
-
 SELECT idIncidencia, numNomina, idMotivo, fechaSolicitud, fechaInicio, fechaFin, numDias, comentarios
 FROM incidencias;
-
-DISABLE TRIGGER calcular_dias_incidencia ON incidencias;
-DROP TRIGGER calcular_dias_incidencia;
-
-CREATE TRIGGER calcular_dias_incidencia
-ON incidencias
-AFTER INSERT, UPDATE
-AS
-BEGIN
-    -- Calcular el número de días de la incidencia
-    UPDATE incidencias
-    SET numDias = DATEDIFF(DAY, fechaInicio, fechaFin) + 1
-    WHERE idIncidencia IN (SELECT idIncidencia FROM inserted);
-
-    -- Restar los días de vacaciones si el motivo es "Vacaciones"
-    UPDATE usuarios
-    SET diasVacaciones = diasVacaciones - i.numDias
-    FROM usuarios u
-    INNER JOIN inserted i ON u.numNomina = i.numNomina
-    INNER JOIN motivos m ON i.idMotivo = m.idMotivo
-    WHERE m.nombreMotivo = 'Vacaciones';
-END;
-
-
-SELECT numNomina, nombre, diasVacaciones
-FROM usuarios
-WHERE numNomina = 1035;
-
-INSERT INTO incidencias (numNomina, idMotivo, fechaInicio, fechaFin, comentarios)
-VALUES 
-(1035, 3, '2025-03-05', '2025-03-10', 'Vacaciones de verano');
 
 DROP TRIGGER calcular_dias_incidencia;
 
@@ -337,7 +272,7 @@ BEGIN
             UPDATE usuarios
             SET diasVacaciones = diasVacaciones - @numDias
             WHERE numNomina = @numNomina;
-|
+
             -- Insertar la incidencia
             INSERT INTO incidencias (numNomina, idMotivo, fechaSolicitud, fechaInicio, fechaFin, numDias, comentarios)
             VALUES (@numNomina, @idMotivo, GETDATE(), @fechaInicio, @fechaFin, @numDias, @comentarios);
@@ -356,13 +291,8 @@ BEGIN
     END
 END;
 
-EXEC crear_incidencia 
-    @numNomina = 1035,
-    @idMotivo = 3,
-    @fechaInicio = '2023-10-01',
-    @fechaFin = '2023-10-05',
-    @comentarios = 'Vacaciones de verano';
-
 SELECT numNomina, nombre, diasVacaciones
 FROM usuarios
 WHERE numNomina = 1035;
+
+select * from usuarios;
