@@ -89,7 +89,7 @@
             action="{{ url_for('incidencias.ver_incidencias') }}"
           >
               <!-- Información del solicitante -->
-              <div class="row mb-2" style="font-size: 14px">
+              <div class="row mb-3" style="font-size: 14px">
                 <div class="col-md-3">
                   <label for="nombre" class="form-label">Nombre(s) del Solicitante</label>
                   <input type="text" class="form-control" id="nombre" name="nombre" value="{{ nombre }}" readonly />
@@ -106,58 +106,32 @@
                   <label for="fecha_solicitud" class="form-label">Fecha de Solicitud</label>
                   <input type="date" class="form-control" id="fecha_solicitud" name="fecha_solicitud" value="{{ fecha_solicitud }}" readonly />
               </div>
-          </div>
-          
-          <!-- Información adicional -->
-          <div class="row mb-2" style="font-size: 14px">
-            <!-- Campo de Puesto -->
-            <div class="col-md-3">
+
+              <!-- Campo de nombre del puesto -->
+              <div class="col-md-3" style="margin-top: 15px;">
                 <label for="puesto" class="form-label">Puesto</label>
-                <select class="form-select" id="puesto" name="puesto" style="font-size: 14px;" required disabled>
-                    {% for puesto in puestos %}
-                        <option value="{{ puesto.idPuesto }}" {% if puesto.idPuesto == puesto %}selected{% endif %}>
-                            {{ puesto.nombrePuesto }}
-                        </option>
-                    {% endfor %}
-                </select>
-                <input type="hidden" id="nombre_puesto" value="{{ nombre_puesto }}">
+                <input type="text" class="form-control" id="puesto" name="puesto" value="{{ nombre_puesto }}" disabled />
+              </div>
+
+              <!-- Campo de Número de Nómina -->
+              <div class="col-md-3" style="margin-top: 15px;">
+                  <label for="no_nomina" class="form-label">No. Nómina</label>
+                  <input type="number" class="form-control" id="no_nomina" name="no_nomina" value="{{ no_nomina }}" readonly />
+              </div>
+
+            <!-- Campo de nombre del departamento -->
+            <div class="col-md-3" style="margin-top: 15px;">
+              <label for="departamento" class="form-label">Departamento</label>
+              <input type="text" class="form-control" id="departamento" name="departamento" value="{{ nombre_departamento }}" disabled />
             </div>
 
-            <!-- Campo de Número de Nómina -->
-            <div class="col-md-3">
-                <label for="no_nomina" class="form-label">No. Nómina</label>
-                <input type="number" class="form-control" id="no_nomina" name="no_nomina" value="{{ no_nomina }}" readonly />
-            </div>
-
-            <!-- Campo de Departamento -->
-            <div class="col-md-3">
-                <label for="departamento" class="form-label">Departamento</label>
-                <select class="form-select" id="departamento" name="departamento" style="font-size: 14px;" required disabled>
-                    {% for departamento in departamentos %}
-                        <option value="{{ departamento.idDepartamento }}" {% if departamento.idDepartamento == departamento %}selected{% endif %}>
-                            {{ departamento.nombreDepartamento }}
-                        </option>
-                    {% endfor %}
-                </select>
-                <input type="hidden" id="nombre_departamento" value="{{ nombre_departamento }}">
-            </div>
-            <div class="col-md-3" >
-              <label for="vacaciones" class="form-label"
-              style="font-size: 14px;" >Días de Vacaciones Restantes</label
-              >
-              <input
-                type="number"
-                class="form-control"
-                id="vacaciones"
-                name="vacaciones"
-                placeholder="00"
-                min="0"
-                max="22"
-                style="font-size: 14px;"
-                disabled
-              />
+            <!-- Campo de días de vacaciones restantes -->
+            <div class="col-md-3" style="margin-top: 15px;">
+              <label for="dias_vacaciones" class="form-label">Días de Vacaciones Restantes</label>
+              <input type="number" class="form-control" id="dias_vacaciones" name="dias_vacaciones" value="{{ dias_vacaciones }}" disabled />
             </div>
           </div>
+
 
           <!-- Vacaciones restantes, Fecha de inicio y Fecha de fin -->
           <div class="row mb-2" style="font-size: 14px;">
@@ -182,48 +156,26 @@
               </select>
             </div>
 
-            <div class="col-md-1">
-              <label for="num_dias" class="form-label">No de Días</label>
-              <input
-                type="number"
-                class="form-control"
-                id="num_dias"
-                name="num_dias"
-                min="0"
-                max="10"
-                maxlength="2"
-                style="font-size: 14px;"
-              />
+            <!-- Campo de fecha de inicio -->
+            <div class="col-md-2">
+              <label for="fecha_inicio" class="form-label">Fecha de Inicio</label>
+              <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required />
             </div>
 
+            <!-- Campo de fecha de fin -->
             <div class="col-md-2">
-              <label for="fecha_inicio" class="form-label"
-                >Fecha de Inicio</label
-              >
-              <input
-                type="date"
-                class="form-control"
-                id="fecha_inicio"
-                name="fecha_inicio"
-                style="font-size: 14px;"
-                required
-              />
+              <label for="fecha_fin" class="form-label">Fecha de Fin</label>
+              <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" required />
             </div>
-            <div class="col-md-2">
-              <label for="fecha_fin" class="form-label" style="font-size: 14px;">Fecha de Fin</label>
-              <input
-                type="date"
-                class="form-control"
-                id="fecha_fin"
-                name="fecha_fin"
-                style="font-size: 14px;"
-                required
-              />
+
+            <!-- Campo de No. de Días (no editable) -->
+            <div class="col-md-1">
+              <label for="num_dias" class="form-label">No. de Días</label>
+              <input type="number" class="form-control" id="num_dias" name="num_dias" readonly />
             </div>
-          </div>
 
           <!-- Observaciones -->
-          <div class="mb-4" style="font-size: 14px;">
+          <div class="mb-4" style="font-size: 14px; margin-top: 15px;">
             <label for="comentarios" class="form-label"
               ><b>Observaciones:</b></label
             >
@@ -284,5 +236,30 @@
           }
       });
       </script>
+
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const fechaInicio = document.getElementById('fecha_inicio');
+            const fechaFin = document.getElementById('fecha_fin');
+            const numDias = document.getElementById('num_dias');
+        
+            // Función para calcular el número de días
+            function calcularDias() {
+                if (fechaInicio.value && fechaFin.value) {
+                    const inicio = new Date(fechaInicio.value);
+                    const fin = new Date(fechaFin.value);
+                    const diferencia = fin - inicio;
+                    const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24)) + 1; // +1 para incluir el día de inicio
+                    numDias.value = dias;
+                } else {
+                    numDias.value = '';
+                }
+            }
+        
+            // Escuchar cambios en las fechas
+            fechaInicio.addEventListener('change', calcularDias);
+            fechaFin.addEventListener('change', calcularDias);
+        });
+        </script>
   </body>
 </html>

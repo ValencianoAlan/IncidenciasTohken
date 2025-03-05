@@ -8,7 +8,7 @@ class UserModel:
         self.connection_string = (
             "DRIVER={ODBC Driver 17 for SQL Server};"
             "SERVER=localhost;"
-            "DATABASE=Prueba_5;"
+            "DATABASE=Prueba_6;"
             "UID=sa;"
             "PWD=root"
         )
@@ -225,23 +225,30 @@ class UserModel:
         try:
             cursor.execute("""
                 SELECT 
-                    u.numNomina, 
-                    u.nombre, 
-                    u.apellidoPaterno, 
-                    u.apellidoMaterno, 
-                    c.username, 
-                    u.idDepartamento, 
-                    u.idPuesto,
-                    ur.idRol 
-                FROM usuarios u
-                INNER JOIN credenciales c ON u.numNomina = c.numNomina
-                INNER JOIN usuario_rol ur ON u.numNomina = ur.numNomina
-                INNER JOIN departamento_puesto dp ON u.idDepartamento = dp.idDepartamento
-                OR u.idPuesto = dp.idPuesto
-                WHERE u.numNomina = ?
-            """, numNomina)
+                    numNomina, 
+                    nombre, 
+                    apellidoPaterno, 
+                    apellidoMaterno, 
+                    idDepartamento, 
+                    idPuesto, 
+                    diasVacaciones 
+                FROM usuarios 
+                WHERE numNomina = ?
+            """, (numNomina,))
             usuario = cursor.fetchone()
-            return usuario
+            if usuario:
+                # Convertir el resultado en un diccionario para acceder a los campos por nombre
+                usuario_dict = {
+                    'numNomina': usuario.numNomina,
+                    'nombre': usuario.nombre,
+                    'apellidoPaterno': usuario.apellidoPaterno,
+                    'apellidoMaterno': usuario.apellidoMaterno,
+                    'idDepartamento': usuario.idDepartamento,
+                    'idPuesto': usuario.idPuesto,
+                    'diasVacaciones': usuario.diasVacaciones
+                }
+                return usuario_dict
+            return None
         except Exception as e:
             print(f"Error al obtener usuario: {e}")
             return None
@@ -295,13 +302,17 @@ class UserModel:
         finally:
             cursor.close()
             conn.close()
+
     def get_departamento_by_id(self, idDepartamento):
         conn = self.get_connection()
         cursor = conn.cursor()
         try:
             cursor.execute("SELECT nombreDepartamento FROM departamentos WHERE idDepartamento = ?", (idDepartamento,))
             departamento = cursor.fetchone()
-            return departamento
+            if departamento:
+                # Convertir la fila en un diccionario
+                return {'nombreDepartamento': departamento[0]}  # Acceder al primer campo usando índice 0
+            return None
         except Exception as e:
             print(f"Error al obtener departamento: {e}")
             return None
@@ -315,7 +326,10 @@ class UserModel:
         try:
             cursor.execute("SELECT nombrePuesto FROM puestos WHERE idPuesto = ?", (idPuesto,))
             puesto = cursor.fetchone()
-            return puesto
+            if puesto:
+                # Convertir la fila en un diccionario
+                return {'nombrePuesto': puesto[0]}  # Acceder al primer campo usando índice 0
+            return None
         except Exception as e:
             print(f"Error al obtener puesto: {e}")
             return None

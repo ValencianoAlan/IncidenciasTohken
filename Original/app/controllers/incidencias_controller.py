@@ -34,23 +34,24 @@ def crear_incidencia_usuario(numNomina, origen):
     fecha_solicitud = datetime.now().strftime('%Y-%m-%d')
 
     # Obtener el nombre del departamento y puesto del usuario
-    departamento_usuario = user_model.get_departamento_by_id(usuario.idDepartamento)
-    puesto_usuario = user_model.get_puesto_by_id(usuario.idPuesto)
+    departamento_usuario = user_model.get_departamento_by_id(usuario['idDepartamento'])
+    puesto_usuario = user_model.get_puesto_by_id(usuario['idPuesto'])
 
     # Obtener todos los puestos y departamentos para los selectores
     puestos = user_model.get_puestos()
     departamentos = user_model.get_departamentos()
 
     return render_template('incidencia.html', 
-                           nombre=usuario.nombre,
-                           apellido_paterno=usuario.apellidoPaterno,
-                           apellido_materno=usuario.apellidoMaterno,
+                           nombre=usuario['nombre'],
+                           apellido_paterno=usuario['apellidoPaterno'],
+                           apellido_materno=usuario['apellidoMaterno'],
                            fecha_solicitud=fecha_solicitud,
-                           puesto=usuario.idPuesto,
-                           nombre_puesto=puesto_usuario.nombrePuesto,  # Nombre del puesto
-                           no_nomina=usuario.numNomina,
-                           departamento=usuario.idDepartamento,
-                           nombre_departamento=departamento_usuario.nombreDepartamento,  # Nombre del departamento
+                           puesto=usuario['idPuesto'],
+                           nombre_puesto=puesto_usuario['nombrePuesto'],  # Acceder al valor usando la clave
+                           no_nomina=usuario['numNomina'],
+                           departamento=usuario['idDepartamento'],
+                           nombre_departamento=departamento_usuario['nombreDepartamento'],  # Acceder al valor usando la clave
+                           dias_vacaciones=usuario['diasVacaciones'],  # Días de vacaciones
                            puestos=puestos,
                            departamentos=departamentos,
                            origen=origen)  # Pasamos el origen a la plantilla
