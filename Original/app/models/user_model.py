@@ -8,7 +8,7 @@ class UserModel:
         self.connection_string = (
             "DRIVER={ODBC Driver 17 for SQL Server};"
             "SERVER=localhost;"
-            "DATABASE=Prueba_6;"
+            "DATABASE=Prueba_7;"
             "UID=sa;"
             "PWD=root"
         )
@@ -61,16 +61,16 @@ class UserModel:
             cursor.close()
             conn.close()
 
-    def add_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username, password, idRol, idDepartamento, idPuesto):
+    def add_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username, password, idRol, idDepartamento, idPuesto, diasVacaciones):
         try:
             conn = self.get_connection()
             cursor = conn.cursor()
 
             # Insertar en usuarios
             cursor.execute("""
-                INSERT INTO usuarios (numNomina, nombre, apellidoPaterno, apellidoMaterno, idDepartamento, idPuesto)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, (numNomina, nombre, apellido_paterno, apellido_materno, idDepartamento, idPuesto))
+                INSERT INTO usuarios (numNomina, nombre, apellidoPaterno, apellidoMaterno, idDepartamento, idPuesto, diasVacaciones)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (numNomina, nombre, apellido_paterno, apellido_materno, idDepartamento, idPuesto, diasVacaciones))
 
             # Insertar en credenciales
             cursor.execute("""
@@ -127,16 +127,16 @@ class UserModel:
             cursor.close()
             conn.close()
 
-    def update_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username, idDepartamento, idPuesto, idRol):
+    def update_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username, idDepartamento, idPuesto, idRol, diasVacaciones):
         conn = self.get_connection()
         cursor = conn.cursor()
         try:
             # Actualizar tabla usuarios
             cursor.execute("""
                 UPDATE usuarios
-                SET nombre = ?, apellidoPaterno = ?, apellidoMaterno = ?, idDepartamento = ?, idPuesto = ?
+                SET nombre = ?, apellidoPaterno = ?, apellidoMaterno = ?, idDepartamento = ?, idPuesto = ?, diasVacaciones = ?
                 WHERE numNomina = ?
-            """, (nombre, apellido_paterno, apellido_materno, idDepartamento, idPuesto, numNomina))
+            """, (nombre, apellido_paterno, apellido_materno, idDepartamento, idPuesto, diasVacaciones, numNomina))
 
             # Actualizar tabla credenciales
             cursor.execute("""
@@ -225,27 +225,33 @@ class UserModel:
         try:
             cursor.execute("""
                 SELECT 
-                    numNomina, 
-                    nombre, 
-                    apellidoPaterno, 
-                    apellidoMaterno, 
-                    idDepartamento, 
-                    idPuesto, 
-                    diasVacaciones 
-                FROM usuarios 
-                WHERE numNomina = ?
+                    u.numNomina, 
+                    u.nombre, 
+                    u.apellidoPaterno, 
+                    u.apellidoMaterno, 
+                    c.username, 
+                    u.idDepartamento, 
+                    u.idPuesto, 
+                    u.diasVacaciones,
+                    ur.idRol  -- Asegúrate de incluir el idRol
+                FROM usuarios u
+                INNER JOIN credenciales c ON u.numNomina = c.numNomina
+                INNER JOIN usuario_rol ur ON u.numNomina = ur.numNomina
+                WHERE u.numNomina = ?
             """, (numNomina,))
             usuario = cursor.fetchone()
             if usuario:
-                # Convertir el resultado en un diccionario para acceder a los campos por nombre
+                # Convertir el resultado en un diccionario
                 usuario_dict = {
                     'numNomina': usuario.numNomina,
                     'nombre': usuario.nombre,
                     'apellidoPaterno': usuario.apellidoPaterno,
                     'apellidoMaterno': usuario.apellidoMaterno,
+                    'username': usuario.username,
                     'idDepartamento': usuario.idDepartamento,
                     'idPuesto': usuario.idPuesto,
-                    'diasVacaciones': usuario.diasVacaciones
+                    'diasVacaciones': usuario.diasVacaciones,
+                    'idRol': usuario.idRol  # Asegúrate de incluir el idRol
                 }
                 return usuario_dict
             return None
@@ -333,6 +339,34 @@ class UserModel:
         except Exception as e:
             print(f"Error al obtener puesto: {e}")
             return None
+        finally:
+            cursor.close()
+            conn.close()
+
+    def get_all_users_with_details(self):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                SELECT 
+                    u.numNomina, 
+                    u.nombre, 
+                    u.apellidoPaterno, 
+                    u.apellidoMaterno, 
+                    c.username, 
+                    d.nombreDepartamento, 
+                    p.nombrePuesto, 
+                    u.diasVacaciones  -- Asegúrate de incluir los días de vacaciones
+                FROM usuarios u
+                INNER JOIN credenciales c ON u.numNomina = c.numNomina
+                LEFT JOIN departamentos d ON u.idDepartamento = d.idDepartamento
+                LEFT JOIN puestos p ON u.idPuesto = p.idPuesto
+            """)
+            registros = cursor.fetchall()
+            return registros
+        except Exception as e:
+            print(f"Error al obtener usuarios con detalles: {e}")
+            return []
         finally:
             cursor.close()
             conn.close()

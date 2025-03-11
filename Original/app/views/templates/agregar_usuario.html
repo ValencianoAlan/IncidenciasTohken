@@ -94,6 +94,12 @@
                 </select>
             </div>
 
+                        <!-- Campo de Días de Vacaciones -->
+            <div class="mb-3">
+                <label for="diasVacaciones" class="form-label">Días de Vacaciones</label>
+                <input type="number" class="form-control" id="diasVacaciones" name="diasVacaciones" required />
+            </div>
+
             <button type="submit" class="btn btn-success">Agregar Usuario</button>
             <a href="{{ url_for('auth.bienvenida') }}" class="btn btn-secondary">Cancelar</a>
         </form>

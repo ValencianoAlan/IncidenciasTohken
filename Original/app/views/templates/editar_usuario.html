@@ -9,21 +9,17 @@
 </head>
 <body>
     <header class="bg-light py-3 mb-2">
-        <div
-          class="container d-flex justify-content-between align-items-center gap-3"
-        >
-          <div class="d-flex align-items-center gap-3">
-            <span class="badge bg-primary badge-nomina rounded-pill">
-              <i class="bi bi-person-badge me-2"></i>
-              {{ session['numNomina'] }}
-            </span>
-            <h1 class="h3 mb-0 text-nowrap">{{ session['user'] }}</h1>
-          </div>
-          <a href="{{ url_for('auth.logout') }}" class="btn btn-danger"
-            >Cerrar Sesión</a
-          >
+        <div class="container d-flex justify-content-between align-items-center gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-primary badge-nomina rounded-pill">
+                    <i class="bi bi-person-badge me-2"></i>
+                    {{ session['numNomina'] }}
+                </span>
+                <h1 class="h3 mb-0 text-nowrap">{{ session['user'] }}</h1>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-danger">Cerrar Sesión</a>
         </div>
-      </header>
+    </header>
 
     <div class="container py-5">
         <h1 class="h3 mb-3">Editar Usuario</h1>
@@ -78,7 +74,7 @@
                     {% endfor %}
                 </select>
             </div>
-            
+
             <!-- Campo de Puesto -->
             <div class="mb-3">
                 <label for="idPuesto" class="form-label">Puesto</label>
@@ -91,10 +87,16 @@
                 </select>
             </div>
 
+            <!-- Campo de Días de Vacaciones -->
+            <div class="mb-3">
+                <label for="diasVacaciones" class="form-label">Días de Vacaciones</label>
+                <input type="number" class="form-control" id="diasVacaciones" name="diasVacaciones" value="{{ usuario.diasVacaciones }}" required />
+            </div>
+
             <!-- Campo de Rol -->
             <div class="mb-3">
                 <label for="idRol" class="form-label">Rol</label>
-                <select class="form-select" id="idRol" name="idRol" {% if session['rol'] in ['Gerente', 'Supervisor'] %}disabled{% endif %} required>
+                <select class="form-select" id="idRol" name="idRol" {% if session['rol'] != 'Admin' %}disabled{% endif %} required>
                     {% for rol in roles %}
                         <option value="{{ rol.idRol }}" {% if rol.idRol == usuario.idRol %}selected{% endif %}>
                             {{ rol.nombreRol }}
