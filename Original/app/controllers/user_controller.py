@@ -9,13 +9,14 @@ user_model = UserModel()
 # Ruta para agregar usuario
 @user_bp.route('/agregar_usuario', methods=['GET', 'POST'])
 def agregar_usuario():
+    # Solo el Admin puede agregar usuarios
     if 'rol' not in session or session['rol'] != 'Admin':
         flash("No tienes permiso para acceder a esta página", "error")
         return redirect(url_for('auth.bienvenida'))
 
     mensaje = None
-    departamentos = user_model.get_departamentos()
-    roles = user_model.get_roles()
+    departamentos = user_model.get_departamentos()  # Obtener departamentos
+    roles = user_model.get_roles()  # Obtener roles
 
     if request.method == 'POST':
         numNomina = request.form.get('numNomina')
@@ -25,12 +26,11 @@ def agregar_usuario():
         username = request.form.get('username')
         password = request.form.get('password')
         idRol = request.form.get('idRol')
-        idDepartamento = request.form.get('idDepartamento')
-        idPuesto = request.form.get('idPuesto')
-        diasVacaciones = request.form.get('diasVacaciones', 0)  # Captura los días de vacaciones
+        idDepartamento = request.form.get('idDepartamento')  # Obtener el departamento
+        idPuesto = request.form.get('idPuesto')  # Obtener el puesto
 
         if numNomina and nombre and username and password and idRol and idDepartamento and idPuesto:
-            if user_model.add_user(numNomina, nombre, apellido_paterno, apellido_materno, username, password, idRol, idDepartamento, idPuesto, diasVacaciones):
+            if user_model.add_user(numNomina, nombre, apellido_paterno, apellido_materno, username, password, idRol, idDepartamento, idPuesto):
                 flash("Usuario agregado exitosamente", "success")
                 return redirect(url_for('auth.bienvenida'))
             else:
@@ -76,9 +76,9 @@ def editar_usuario(numNomina):
 
     # Obtener el usuario que se va a editar
     usuario = user_model.get_user_by_numNomina(numNomina)
-    departamentos = user_model.get_departamentos()
-    puestos = user_model.get_puestos()
-    roles = user_model.get_roles()
+    departamentos = user_model.get_departamentos()  # Obtener departamentos
+    puestos = user_model.get_puestos();
+    roles = user_model.get_roles()  # Obtener roles
 
     if not usuario:
         flash("Usuario no encontrado", "error")
@@ -89,24 +89,22 @@ def editar_usuario(numNomina):
         apellido_paterno = request.form['apellidoPaterno']
         apellido_materno = request.form['apellidoMaterno']
         username = request.form['username']
-        idDepartamento = request.form['idDepartamento']
-        idPuesto = request.form['idPuesto']
-        idRol = request.form['idRol']
-        diasVacaciones = request.form['diasVacaciones']
+        idDepartamento = request.form['idDepartamento']  # Obtener el departamento
+        idPuesto = request.form['idPuesto']  # Obtener el puesto
+        idRol = request.form['idRol']  # Obtener el rol
 
-        if user_model.update_user(numNomina, nombre, apellido_paterno, apellido_materno, username, idDepartamento, idPuesto, idRol, diasVacaciones):
+        if user_model.update_user(numNomina, nombre, apellido_paterno, apellido_materno, username, idDepartamento, idPuesto, idRol):
             flash("Usuario actualizado exitosamente", "success")
             return redirect(url_for('user.ver_registros'))
         else:
             flash("Error al actualizar usuario", "error")
 
-    return render_template('editar_usuario.html', usuario=usuario, departamentos=departamentos, puestos=puestos, roles=roles, username=session['user'])
+    return render_template('editar_usuario.html', usuario=usuario, departamentos=departamentos, puestos=puestos,roles=roles, username=session['user'])
 
 @user_bp.route('/obtener_puestos_por_departamento/<int:idDepartamento>', methods=['GET'])
 def obtener_puestos_por_departamento(idDepartamento):
     puestos = user_model.get_puestos_por_departamento(idDepartamento)
     return jsonify(puestos)
-
 
 @user_bp.route('/incidencias_usuario')
 def incidencias_usuario():

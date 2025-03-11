@@ -1,4 +1,3 @@
-import datetime
 import pyodbc
 import smtplib
 from email.mime.text import MIMEText
@@ -9,7 +8,7 @@ class UserModel:
         self.connection_string = (
             "DRIVER={ODBC Driver 17 for SQL Server};"
             "SERVER=localhost;"
-            "DATABASE=Prueba_7;"
+            "DATABASE=Prueba_6;"
             "UID=sa;"
             "PWD=root"
         )
@@ -62,16 +61,16 @@ class UserModel:
             cursor.close()
             conn.close()
 
-    def add_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username, password, idRol, idDepartamento, idPuesto, diasVacaciones):
+    def add_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username, password, idRol, idDepartamento, idPuesto):
         try:
             conn = self.get_connection()
             cursor = conn.cursor()
 
             # Insertar en usuarios
             cursor.execute("""
-                INSERT INTO usuarios (numNomina, nombre, apellidoPaterno, apellidoMaterno, idDepartamento, idPuesto, diasVacaciones)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (numNomina, nombre, apellido_paterno, apellido_materno, idDepartamento, idPuesto, diasVacaciones))
+                INSERT INTO usuarios (numNomina, nombre, apellidoPaterno, apellidoMaterno, idDepartamento, idPuesto)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (numNomina, nombre, apellido_paterno, apellido_materno, idDepartamento, idPuesto))
 
             # Insertar en credenciales
             cursor.execute("""
@@ -112,15 +111,8 @@ class UserModel:
         cursor = conn.cursor()
         try:
             cursor.execute("""
-                SELECT 
-                    u.numNomina, 
-                    u.nombre, 
-                    u.apellidoPaterno, 
-                    u.apellidoMaterno, 
-                    c.username, 
-                    d.nombreDepartamento, 
-                    p.nombrePuesto, 
-                    u.diasVacaciones  -- Asegúrate de incluir los días de vacaciones
+                SELECT u.numNomina, u.nombre, u.apellidoPaterno, u.apellidoMaterno, c.username,
+                    d.nombreDepartamento, p.nombrePuesto
                 FROM usuarios u
                 INNER JOIN credenciales c ON u.numNomina = c.numNomina
                 LEFT JOIN departamentos d ON u.idDepartamento = d.idDepartamento
@@ -135,16 +127,16 @@ class UserModel:
             cursor.close()
             conn.close()
 
-    def update_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username, idDepartamento, idPuesto, idRol, diasVacaciones):
+    def update_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username, idDepartamento, idPuesto, idRol):
         conn = self.get_connection()
         cursor = conn.cursor()
         try:
             # Actualizar tabla usuarios
             cursor.execute("""
                 UPDATE usuarios
-                SET nombre = ?, apellidoPaterno = ?, apellidoMaterno = ?, idDepartamento = ?, idPuesto = ?, diasVacaciones = ?
+                SET nombre = ?, apellidoPaterno = ?, apellidoMaterno = ?, idDepartamento = ?, idPuesto = ?
                 WHERE numNomina = ?
-            """, (nombre, apellido_paterno, apellido_materno, idDepartamento, idPuesto, diasVacaciones, numNomina))
+            """, (nombre, apellido_paterno, apellido_materno, idDepartamento, idPuesto, numNomina))
 
             # Actualizar tabla credenciales
             cursor.execute("""
@@ -233,33 +225,27 @@ class UserModel:
         try:
             cursor.execute("""
                 SELECT 
-                    u.numNomina, 
-                    u.nombre, 
-                    u.apellidoPaterno, 
-                    u.apellidoMaterno, 
-                    c.username, 
-                    u.idDepartamento, 
-                    u.idPuesto, 
-                    u.diasVacaciones,
-                    ur.idRol  -- Asegúrate de incluir el idRol
-                FROM usuarios u
-                INNER JOIN credenciales c ON u.numNomina = c.numNomina
-                INNER JOIN usuario_rol ur ON u.numNomina = ur.numNomina
-                WHERE u.numNomina = ?
+                    numNomina, 
+                    nombre, 
+                    apellidoPaterno, 
+                    apellidoMaterno, 
+                    idDepartamento, 
+                    idPuesto, 
+                    diasVacaciones 
+                FROM usuarios 
+                WHERE numNomina = ?
             """, (numNomina,))
             usuario = cursor.fetchone()
             if usuario:
-                # Convertir el resultado en un diccionario
+                # Convertir el resultado en un diccionario para acceder a los campos por nombre
                 usuario_dict = {
                     'numNomina': usuario.numNomina,
                     'nombre': usuario.nombre,
                     'apellidoPaterno': usuario.apellidoPaterno,
                     'apellidoMaterno': usuario.apellidoMaterno,
-                    'username': usuario.username,
                     'idDepartamento': usuario.idDepartamento,
                     'idPuesto': usuario.idPuesto,
-                    'diasVacaciones': usuario.diasVacaciones,
-                    'idRol': usuario.idRol  # Asegúrate de incluir el idRol
+                    'diasVacaciones': usuario.diasVacaciones
                 }
                 return usuario_dict
             return None
@@ -273,16 +259,11 @@ class UserModel:
     def get_vacaciones(self, numNomina):
         conn = self.get_connection()
         cursor = conn.cursor()
-        try:
-            cursor.execute("SELECT diasVacaciones FROM usuarios WHERE numNomina = ?", (numNomina,))
-            vacaciones = cursor.fetchone()
-            return vacaciones[0] if vacaciones else 0
-        except Exception as e:
-            print(f"Error al obtener días de vacaciones: {e}")
-            return 0
-        finally:
-            cursor.close()
-            conn.close()
+        cursor.execute("SELECT diasVacaciones FROM vacaciones WHERE numNomina = ?", (numNomina,))
+        vacaciones = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return vacaciones[0] if vacaciones else 0
 
     def get_departamentos(self):
         conn = self.get_connection()
@@ -355,299 +336,3 @@ class UserModel:
         finally:
             cursor.close()
             conn.close()
-
-    def get_supervisor(self, numNomina):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("""
-                SELECT u.numNomina, u.nombre, u.apellidoPaterno, u.apellidoMaterno, c.username, u.email
-                FROM usuarios u
-                INNER JOIN credenciales c ON u.numNomina = c.numNomina
-                WHERE u.numNomina = (
-                    SELECT idSupervisor FROM usuarios WHERE numNomina = ?
-                )
-            """, (numNomina,))
-            supervisor = cursor.fetchone()
-            if supervisor:
-                return {
-                    'numNomina': supervisor.numNomina,
-                    'nombre': supervisor.nombre,
-                    'apellidoPaterno': supervisor.apellidoPaterno,
-                    'apellidoMaterno': supervisor.apellidoMaterno,
-                    'username': supervisor.username,
-                    'email': supervisor.email
-                }
-            return None
-        except Exception as e:
-            print(f"Error al obtener supervisor: {e}")
-            return None
-        finally:
-            cursor.close()
-            conn.close()
-
-    def get_gerente(self, numNomina):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("""
-                SELECT u.numNomina, u.nombre, u.apellidoPaterno, u.apellidoMaterno, c.username, u.email
-                FROM usuarios u
-                INNER JOIN credenciales c ON u.numNomina = c.numNomina
-                WHERE u.numNomina = (
-                    SELECT idGerente FROM usuarios WHERE numNomina = ?
-                )
-            """, (numNomina,))
-            gerente = cursor.fetchone()
-            if gerente:
-                return {
-                    'numNomina': gerente.numNomina,
-                    'nombre': gerente.nombre,
-                    'apellidoPaterno': gerente.apellidoPaterno,
-                    'apellidoMaterno': gerente.apellidoMaterno,
-                    'username': gerente.username,
-                    'email': gerente.email
-                }
-            return None
-        except Exception as e:
-            print(f"Error al obtener gerente: {e}")
-            return None
-        finally:
-            cursor.close()
-            conn.close()
-
-    def crear_incidencia(self, numNomina, motivo, fecha_inicio, fecha_fin, supervisor):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        try:
-            # Obtener el correo del usuario que envía la solicitud
-            cursor.execute("SELECT email FROM usuarios WHERE numNomina = ?", (numNomina,))
-            usuario = cursor.fetchone()
-            if not usuario:
-                return False
-
-            # Insertar la incidencia en la base de datos
-            cursor.execute("""
-                INSERT INTO incidencias (numNomina, motivo, fecha_inicio, fecha_fin, estado, aprobado_por_supervisor)
-                VALUES (?, ?, ?, ?, 'Pendiente', ?)
-            """, (numNomina, motivo, fecha_inicio, fecha_fin, supervisor))
-            conn.commit()
-
-            # Obtener el correo del supervisor
-            cursor.execute("SELECT email FROM usuarios WHERE numNomina = ?", (supervisor,))
-            supervisor_info = cursor.fetchone()
-            if not supervisor_info:
-                return False
-
-            # Enviar correo de notificación al supervisor
-            asunto = "Nueva solicitud de incidencia"
-            cuerpo = f"El usuario {usuario.email} ha enviado una solicitud de incidencia. Por favor, revise y apruebe o rechace."
-            self.enviar_correo(usuario.email, supervisor_info.email, asunto, cuerpo)
-
-            return True
-        except Exception as e:
-            print(f"Error al crear incidencia: {e}")
-            return False
-        finally:
-            cursor.close()
-            conn.close()
-
-    def aprobar_incidencia_supervisor(self, idIncidencia, numNomina, aprobado, comentarios=None):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        try:
-            # Obtener los detalles de la incidencia
-            cursor.execute("""
-                SELECT i.*, u.email AS email_usuario
-                FROM incidencias i
-                INNER JOIN usuarios u ON i.numNomina = u.numNomina
-                WHERE i.idIncidencia = ?
-            """, (idIncidencia,))
-            incidencia = cursor.fetchone()
-            if not incidencia:
-                return False
-
-            # Actualizar el estado de la incidencia
-            estado = "Aprobado por Supervisor" if aprobado else "Rechazado por Supervisor"
-            cursor.execute("""
-                UPDATE incidencias
-                SET estado = ?, aprobado_por_supervisor = ?, fecha_aprobacion_supervisor = ?, comentarios = ?
-                WHERE idIncidencia = ?
-            """, (estado, numNomina, datetime.now(), comentarios, idIncidencia))
-            conn.commit()
-
-            # Enviar correo de notificación al usuario
-            asunto = f"Solicitud {estado}"
-            cuerpo = f"Su solicitud de incidencia ha sido {estado.lower()}."
-            if comentarios:
-                cuerpo += f"\nComentarios: {comentarios}"
-            self.enviar_correo(incidencia.email_usuario, incidencia.email_usuario, asunto, cuerpo)
-
-            # Si se aprueba, notificar al gerente
-            if aprobado:
-                gerente = self.get_gerente(numNomina)
-                if gerente:
-                    asunto = "Nueva solicitud para aprobación"
-                    cuerpo = f"El supervisor {incidencia.email_usuario} ha aprobado una solicitud de incidencia. Por favor, revise y apruebe o rechace."
-                    self.enviar_correo(incidencia.email_usuario, gerente['email'], asunto, cuerpo)
-
-            return True
-        except Exception as e:
-            print(f"Error al aprobar/rechazar incidencia como supervisor: {e}")
-            return False
-        finally:
-            cursor.close()
-            conn.close()
-
-    def aprobar_incidencia_gerente(self, idIncidencia, numNomina, aprobado, comentarios=None):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        try:
-            # Obtener los detalles de la incidencia
-            cursor.execute("""
-                SELECT i.*, u.email AS email_usuario, s.email AS email_supervisor
-                FROM incidencias i
-                INNER JOIN usuarios u ON i.numNomina = u.numNomina
-                LEFT JOIN usuarios s ON i.aprobado_por_supervisor = s.numNomina
-                WHERE i.idIncidencia = ?
-            """, (idIncidencia,))
-            incidencia = cursor.fetchone()
-            if not incidencia:
-                return False
-
-            # Actualizar el estado de la incidencia
-            estado = "Aprobado por Gerente" if aprobado else "Rechazado por Gerente"
-            cursor.execute("""
-                UPDATE incidencias
-                SET estado = ?, aprobado_por_gerente = ?, fecha_aprobacion_gerente = ?, comentarios = ?
-                WHERE idIncidencia = ?
-            """, (estado, numNomina, datetime.now(), comentarios, idIncidencia))
-            conn.commit()
-
-            # Enviar correo de notificación al usuario y al supervisor
-            asunto = f"Solicitud {estado}"
-            cuerpo = f"Su solicitud de incidencia ha sido {estado.lower()}."
-            if comentarios:
-                cuerpo += f"\nComentarios: {comentarios}"
-            self.enviar_correo(incidencia.email_usuario, incidencia.email_usuario, asunto, cuerpo)
-            if incidencia.email_supervisor:
-                self.enviar_correo(incidencia.email_usuario, incidencia.email_supervisor, asunto, cuerpo)
-
-            return True
-        except Exception as e:
-            print(f"Error al aprobar/rechazar incidencia como gerente: {e}")
-            return False
-        finally:
-            cursor.close()
-            conn.close()
-
-    # Método para obtener una incidencia por su ID
-    def get_incidencia_by_id(self, idIncidencia):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("""
-                SELECT i.*, u.nombre AS nombre_usuario, u.email AS email_usuario, s.email AS email_supervisor
-                FROM incidencias i
-                INNER JOIN usuarios u ON i.numNomina = u.numNomina
-                LEFT JOIN usuarios s ON i.aprobado_por_supervisor = s.numNomina
-                WHERE i.idIncidencia = ?
-            """, (idIncidencia,))
-            incidencia = cursor.fetchone()
-            if incidencia:
-                return {
-                    'idIncidencia': incidencia.idIncidencia,
-                    'numNomina': incidencia.numNomina,
-                    'motivo': incidencia.motivo,
-                    'fecha_inicio': incidencia.fecha_inicio,
-                    'fecha_fin': incidencia.fecha_fin,
-                    'estado': incidencia.estado,
-                    'nombre_usuario': incidencia.nombre_usuario,
-                    'email_usuario': incidencia.email_usuario,
-                    'email_supervisor': incidencia.email_supervisor
-                }
-            return None
-        except Exception as e:
-            print(f"Error al obtener incidencia por ID: {e}")
-            return None
-        finally:
-            cursor.close()
-            conn.close()
-
-    def get_incidencias_enviadas(self, numNomina):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("""
-                SELECT 
-                    i.idIncidencia, 
-                    i.motivo, 
-                    i.fecha_inicio, 
-                    i.fecha_fin, 
-                    i.estado, 
-                    i.comentarios,
-                    s.nombre AS nombre_supervisor,
-                    g.nombre AS nombre_gerente
-                FROM incidencias i
-                LEFT JOIN usuarios s ON i.aprobado_por_supervisor = s.numNomina
-                LEFT JOIN usuarios g ON i.aprobado_por_gerente = g.numNomina
-                WHERE i.numNomina = ?
-            """, (numNomina,))
-            incidencias = cursor.fetchall()
-            return incidencias
-        except Exception as e:
-            print(f"Error al obtener incidencias enviadas: {e}")
-            return []
-        finally:
-            cursor.close()
-            conn.close()
-
-    def get_incidencias_recibidas(self, numNomina):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("""
-                SELECT 
-                    i.idIncidencia, 
-                    i.motivo, 
-                    i.fecha_inicio, 
-                    i.fecha_fin, 
-                    i.estado, 
-                    i.comentarios,
-                    u.nombre AS nombre_usuario,
-                    u.email AS email_usuario
-                FROM incidencias i
-                INNER JOIN usuarios u ON i.numNomina = u.numNomina
-                WHERE i.aprobado_por_supervisor = ? OR i.aprobado_por_gerente = ?
-            """, (numNomina, numNomina))
-            incidencias = cursor.fetchall()
-            return incidencias
-        except Exception as e:
-            print(f"Error al obtener incidencias recibidas: {e}")
-            return []
-        finally:
-            cursor.close()
-            conn.close()
-
-    def enviar_correo(self, remitente, destinatario, asunto, cuerpo):
-        try:
-            mensaje = MIMEText(cuerpo)
-            mensaje["Subject"] = asunto
-            mensaje["From"] = remitente  # Correo del remitente
-            mensaje["To"] = destinatario  # Correo del destinatario
-
-            with smtplib.SMTP(
-                current_app.config["MAIL_SERVER"],
-                current_app.config["MAIL_PORT"]
-            ) as server:
-                server.starttls()
-                server.login(
-                    current_app.config["MAIL_USERNAME"],
-                    current_app.config["MAIL_PASSWORD"]
-                )
-                server.send_message(mensaje)
-
-            return True
-        except Exception as e:
-            print(f"Error al enviar correo: {e}")
-            return False

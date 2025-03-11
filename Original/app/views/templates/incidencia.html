@@ -1,164 +1,209 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Control de Ausencia y Salidas de Planta</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/bienvenida.css') }}" />
-</head>
-<body>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/bienvenida.css') }}"
+    />
+  </head>
+  <body>
     <header class="bg-light py-3 mb-2">
-        <div class="container d-flex justify-content-between align-items-center gap-3">
-            <div class="d-flex align-items-center gap-3">
-                <span class="badge bg-primary badge-nomina rounded-pill">
-                    <i class="bi bi-person-badge me-2"></i>
-                    {{ session['numNomina'] }}
-                </span>
-                <h1 class="h3 mb-0 text-nowrap">{{ session['user'] }}</h1>
-            </div>
-            <a href="{{ url_for('auth.logout') }}" class="btn btn-danger">Cerrar Sesión</a>
+      <div
+        class="container d-flex justify-content-between align-items-center gap-3"
+      >
+        <div class="d-flex align-items-center gap-3">
+          <span class="badge bg-primary badge-nomina rounded-pill">
+            <i class="bi bi-person-badge me-2"></i>
+            {{ session['numNomina'] }}
+          </span>
+          <h1 class="h3 mb-0 text-nowrap">{{ session['user'] }}</h1>
         </div>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-danger"
+          >Cerrar Sesión</a
+        >
+      </div>
     </header>
 
     <div class="container mt-5">
-        <!-- Encabezado de la página -->
-        <div class="card mb-2 shadow">
-            <div class="card-header bg-primary">
-                <h5 class="mb-0 text-white">Solicitud de Incidencia</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <!-- Logo a la izquierda -->
-                    <div class="col-md-4 d-flex align-items-center">
-                        <img src="{{ url_for('static', filename='img/Logo-transparente.ico') }}" alt="logo_tohken" class="img-fluid" style="width: 75px" />
-                    </div>
-
-                    <!-- TIO-702.01.03/B en el centro -->
-                    <div class="col-md-4 d-flex align-items-center justify-content-center text-center">
-                        <p class="mb-0" style="font-weight: bold; font-size: 16px">
-                            TIO-702.01.03/B <br />
-                            Control de Ausencia y Salidas de Planta
-                        </p>
-                    </div>
-
-                    <!-- Control de Ausencia y Salidas de Planta / Edición a la derecha -->
-                    <div class="col-md-4 d-flex align-items-center justify-content-end text-center">
-                        <div class="text-end">
-                            <p class="text-muted mb-0" style="font-weight: bold; font-size: 16px">
-                                Edición 1ra. <br />
-                                Fecha: 10-Ene-20
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+      <!-- Encabezado de la página -->
+      <div class="card mb-2 shadow">
+        <div class="card-header bg-primary">
+          <h5 class="mb-0 text-white">Solicitud de Incidencia</h5>
         </div>
-
-        <!-- Formulario de incidencia -->
-        <div class="card shadow">
-            <div class="card-body">
-                <form method="POST" action="{{ url_for('incidencias.enviar_solicitud') }}">
-                    <!-- Campos ocultos para el número de nómina y el origen -->
-                    <input type="hidden" name="numNomina" value="{{ session['numNomina'] }}" />
-                    <input type="hidden" name="origen" value="{{ origen }}" />
-
-                    <!-- Información del solicitante -->
-                    <div class="row mb-3" style="font-size: 14px">
-                        <div class="col-md-3">
-                            <label for="nombre" class="form-label">Nombre(s) del Solicitante</label>
-                            <input type="text" class="form-control" id="nombre" name="nombre" value="{{ nombre }}" readonly />
-                        </div>
-                        <div class="col-md-3">
-                            <label for="apellido_paterno" class="form-label">Apellido Paterno</label>
-                            <input type="text" class="form-control" id="apellido_paterno" name="apellido_paterno" value="{{ apellido_paterno }}" readonly />
-                        </div>
-                        <div class="col-md-3">
-                            <label for="apellido_materno" class="form-label">Apellido Materno</label>
-                            <input type="text" class="form-control" id="apellido_materno" name="apellido_materno" value="{{ apellido_materno }}" readonly />
-                        </div>
-                        <div class="col-md-3">
-                            <label for="fecha_solicitud" class="form-label">Fecha de Solicitud</label>
-                            <input type="date" class="form-control" id="fecha_solicitud" name="fecha_solicitud" value="{{ fecha_solicitud }}" readonly />
-                        </div>
-
-                        <!-- Campo de nombre del puesto -->
-                        <div class="col-md-3" style="margin-top: 15px;">
-                            <label for="puesto" class="form-label">Puesto</label>
-                            <input type="text" class="form-control" id="puesto" name="puesto" value="{{ nombre_puesto }}" disabled />
-                        </div>
-
-                        <!-- Campo de Número de Nómina -->
-                        <div class="col-md-3" style="margin-top: 15px;">
-                            <label for="no_nomina" class="form-label">No. Nómina</label>
-                            <input type="number" class="form-control" id="no_nomina" name="no_nomina" value="{{ no_nomina }}" readonly />
-                        </div>
-
-                        <!-- Campo de nombre del departamento -->
-                        <div class="col-md-3" style="margin-top: 15px;">
-                            <label for="departamento" class="form-label">Departamento</label>
-                            <input type="text" class="form-control" id="departamento" name="departamento" value="{{ nombre_departamento }}" disabled />
-                        </div>
-
-                        <!-- Campo de días de vacaciones restantes -->
-                        <div class="col-md-3" style="margin-top: 15px;">
-                            <label for="dias_vacaciones" class="form-label">Días de Vacaciones Restantes</label>
-                            <input type="number" class="form-control" id="dias_vacaciones" name="dias_vacaciones" value="{{ dias_vacaciones }}" disabled />
-                        </div>
-                    </div>
-
-                    <!-- Vacaciones restantes, Fecha de inicio y Fecha de fin -->
-                    <div class="row mb-2" style="font-size: 14px;">
-                        <div class="col-md-3">
-                            <label for="motivo_ausencia" class="form-label">Motivo</label>
-                            <select class="form-select" id="motivo_ausencia" name="motivo" style="font-size: 14px" required>
-                                <option value="goce_sueldo">Permiso con goce de sueldo</option>
-                                <option value="sin_goce_sueldo">Permiso sin goce de sueldo</option>
-                                <option value="vacaciones">Vacaciones</option>
-                                <option value="olvido_gafete">Olvido de gafete</option>
-                                <option value="tiempo_x_tiempo">Tiempo x Tiempo</option>
-                            </select>
-                        </div>
-
-                        <!-- Campo de fecha de inicio -->
-                        <div class="col-md-2">
-                            <label for="fecha_inicio" class="form-label">Fecha de Inicio</label>
-                            <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required />
-                        </div>
-
-                        <!-- Campo de fecha de fin -->
-                        <div class="col-md-2">
-                            <label for="fecha_fin" class="form-label">Fecha de Fin</label>
-                            <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" required />
-                        </div>
-
-                        <!-- Campo de No. de Días (no editable) -->
-                        <div class="col-md-1">
-                            <label for="num_dias" class="form-label">No. de Días</label>
-                            <input type="number" class="form-control" id="num_dias" name="num_dias" readonly />
-                        </div>
-                    </div>
-
-                    <!-- Observaciones -->
-                    <div class="mb-4" style="font-size: 14px; margin-top: 15px;">
-                        <label for="comentarios" class="form-label"><b>Observaciones:</b></label>
-                        <textarea class="form-control" id="comentarios" name="comentarios" rows="4" maxlength="250" placeholder="Escribe aquí tu comentario (máximo 250 caracteres)..." style="font-size: 12px;" required></textarea>
-                        <small class="form-text text-muted">Máximo 250 caracteres.</small>
-                    </div>
-
-                    <!-- Botones de acción -->
-                    <div class="d-flex justify-content-between">
-                        <button type="submit" class="btn btn-success">Enviar Solicitud</button>
-                        <a href="{{ 
-                            url_for('auth.bienvenida') if origen == 'bienvenida' 
-                            else url_for('user.incidencias_usuario') if origen == 'incidencias_usuario' 
-                            else url_for('user.ver_registros') 
-                        }}" class="btn btn-danger">Cancelar</a>
-                    </div>
-                </form>
+        <div class="card-body">
+          <div class="row">
+            <!-- Logo a la izquierda -->
+            <div class="col-md-4 d-flex align-items-center">
+              <img
+                src="{{ url_for('static', filename='img/Logo-transparente.ico') }}"
+                alt="logo_tohken"
+                class="img-fluid"
+                style="width: 75px"
+              />
             </div>
+
+            <!-- TIO-702.01.03/B en el centro -->
+            <div
+              class="col-md-4 d-flex align-items-center justify-content-center text-center"
+            >
+              <p class="mb-0" style="font-weight: bold; font-size: 16px">
+                TIO-702.01.03/B <br />
+                Control de Ausencia y Salidas de Planta
+              </p>
+            </div>
+
+            <!-- Control de Ausencia y Salidas de Planta / Edición a la derecha -->
+            <div
+              class="col-md-4 d-flex align-items-center justify-content-end text-center"
+            >
+              <div class="text-end">
+                <p
+                  class="text-muted mb-0"
+                  style="font-weight: bold; font-size: 16px"
+                >
+                  Edición 1ra. <br />
+                  Fecha: 10-Ene-20
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <!-- Formulario de incidencia -->
+      <div class="card shadow">
+        <div class="card-body">
+          <form
+            method="POST"
+            action="{{ url_for('incidencias.ver_incidencias') }}"
+          >
+              <!-- Información del solicitante -->
+              <div class="row mb-3" style="font-size: 14px">
+                <div class="col-md-3">
+                  <label for="nombre" class="form-label">Nombre(s) del Solicitante</label>
+                  <input type="text" class="form-control" id="nombre" name="nombre" value="{{ nombre }}" readonly />
+              </div>
+              <div class="col-md-3">
+                  <label for="apellido_paterno" class="form-label">Apellido Paterno</label>
+                  <input type="text" class="form-control" id="apellido_paterno" name="apellido_paterno" value="{{ apellido_paterno }}" readonly />
+              </div>
+              <div class="col-md-3">
+                  <label for="apellido_materno" class="form-label">Apellido Materno</label>
+                  <input type="text" class="form-control" id="apellido_materno" name="apellido_materno" value="{{ apellido_materno }}" readonly />
+              </div>
+              <div class="col-md-3">
+                  <label for="fecha_solicitud" class="form-label">Fecha de Solicitud</label>
+                  <input type="date" class="form-control" id="fecha_solicitud" name="fecha_solicitud" value="{{ fecha_solicitud }}" readonly />
+              </div>
+
+              <!-- Campo de nombre del puesto -->
+              <div class="col-md-3" style="margin-top: 15px;">
+                <label for="puesto" class="form-label">Puesto</label>
+                <input type="text" class="form-control" id="puesto" name="puesto" value="{{ nombre_puesto }}" disabled />
+              </div>
+
+              <!-- Campo de Número de Nómina -->
+              <div class="col-md-3" style="margin-top: 15px;">
+                  <label for="no_nomina" class="form-label">No. Nómina</label>
+                  <input type="number" class="form-control" id="no_nomina" name="no_nomina" value="{{ no_nomina }}" readonly />
+              </div>
+
+            <!-- Campo de nombre del departamento -->
+            <div class="col-md-3" style="margin-top: 15px;">
+              <label for="departamento" class="form-label">Departamento</label>
+              <input type="text" class="form-control" id="departamento" name="departamento" value="{{ nombre_departamento }}" disabled />
+            </div>
+
+            <!-- Campo de días de vacaciones restantes -->
+            <div class="col-md-3" style="margin-top: 15px;">
+              <label for="dias_vacaciones" class="form-label">Días de Vacaciones Restantes</label>
+              <input type="number" class="form-control" id="dias_vacaciones" name="dias_vacaciones" value="{{ dias_vacaciones }}" disabled />
+            </div>
+          </div>
+
+          <!-- Vacaciones restantes, Fecha de inicio y Fecha de fin -->
+          <div class="row mb-2" style="font-size: 14px;">
+            <div class="col-md-3">
+              <label for="motivo_ausencia" class="form-label">Motivo</label>
+              <select
+                class="form-select"
+                id="motivo_ausencia"
+                name="motivo"
+                style="font-size: 14px"
+                required
+              >
+                <option value="goce_sueldo">
+                  Permiso con goce de sueldo
+                </option>
+                <option value="sin_goce_sueldo">
+                  Permiso sin goce de sueldo
+                </option>
+                <option value="vacaciones">Vacaciones</option>
+                <option value="olvido_gafete">Olvido de gafete</option>
+                <option value="tiempo_x_tiempo">Tiempo x Tiempo</option>
+              </select>
+            </div>
+
+            <!-- Campo de fecha de inicio -->
+            <div class="col-md-2">
+              <label for="fecha_inicio" class="form-label">Fecha de Inicio</label>
+              <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required />
+            </div>
+
+            <!-- Campo de fecha de fin -->
+            <div class="col-md-2">
+              <label for="fecha_fin" class="form-label">Fecha de Fin</label>
+              <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" required />
+            </div>
+
+            <!-- Campo de No. de Días (no editable) -->
+            <div class="col-md-1">
+              <label for="num_dias" class="form-label">No. de Días</label>
+              <input type="number" class="form-control" id="num_dias" name="num_dias" readonly />
+            </div>
+
+          <!-- Observaciones -->
+          <div class="mb-4" style="font-size: 14px; margin-top: 15px;">
+            <label for="comentarios" class="form-label"
+              ><b>Observaciones:</b></label
+            >
+            <textarea
+              class="form-control"
+              id="comentarios"
+              name="comentarios"
+              rows="4"
+              maxlength="250"
+              placeholder="Escribe aquí tu comentario (máximo 250 caracteres)..."
+              style="font-size: 12px;"
+              required
+            ></textarea>
+            <small class="form-text text-muted">Máximo 250 caracteres.</small>
+          </div>
+
+          <!-- Botones de acción -->
+          <div class="d-flex justify-content-between">
+            <button type="submit" class="btn btn-success">Enviar Solicitud</button>
+            <a href="{{ 
+                url_for('auth.bienvenida') if origen == 'bienvenida' 
+                else url_for('user.incidencias_usuario') if origen == 'incidencias_usuario' 
+                else url_for('user.ver_registros') 
+            }}" class="btn btn-danger">Cancelar</a>
+          </div>
+          </div>
+          </form>
+        </div>
+      </div>
     </div>
 
     <!-- Scripts de Bootstrap -->
@@ -166,37 +211,37 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Obtener los valores del departamento y puesto del usuario
-            const nombreDepartamento = document.getElementById('departamento').value;
-            const nombrePuesto = document.getElementById('puesto').value;
+      document.addEventListener('DOMContentLoaded', function () {
+          // Obtener los valores del departamento y puesto del usuario
+          const nombreDepartamento = document.getElementById('nombre_departamento').value;
+          const nombrePuesto = document.getElementById('nombre_puesto').value;
+      
+          // Seleccionar el departamento y puesto en los selectores
+          const selectDepartamento = document.getElementById('departamento');
+          const selectPuesto = document.getElementById('puesto');
+      
+          for (let option of selectDepartamento.options) {
+              if (option.text === nombreDepartamento) {
+                  option.selected = true;
+                  break;
+              }
+          }
+      
+          for (let option of selectPuesto.options) {
+              if (option.text === nombrePuesto) {
+                  option.selected = true;
+                  break;
+              }
+          }
+      });
+      </script>
 
-            // Seleccionar el departamento y puesto en los selectores
-            const selectDepartamento = document.getElementById('departamento');
-            const selectPuesto = document.getElementById('puesto');
-
-            for (let option of selectDepartamento.options) {
-                if (option.text === nombreDepartamento) {
-                    option.selected = true;
-                    break;
-                }
-            }
-
-            for (let option of selectPuesto.options) {
-                if (option.text === nombrePuesto) {
-                    option.selected = true;
-                    break;
-                }
-            }
-        });
-    </script>
-
-    <script>
+      <script>
         document.addEventListener('DOMContentLoaded', function () {
             const fechaInicio = document.getElementById('fecha_inicio');
             const fechaFin = document.getElementById('fecha_fin');
             const numDias = document.getElementById('num_dias');
-
+        
             // Función para calcular el número de días
             function calcularDias() {
                 if (fechaInicio.value && fechaFin.value) {
@@ -209,11 +254,11 @@
                     numDias.value = '';
                 }
             }
-
+        
             // Escuchar cambios en las fechas
             fechaInicio.addEventListener('change', calcularDias);
             fechaFin.addEventListener('change', calcularDias);
         });
-    </script>
-</body>
+        </script>
+  </body>
 </html>

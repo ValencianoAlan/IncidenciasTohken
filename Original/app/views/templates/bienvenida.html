@@ -78,13 +78,6 @@
                   </div>
               </div>
           </div>
-          <!-- Botón para ver mis incidencias -->
-          <a href="{{ url_for('incidencias.mis_incidencias') }}" class="btn btn-primary btn-custom">Mis Incidencias</a>
-
-          <!-- Botón para ver incidencias recibidas -->
-          {% if session['rol'] in ['Supervisor', 'Gerente'] %}
-              <a href="{{ url_for('incidencias.incidencias_recibidas') }}" class="btn btn-warning btn-custom">Incidencias Recibidas</a>
-          {% endif %}
       </div>
 
         <div class="row justify-content-center mt-4">
@@ -141,7 +134,6 @@
         </div>
       </div>
     </div>
-
 
 
     <!-- Mensajes Flash -->
