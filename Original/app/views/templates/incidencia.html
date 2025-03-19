@@ -86,7 +86,7 @@
         <div class="card-body">
           <form
             method="POST"
-            action="{{ url_for('incidencias.ver_incidencias') }}"
+            action="{{ url_for('incidencias.crear_incidencia') }}"
           >
               <!-- Información del solicitante -->
               <div class="row mb-3" style="font-size: 14px">
@@ -110,7 +110,7 @@
               <!-- Campo de nombre del puesto -->
               <div class="col-md-3" style="margin-top: 15px;">
                 <label for="puesto" class="form-label">Puesto</label>
-                <input type="text" class="form-control" id="puesto" name="puesto" value="{{ nombre_puesto }}" disabled />
+                <input type="text" class="form-control" id="puesto" name="puesto" value="{{ nombre_puesto }}" readonly />
               </div>
 
               <!-- Campo de Número de Nómina -->
@@ -122,13 +122,13 @@
             <!-- Campo de nombre del departamento -->
             <div class="col-md-3" style="margin-top: 15px;">
               <label for="departamento" class="form-label">Departamento</label>
-              <input type="text" class="form-control" id="departamento" name="departamento" value="{{ nombre_departamento }}" disabled />
+              <input type="text" class="form-control" id="departamento" name="departamento" value="{{ nombre_departamento }}" readonly />
             </div>
 
             <!-- Campo de días de vacaciones restantes -->
             <div class="col-md-3" style="margin-top: 15px;">
               <label for="dias_vacaciones" class="form-label">Días de Vacaciones Restantes</label>
-              <input type="number" class="form-control" id="dias_vacaciones" name="dias_vacaciones" value="{{ dias_vacaciones }}" disabled />
+              <input type="number" class="form-control" id="dias_vacaciones" name="dias_vacaciones" value="{{ dias_vacaciones }}" readonly />
             </div>
           </div>
 
@@ -175,25 +175,17 @@
 
           <!-- Observaciones -->
           <div class="mb-4" style="font-size: 14px; margin-top: 15px;">
-            <label for="comentarios" class="form-label"
-              ><b>Observaciones:</b></label
-            >
-            <textarea
-              class="form-control"
-              id="comentarios"
-              name="comentarios"
-              rows="4"
-              maxlength="250"
-              placeholder="Escribe aquí tu comentario (máximo 250 caracteres)..."
-              style="font-size: 12px;"
-              required
-            ></textarea>
+            <label for="comentarios" class="form-label">Observaciones</label>
+            <textarea class="form-control" id="comentarios" name="comentarios" rows="4" required></textarea>
             <small class="form-text text-muted">Máximo 250 caracteres.</small>
           </div>
 
           <!-- Botones de acción -->
           <div class="d-flex justify-content-between">
-            <button type="submit" class="btn btn-success">Enviar Solicitud</button>
+            <form method="POST" action="{{ url_for('incidencias.crear_incidencia') }}">
+              <!-- Campos del formulario -->
+              <button type="submit" class="btn btn-success">Enviar Solicitud</button>
+          </form>
             <a href="{{ 
                 url_for('auth.bienvenida') if origen == 'bienvenida' 
                 else url_for('user.incidencias_usuario') if origen == 'incidencias_usuario' 

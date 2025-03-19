@@ -8,7 +8,7 @@ class UserModel:
         self.connection_string = (
             "DRIVER={ODBC Driver 17 for SQL Server};"
             "SERVER=localhost;"
-            "DATABASE=Prueba_7;"
+            "DATABASE=Prueba_8;"
             "UID=sa;"
             "PWD=root"
         )
@@ -105,27 +105,6 @@ class UserModel:
         cursor.close()
         conn.close()
         return registros
-    
-    def get_all_users_with_details(self):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("""
-                SELECT u.numNomina, u.nombre, u.apellidoPaterno, u.apellidoMaterno, c.username,
-                    d.nombreDepartamento, p.nombrePuesto
-                FROM usuarios u
-                INNER JOIN credenciales c ON u.numNomina = c.numNomina
-                LEFT JOIN departamentos d ON u.idDepartamento = d.idDepartamento
-                LEFT JOIN puestos p ON u.idPuesto = p.idPuesto
-            """)
-            registros = cursor.fetchall()
-            return registros
-        except Exception as e:
-            print(f"Error al obtener usuarios con detalles: {e}")
-            return []
-        finally:
-            cursor.close()
-            conn.close()
 
     def update_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username, idDepartamento, idPuesto, idRol, diasVacaciones):
         conn = self.get_connection()
@@ -367,6 +346,196 @@ class UserModel:
         except Exception as e:
             print(f"Error al obtener usuarios con detalles: {e}")
             return []
+        finally:
+            cursor.close()
+            conn.close()
+
+
+
+
+
+
+    def get_solicitudes_enviadas(self, numNomina):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                SELECT * FROM incidencias
+                WHERE numNomina_solicitante = ?
+            """, (numNomina,))
+            return cursor.fetchall()
+        except Exception as e:
+            print(f"Error al obtener solicitudes enviadas: {e}")
+            return []
+        finally:
+            cursor.close()
+            conn.close()
+
+    def get_solicitudes_recibidas(self, numNomina_jefe):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                SELECT * FROM incidencias
+                WHERE jefe_directo = ?
+            """, (numNomina_jefe,))
+            return cursor.fetchall()
+        except Exception as e:
+            print(f"Error al obtener solicitudes recibidas: {e}")
+            return []
+        finally:
+            cursor.close()
+            conn.close()
+    
+    def actualizar_estatus_incidencia(self, idIncidencia, estatus):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                UPDATE incidencias
+                SET estatus = ?
+                WHERE idIncidencia = ?
+            """, (estatus, idIncidencia))
+            conn.commit()
+            return True
+        except Exception as e:
+            print(f"Error al actualizar estatus de la incidencia: {e}")
+            return False
+        finally:
+            cursor.close()
+            conn.close()
+    
+    def enviar_correo(self, destinatario, asunto, cuerpo):
+        try:
+            # Configurar el mensaje
+            mensaje = MIMEText(cuerpo)
+            mensaje["Subject"] = asunto
+            mensaje["From"] = current_app.config["MAIL_USERNAME"]
+            mensaje["To"] = destinatario
+
+            # Conectar al servidor SMTP
+            with smtplib.SMTP(
+                current_app.config["MAIL_SERVER"],
+                current_app.config["MAIL_PORT"]
+            ) as server:
+                server.starttls()
+                server.login(
+                    current_app.config["MAIL_USERNAME"],
+                    current_app.config["MAIL_PASSWORD"]
+                )
+                server.send_message(mensaje)
+
+            return True
+        except Exception as e:
+            print(f"Error al enviar correo: {e}")
+            return False
+
+    def crear_incidencia(self, numNomina_solicitante, nombre_solicitante, apellido_paterno, apellido_materno, fecha_solicitud, puesto, departamento, dias_vacaciones, motivo, fecha_inicio, fecha_fin, num_dias, observaciones, jefe_directo):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            # Insertar la incidencia en la base de datos
+            cursor.execute("""
+                INSERT INTO incidencias (
+                    numNomina_solicitante,
+                    nombre_solicitante,
+                    apellido_paterno,
+                    apellido_materno,
+                    fecha_solicitud,
+                    puesto,
+                    departamento,
+                    dias_vacaciones,
+                    motivo,
+                    fecha_inicio,
+                    fecha_fin,
+                    num_dias,
+                    observaciones,
+                    jefe_directo
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                numNomina_solicitante,
+                nombre_solicitante,
+                apellido_paterno,
+                apellido_materno,
+                fecha_solicitud,
+                puesto,
+                departamento,
+                dias_vacaciones,
+                motivo,
+                fecha_inicio,
+                fecha_fin,
+                num_dias,
+                observaciones,
+                jefe_directo
+            ))
+            conn.commit()
+
+            # Obtener el correo electrónico del jefe directo
+            correo_jefe = self.get_correo_jefe_directo(numNomina_solicitante)
+
+            if correo_jefe:
+                # Enviar correo electrónico al jefe directo
+                asunto = "Nueva Solicitud de Incidencia"
+                cuerpo = f"""
+                    Se ha recibido una nueva solicitud de incidencia:
+                    - Solicitante: {nombre_solicitante} {apellido_paterno} {apellido_materno}
+                    - Fecha de Solicitud: {fecha_solicitud}
+                    - Motivo: {motivo}
+                    - Fecha de Inicio: {fecha_inicio}
+                    - Fecha de Fin: {fecha_fin}
+                    - Días de Vacaciones: {dias_vacaciones}
+                    - Observaciones: {observaciones}
+                """
+                self.enviar_correo(correo_jefe, asunto, cuerpo)
+
+            return True
+        except Exception as e:
+            print(f"Error al crear incidencia: {e}")
+            return False
+        finally:
+            cursor.close()
+            conn.close()
+
+    def get_jefe_directo(self, numNomina):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                SELECT jefe_directo FROM usuarios
+                WHERE numNomina = ?
+            """, (numNomina,))
+            jefe_directo = cursor.fetchone()
+            return jefe_directo[0] if jefe_directo else None
+        except Exception as e:
+            print(f"Error al obtener jefe directo: {e}")
+            return None
+        finally:
+            cursor.close()
+            conn.close()
+
+    def get_correo_jefe_directo(self, numNomina):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            # Obtener el número de nómina del jefe directo
+            cursor.execute("""
+                SELECT jefe_directo FROM usuarios
+                WHERE numNomina = ?
+            """, (numNomina,))
+            jefe_directo = cursor.fetchone()
+
+            if jefe_directo:
+                # Obtener el correo electrónico del jefe directo
+                cursor.execute("""
+                    SELECT correo_electronico FROM usuarios
+                    WHERE numNomina = ?
+                """, (jefe_directo[0],))
+                correo_jefe = cursor.fetchone()
+                return correo_jefe[0] if correo_jefe else None
+            return None
+        except Exception as e:
+            print(f"Error al obtener correo del jefe directo: {e}")
+            return None
         finally:
             cursor.close()
             conn.close()

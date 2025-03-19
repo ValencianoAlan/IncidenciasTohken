@@ -4,6 +4,100 @@ from app.models.user_model import UserModel
 incidencias_bp = Blueprint('incidencias', __name__)
 user_model = UserModel()
 
+@incidencias_bp.route('/crear_incidencia', methods=['GET', 'POST'])
+def crear_incidencia():
+    if 'user' not in session:
+        return redirect(url_for('auth.login'))
+
+    if request.method == 'POST':
+        # Obtener los datos del formulario
+        numNomina_solicitante = session['numNomina']
+        nombre_solicitante = request.form.get('nombre')
+        apellido_paterno = request.form.get('apellido_paterno')
+        apellido_materno = request.form.get('apellido_materno')
+        fecha_solicitud = request.form.get('fecha_solicitud')
+        puesto = request.form.get('puesto')
+        departamento = request.form.get('departamento')
+        dias_vacaciones = request.form.get('dias_vacaciones')
+        motivo = request.form.get('motivo')
+        fecha_inicio = request.form.get('fecha_inicio')
+        fecha_fin = request.form.get('fecha_fin')
+        num_dias = request.form.get('num_dias')
+        observaciones = request.form.get('comentarios')  # Asegúrate de que el nombre coincida con el formulario
+
+        # Obtener el jefe directo del usuario
+        jefe_directo = user_model.get_jefe_directo(numNomina_solicitante)
+
+        # Guardar la incidencia en la base de datos
+        if user_model.crear_incidencia(
+            numNomina_solicitante,
+            nombre_solicitante,
+            apellido_paterno,
+            apellido_materno,
+            fecha_solicitud,
+            puesto,
+            departamento,
+            dias_vacaciones,
+            motivo,
+            fecha_inicio,
+            fecha_fin,
+            num_dias,
+            observaciones,  # Pasar el valor de observaciones
+            jefe_directo
+        ):
+            flash("Solicitud enviada correctamente", "success")
+            return redirect(url_for('incidencias.mis_solicitudes'))
+        else:
+            flash("Error al enviar la solicitud", "error")
+
+    return render_template('incidencia.html')
+
+
+@incidencias_bp.route('/ver_incidencia/<int:idIncidencia>', methods=['GET', 'POST'])
+def ver_incidencia(idIncidencia):
+    if 'user' not in session:
+        return redirect(url_for('auth.login'))
+
+    # Obtener la incidencia
+    incidencia = user_model.get_incidencia_by_id(idIncidencia)
+
+    if request.method == 'POST':
+        accion = request.form.get('accion')  # 'aprobar' o 'rechazar'
+        if accion == 'aprobar':
+            user_model.actualizar_estatus_incidencia(idIncidencia, 'Aprobada')
+            # Enviar correo al usuario
+            user_model.enviar_correo_incidencia(incidencia.numNomina_solicitante, 'Aprobada')
+        elif accion == 'rechazar':
+            user_model.actualizar_estatus_incidencia(idIncidencia, 'Rechazada')
+            # Enviar correo al usuario
+            user_model.enviar_correo_incidencia(incidencia.numNomina_solicitante, 'Rechazada')
+
+        return redirect(url_for('incidencias.solicitudes_recibidas'))
+
+    return render_template('ver_incidencia.html', incidencia=incidencia)
+
+@incidencias_bp.route('/solicitudes_recibidas')
+def solicitudes_recibidas():
+    if 'user' not in session:
+        return redirect(url_for('auth.login'))
+
+    # Obtener las solicitudes recibidas por el jefe directo
+    numNomina_jefe = session['numNomina']
+    solicitudes = user_model.get_solicitudes_recibidas(numNomina_jefe)
+
+    return render_template('solicitudes_recibidas.html', solicitudes=solicitudes)
+
+@incidencias_bp.route('/mis_solicitudes')
+def mis_solicitudes():
+    if 'user' not in session:
+        return redirect(url_for('auth.login'))
+
+    # Obtener las solicitudes enviadas por el usuario actual
+    numNomina = session['numNomina']
+    solicitudes = user_model.get_solicitudes_enviadas(numNomina)
+
+    return render_template('mis_solicitudes.html', solicitudes=solicitudes)
+
 @incidencias_bp.route('/ver_incidencias')
 def ver_incidencias():
     if 'user' not in session:
@@ -17,6 +111,18 @@ def ver_incidencias():
     vacaciones = user_model.get_vacaciones(session['numNomina'])
 
     return render_template('incidencia.html', puestos=puestos, departamentos=departamentos, vacaciones=vacaciones)
+
+
+
+
+
+
+
+
+
+
+
+
 
 @incidencias_bp.route('/crear_incidencia_usuario/<int:numNomina>/<origen>', methods=['GET', 'POST'])
 def crear_incidencia_usuario(numNomina, origen):
