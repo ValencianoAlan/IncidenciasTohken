@@ -21,35 +21,58 @@
     </header>
 
     <div class="container py-5">
-        <h1 class="h3 mb-3">Mis Solicitudes</h1>
+        <h1 class="h3">Mis Solicitudes</h1>
+        <div class="mb-3">
+            <a href="{{ url_for('incidencias.mis_solicitudes', orden='asc') }}" class="btn btn-outline-primary btn-sm">Ascendente</a>
+            <a href="{{ url_for('incidencias.mis_solicitudes', orden='desc') }}" class="btn btn-outline-primary btn-sm">Descendente</a>
+        </div>
 
         <div class="table-responsive">
             <table class="table table-striped table-bordered">
                 <thead>
                     <tr>
-                        <th>Número de Nómina</th>
-                        <th>Motivo</th>
-                        <th>Fecha de Solicitud</th>
-                        <th>Estatus</th>
+                        <th class="text-center">Id Incidencia</th>
+                        <th class="text-center">Número de Nómina</th>
+                        <th class="text-center">Fecha de Solicitud</th>
+                        <th class="text-center">Motivo</th>
+                        <th class="text-center">Estatus</th> <!-- Columna de Estatus -->
                     </tr>
                 </thead>
                 <tbody>
                     {% if solicitudes %}
                         {% for solicitud in solicitudes %}
                             <tr>
-                                <td>{{ solicitud.numNomina_solicitante }}</td>
-                                <td>{{ solicitud.motivo }}</td>
-                                <td>{{ solicitud.fecha_solicitud }}</td>
-                                <td>{{ solicitud.estatus }}</td>
+                                <td class="text-center">{{ solicitud.idIncidencia }}</td>
+                                <td class="text-center">{{ solicitud.numNomina_solicitante }}</td>
+                                <td class="text-center">{{ solicitud.fecha_solicitud }}</td>
+                                <td class="text-center">{{ solicitud.motivo }}</td>
+                                <td class="text-center">
+                                    <a href="{{ url_for('incidencias.ver_incidencia', idIncidencia=solicitud.idIncidencia, origen='mis_incidencias') }}" class="btn btn-primary fw-bold">
+                                        Ver Incidencia
+                                    </a>
+                                </td>
+                                <td class="text-center fw-bold
+                                    {% if solicitud.estatus == 'Aprobada' %}bg-success
+                                    {% elif solicitud.estatus == 'Rechazada' %}bg-danger
+                                    {% elif solicitud.estatus == 'Pendiente' %}bg-warning
+                                    {% endif %}
+                                    text-white"> <!-- Aplicar clases condicionales -->
+                                    {{ solicitud.estatus }}
+                                </td>
                             </tr>
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="4" class="text-center">No has enviado ninguna solicitud.</td>
+                            <td colspan="5" class="text-center">No has enviado ninguna solicitud.</td>
                         </tr>
                     {% endif %}
                 </tbody>
             </table>
+        </div>
+
+        <!-- Botón de regresar -->
+        <div class="mt-4">
+            <a href="{{ url_for('auth.bienvenida') }}" class="btn btn-secondary">Regresar</a>
         </div>
     </div>
 </body>

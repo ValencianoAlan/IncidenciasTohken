@@ -78,6 +78,28 @@
                   </div>
               </div>
           </div>
+
+                    <!-- Tarjeta de Ver Mis Solicitudes (visible para todos los roles) -->
+          <div class="col-md-3">
+            <div class="pricing-card ver-solicitudes">
+                <div class="pricing-card-footer">
+                    <img src="/static/img/Ver_Solicitudes.png" alt="ver_solicitudes" style="width: 100px; margin-bottom: 20px" /><br />
+                    <a href="{{ url_for('incidencias.mis_solicitudes') }}" class="btn btn-info btn-custom">Ver Mis Solicitudes</a>
+                </div>
+            </div>
+          </div>
+
+          <!-- Tarjeta de Incidencias Recibidas (solo para Usuario, Supervisor y Gerente) -->
+          {% if session['rol'] in ['Admin', 'Supervisor', 'Gerente'] %}
+          <div class="col-md-3">
+            <div class="pricing-card incidencias-recibidas">
+                <div class="pricing-card-footer">
+                    <img src="/static/img/Incidencias_Recibidas.png" alt="incidencias_recibidas" style="width: 100px; margin-bottom: 20px" /><br />
+                    <a href="{{ url_for('incidencias.solicitudes_recibidas') }}" class="btn btn-warning btn-custom">Incidencias Recibidas</a>
+                </div>
+            </div>
+          </div>
+          {% endif %}
       </div>
 
         <div class="row justify-content-center mt-4">

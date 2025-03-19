@@ -355,14 +355,23 @@ class UserModel:
 
 
 
-    def get_solicitudes_enviadas(self, numNomina):
+    def get_solicitudes_enviadas(self, numNomina, orden='asc'):
         conn = self.get_connection()
         cursor = conn.cursor()
         try:
-            cursor.execute("""
-                SELECT * FROM incidencias
+            query = """
+                SELECT 
+                    idIncidencia,
+                    numNomina_solicitante,
+                    fecha_solicitud,
+                    motivo,
+                    estatus
+                FROM incidencias
                 WHERE numNomina_solicitante = ?
-            """, (numNomina,))
+                ORDER BY idIncidencia {}  -- Ordenar por ID
+            """.format('ASC' if orden == 'asc' else 'DESC')
+
+            cursor.execute(query, (numNomina,))
             return cursor.fetchall()
         except Exception as e:
             print(f"Error al obtener solicitudes enviadas: {e}")
@@ -371,14 +380,23 @@ class UserModel:
             cursor.close()
             conn.close()
 
-    def get_solicitudes_recibidas(self, numNomina_jefe):
+    def get_solicitudes_recibidas(self, numNomina_jefe, orden='asc'):
         conn = self.get_connection()
         cursor = conn.cursor()
         try:
-            cursor.execute("""
-                SELECT * FROM incidencias
+            query = """
+                SELECT 
+                    idIncidencia,
+                    numNomina_solicitante,
+                    fecha_solicitud,
+                    motivo,
+                    estatus
+                FROM incidencias
                 WHERE jefe_directo = ?
-            """, (numNomina_jefe,))
+                ORDER BY idIncidencia {}  -- Ordenar por ID
+            """.format('ASC' if orden == 'asc' else 'DESC')
+
+            cursor.execute(query, (numNomina_jefe,))
             return cursor.fetchall()
         except Exception as e:
             print(f"Error al obtener solicitudes recibidas: {e}")
@@ -475,7 +493,7 @@ class UserModel:
 
             if correo_jefe:
                 # Enviar correo electrónico al jefe directo
-                asunto = "Nueva Solicitud de Incidencia"
+                asunto = f"Nueva Solicitud de Incidencia: "  # Incluir el ID de la incidencia
                 cuerpo = f"""
                     Se ha recibido una nueva solicitud de incidencia:
                     - Numero de Nomina: {numNomina_solicitante}
@@ -540,3 +558,75 @@ class UserModel:
         finally:
             cursor.close()
             conn.close()
+    
+    def get_incidencia_by_id(self, idIncidencia):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                SELECT 
+                    idIncidencia,
+                    numNomina_solicitante,
+                    nombre_solicitante,
+                    apellido_paterno,
+                    apellido_materno,
+                    fecha_solicitud,
+                    puesto,
+                    departamento,
+                    dias_vacaciones,
+                    motivo,
+                    fecha_inicio,
+                    fecha_fin,
+                    num_dias,
+                    observaciones,
+                    estatus
+                FROM incidencias
+                WHERE idIncidencia = ?
+            """, (idIncidencia,))
+            incidencia = cursor.fetchone()
+
+            if incidencia:
+                # Convertir el resultado en un diccionario para acceder a los campos por nombre
+                incidencia_dict = {
+                    'idIncidencia': incidencia.idIncidencia,
+                    'numNomina_solicitante': incidencia.numNomina_solicitante,
+                    'nombre_solicitante': incidencia.nombre_solicitante,
+                    'apellido_paterno': incidencia.apellido_paterno,
+                    'apellido_materno': incidencia.apellido_materno,
+                    'fecha_solicitud': incidencia.fecha_solicitud,
+                    'puesto': incidencia.puesto,
+                    'departamento': incidencia.departamento,
+                    'dias_vacaciones': incidencia.dias_vacaciones,
+                    'motivo': incidencia.motivo,
+                    'fecha_inicio': incidencia.fecha_inicio,
+                    'fecha_fin': incidencia.fecha_fin,
+                    'num_dias': incidencia.num_dias,
+                    'observaciones': incidencia.observaciones,
+                    'estatus': incidencia.estatus
+                }
+                return incidencia_dict
+            return None
+        except Exception as e:
+            print(f"Error al obtener incidencia por ID: {e}")
+            return None
+        finally:
+            cursor.close()
+            conn.close()
+
+    def actualizar_estatus_incidencia(self, idIncidencia, estatus):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                UPDATE incidencias
+                SET estatus = ?
+                WHERE idIncidencia = ?
+            """, (estatus, idIncidencia))
+            conn.commit()
+            return True
+        except Exception as e:
+            print(f"Error al actualizar estatus de la incidencia: {e}")
+            return False
+        finally:
+            cursor.close()
+            conn.close()    
