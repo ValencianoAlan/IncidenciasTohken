@@ -478,6 +478,7 @@ class UserModel:
                 asunto = "Nueva Solicitud de Incidencia"
                 cuerpo = f"""
                     Se ha recibido una nueva solicitud de incidencia:
+                    - Numero de Nomina: {numNomina_solicitante}
                     - Solicitante: {nombre_solicitante} {apellido_paterno} {apellido_materno}
                     - Fecha de Solicitud: {fecha_solicitud}
                     - Motivo: {motivo}
