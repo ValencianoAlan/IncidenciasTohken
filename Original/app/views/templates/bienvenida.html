@@ -31,11 +31,13 @@
       </div>
     </header>
 
-    <div class="container py-5">
+    <h1 class="text-center mt-4">MENU PRINCIPAL</h1>
+
+    <div class="container py-0">
       <div class="row justify-content-center">
          <!-- Tarjeta de Agregar Usuario (solo para Admin, Gerente y Supervisor) -->
           {% if session['rol'] == 'Admin' %}
-          <div class="col-md-4">
+          <div class="col-md-4 my-4">
               <div class="pricing-card agregar">
                   <div class="pricing-card-footer">
                       <img src="./static/img/Agregar Usuario.png" alt="agregar_usuario" style="width: 100px; margin-bottom: 20px" /><br />
@@ -47,7 +49,7 @@
       
           <!-- Tarjeta de Ver Usuarios (solo para Admin) -->
           {% if session['rol'] == 'Admin' %}
-          <div class="col-md-4">
+          <div class="col-md-4 my-4">
               <div class="pricing-card ver">
                   <div class="pricing-card-footer">
                       <img src="./static/img/Ver Usuario.png" alt="ver_usuario" style="width: 100px; margin-bottom: 20px" /><br />
@@ -59,7 +61,7 @@
       
           <!-- Tarjeta de Crear Incidencia Por Usuario (solo para Admin, Gerente y Supervisor) -->
           {% if session['rol'] in ['Admin', 'Gerente', 'Supervisor'] %}
-          <div class="col-md-4">
+          <div class="col-md-4 my-4">
               <div class="pricing-card incidencias">
                   <div class="pricing-card-footer">
                       <img src="./static/img/incidencia_usuario.png" alt="incidencias" style="width: 100px; margin-bottom: 20px" /><br />

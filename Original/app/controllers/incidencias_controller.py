@@ -74,7 +74,6 @@ def crear_incidencia():
         )
 
         if idIncidencia:
-            flash(f"Solicitud enviada correctamente (ID: {idIncidencia})", "success")
             return redirect(url_for('incidencias.mis_solicitudes'))
         else:
             flash("Error al enviar la solicitud", "error")
