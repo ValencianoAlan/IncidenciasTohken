@@ -100,6 +100,22 @@
                 <input type="number" class="form-control" id="diasVacaciones" name="diasVacaciones" required />
             </div>
 
+                        <!-- Dentro del formulario de agregar_usuario.html -->
+            <div class="mb-3">
+                <label for="correo_electronico" class="form-label">Correo Electrónico</label>
+                <input type="email" class="form-control" id="correo_electronico" name="correo_electronico" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="jefe_directo" class="form-label">Jefe Directo</label>
+                <select class="form-select" id="jefe_directo" name="jefe_directo">
+                    <option value="">Selecciona un jefe directo</option>
+                    {% for usuario in usuarios %}
+                        <option value="{{ usuario.numNomina }}">{{ usuario.nombre }} {{ usuario.apellidoPaterno }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
             <button type="submit" class="btn btn-success">Agregar Usuario</button>
             <a href="{{ url_for('auth.bienvenida') }}" class="btn btn-secondary">Cancelar</a>
         </form>

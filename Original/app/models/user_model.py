@@ -8,7 +8,7 @@ class UserModel:
         self.connection_string = (
             "DRIVER={ODBC Driver 17 for SQL Server};"
             "SERVER=localhost;"
-            "DATABASE=Prueba_8;"
+            "DATABASE=Prueba_9;"
             "UID=sa;"
             "PWD=root"
         )
@@ -61,16 +61,16 @@ class UserModel:
             cursor.close()
             conn.close()
 
-    def add_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username, password, idRol, idDepartamento, idPuesto, diasVacaciones):
+    def add_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username, password, idRol, idDepartamento, idPuesto, diasVacaciones, correo_electronico, jefe_directo):
         try:
             conn = self.get_connection()
             cursor = conn.cursor()
 
             # Insertar en usuarios
             cursor.execute("""
-                INSERT INTO usuarios (numNomina, nombre, apellidoPaterno, apellidoMaterno, idDepartamento, idPuesto, diasVacaciones)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (numNomina, nombre, apellido_paterno, apellido_materno, idDepartamento, idPuesto, diasVacaciones))
+                INSERT INTO usuarios (numNomina, nombre, apellidoPaterno, apellidoMaterno, idDepartamento, idPuesto, diasVacaciones, correo_electronico, jefe_directo)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (numNomina, nombre, apellido_paterno, apellido_materno, idDepartamento, idPuesto, diasVacaciones, correo_electronico, jefe_directo))
 
             # Insertar en credenciales
             cursor.execute("""
@@ -106,16 +106,17 @@ class UserModel:
         conn.close()
         return registros
 
-    def update_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username, idDepartamento, idPuesto, idRol, diasVacaciones):
+    def update_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username, idDepartamento, idPuesto, idRol, diasVacaciones, correo_electronico, jefe_directo):
         conn = self.get_connection()
         cursor = conn.cursor()
+
         try:
             # Actualizar tabla usuarios
             cursor.execute("""
                 UPDATE usuarios
-                SET nombre = ?, apellidoPaterno = ?, apellidoMaterno = ?, idDepartamento = ?, idPuesto = ?, diasVacaciones = ?
+                SET nombre = ?, apellidoPaterno = ?, apellidoMaterno = ?, idDepartamento = ?, idPuesto = ?, diasVacaciones = ?, correo_electronico = ?, jefe_directo = ?
                 WHERE numNomina = ?
-            """, (nombre, apellido_paterno, apellido_materno, idDepartamento, idPuesto, diasVacaciones, numNomina))
+            """, (nombre, apellido_paterno, apellido_materno, idDepartamento, idPuesto, diasVacaciones, correo_electronico, jefe_directo, numNomina))
 
             # Actualizar tabla credenciales
             cursor.execute("""
@@ -212,7 +213,9 @@ class UserModel:
                     u.idDepartamento, 
                     u.idPuesto, 
                     u.diasVacaciones,
-                    ur.idRol  -- Asegúrate de incluir el idRol
+                    ur.idRol,
+                    u.correo_electronico,
+                    u.jefe_directo
                 FROM usuarios u
                 INNER JOIN credenciales c ON u.numNomina = c.numNomina
                 INNER JOIN usuario_rol ur ON u.numNomina = ur.numNomina
@@ -230,7 +233,9 @@ class UserModel:
                     'idDepartamento': usuario.idDepartamento,
                     'idPuesto': usuario.idPuesto,
                     'diasVacaciones': usuario.diasVacaciones,
-                    'idRol': usuario.idRol  # Asegúrate de incluir el idRol
+                    'idRol': usuario.idRol,
+                    'correo_electronico': usuario.correo_electronico,
+                    'jefe_directo': usuario.jefe_directo,
                 }
                 return usuario_dict
             return None
