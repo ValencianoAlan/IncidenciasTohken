@@ -41,6 +41,9 @@
                         <th>Departamento</th>
                         <th>Puesto</th>
                         <th>Días de Vacaciones</th>
+                        <th>Rol</th>
+                        <th>Correo Electrónico</th>
+                        <th>Jefe Directo</th>
                         <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
@@ -56,6 +59,15 @@
                                 <td class="align-middle border border-1">{{ registro.nombreDepartamento }}</td>
                                 <td class="align-middle border border-1">{{ registro.nombrePuesto }}</td>
                                 <td class="align-middle border border-1">{{ registro.diasVacaciones }}</td>
+                                <td class="align-middle border border-1">{{ registro.nombreRol }}</td>
+                                <td class="align-middle border border-1">{{ registro.correo_electronico }}</td>
+                                <td class="align-middle border border-1">
+                                    {% if registro.nombre_jefe %}
+                                        {{ registro.nombre_jefe }} {{ registro.apellido_jefe }}
+                                    {% else %}
+                                        Sin jefe asignado
+                                    {% endif %}
+                                </td> 
                                 <td class="align-middle border border-1">
                                     <div class="d-flex justify-content-center">
                                         <!-- Botón de Editar -->
@@ -69,7 +81,7 @@
                                             </form>
                                         {% endif %}
                                     </div>
-                                </td>
+                                </td>                       
                             </tr>
                         {% endfor %}
                     {% else %}

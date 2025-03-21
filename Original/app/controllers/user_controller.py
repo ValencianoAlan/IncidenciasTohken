@@ -16,7 +16,7 @@ def agregar_usuario():
     mensaje = None
     departamentos = user_model.get_departamentos()
     roles = user_model.get_roles()
-    usuarios = user_model.get_all_users()  # Obtener todos los usuarios para seleccionar jefe directo
+    usuarios = user_model.get_all_users()
 
     if request.method == 'POST':
         numNomina = request.form.get('numNomina')
@@ -29,13 +29,13 @@ def agregar_usuario():
         idDepartamento = request.form.get('idDepartamento')
         idPuesto = request.form.get('idPuesto')
         diasVacaciones = request.form.get('diasVacaciones', 0)
-        correo_electronico = request.form.get('correo_electronico')  # Nuevo campo
-        jefe_directo = request.form.get('jefe_directo')  # Nuevo campo
+        correo_electronico = request.form.get('correo_electronico')
+        jefe_directo = request.form.get('jefe_directo')
 
         if numNomina and nombre and username and password and idRol and idDepartamento and idPuesto:
             if user_model.add_user(numNomina, nombre, apellido_paterno, apellido_materno, username, password, idRol, idDepartamento, idPuesto, diasVacaciones, correo_electronico, jefe_directo):
                 flash("Usuario agregado exitosamente", "success")
-                return redirect(url_for('auth.bienvenida'))
+                return redirect(url_for('user.agregar_usuario'))  # Redirigir a la misma página
             else:
                 flash("Error al agregar usuario", "error")
         else:
@@ -49,7 +49,9 @@ def ver_registros():
         return redirect(url_for('auth.login'))
 
     busqueda = request.form.get('numNomina') if request.method == 'POST' else None
-    registros = user_model.get_all_users_with_details()  # Obtener todos los usuarios con detalles
+
+    # Obtener todos los usuarios con detalles (incluyendo rol, correo y jefe)
+    registros = user_model.get_all_users_with_details()
 
     # Filtrar por número de nómina si se proporciona una búsqueda
     if busqueda:
@@ -92,6 +94,7 @@ def editar_usuario(numNomina):
         apellido_paterno = request.form['apellidoPaterno']
         apellido_materno = request.form['apellidoMaterno']
         username = request.form['username']
+        password = request.form['password']
         idDepartamento = request.form['idDepartamento']
         idPuesto = request.form['idPuesto']
         idRol = request.form['idRol']
@@ -99,7 +102,7 @@ def editar_usuario(numNomina):
         correo_electronico = request.form['correo_electronico']  # Nuevo campo
         jefe_directo = request.form['jefe_directo']  # Nuevo campo
 
-        if user_model.update_user(numNomina, nombre, apellido_paterno, apellido_materno, username, idDepartamento, idPuesto, idRol, diasVacaciones, correo_electronico, jefe_directo):
+        if user_model.update_user(numNomina, nombre, apellido_paterno, apellido_materno, username, password, idDepartamento, idPuesto, idRol, diasVacaciones, correo_electronico, jefe_directo):
             flash("Usuario actualizado exitosamente", "success")
             return redirect(url_for('user.ver_registros'))
         else:

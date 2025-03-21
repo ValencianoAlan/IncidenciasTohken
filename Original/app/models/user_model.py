@@ -106,7 +106,7 @@ class UserModel:
         conn.close()
         return registros
 
-    def update_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username, idDepartamento, idPuesto, idRol, diasVacaciones, correo_electronico, jefe_directo):
+    def update_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username, password, idDepartamento, idPuesto, idRol, diasVacaciones, correo_electronico, jefe_directo):
         conn = self.get_connection()
         cursor = conn.cursor()
 
@@ -124,6 +124,13 @@ class UserModel:
                 SET username = ?
                 WHERE numNomina = ?
             """, (username, numNomina))
+
+            # Actualizar tabla credenciales
+            cursor.execute("""
+                UPDATE credenciales
+                SET password = ?
+                WHERE numNomina = ?
+            """, (password, numNomina))
 
             # Actualizar tabla usuario_rol
             cursor.execute("""
@@ -209,7 +216,8 @@ class UserModel:
                     u.nombre, 
                     u.apellidoPaterno, 
                     u.apellidoMaterno, 
-                    c.username, 
+                    c.username,
+                    c.password, 
                     u.idDepartamento, 
                     u.idPuesto, 
                     u.diasVacaciones,
@@ -230,6 +238,7 @@ class UserModel:
                     'apellidoPaterno': usuario.apellidoPaterno,
                     'apellidoMaterno': usuario.apellidoMaterno,
                     'username': usuario.username,
+                    'password': usuario.password,
                     'idDepartamento': usuario.idDepartamento,
                     'idPuesto': usuario.idPuesto,
                     'diasVacaciones': usuario.diasVacaciones,
@@ -330,22 +339,31 @@ class UserModel:
     def get_all_users_with_details(self):
         conn = self.get_connection()
         cursor = conn.cursor()
+
         try:
             cursor.execute("""
-                SELECT 
-                    u.numNomina, 
-                    u.nombre, 
-                    u.apellidoPaterno, 
-                    u.apellidoMaterno, 
-                    c.username, 
-                    d.nombreDepartamento, 
-                    p.nombrePuesto, 
-                    u.diasVacaciones  -- Asegúrate de incluir los días de vacaciones
+                SELECT
+                    u.numNomina,
+                    u.nombre,
+                    u.apellidoPaterno,
+                    u.apellidoMaterno,
+                    c.username,
+                    d.nombreDepartamento,
+                    p.nombrePuesto,
+                    u.diasVacaciones,
+                    r.nombreRol,               -- Nuevo campo: rol
+                    u.correo_electronico,       -- Nuevo campo: correo electrónico
+                    j.nombre AS nombre_jefe,    -- Nuevo campo: nombre del jefe directo
+                    j.apellidoPaterno AS apellido_jefe
                 FROM usuarios u
                 INNER JOIN credenciales c ON u.numNomina = c.numNomina
                 LEFT JOIN departamentos d ON u.idDepartamento = d.idDepartamento
                 LEFT JOIN puestos p ON u.idPuesto = p.idPuesto
+                LEFT JOIN usuario_rol ur ON u.numNomina = ur.numNomina
+                LEFT JOIN roles r ON ur.idRol = r.idRol
+                LEFT JOIN usuarios j ON u.jefe_directo = j.numNomina  -- Join para obtener el jefe directo
             """)
+
             registros = cursor.fetchall()
             return registros
         except Exception as e:
@@ -354,7 +372,6 @@ class UserModel:
         finally:
             cursor.close()
             conn.close()
-
 
 
 
