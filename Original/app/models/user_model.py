@@ -8,7 +8,7 @@ class UserModel:
         self.connection_string = (
             "DRIVER={ODBC Driver 17 for SQL Server};"
             "SERVER=localhost;"
-            "DATABASE=Prueba_9;"
+            "DATABASE=Prueba_10;"
             "UID=sa;"
             "PWD=root"
         )
@@ -651,4 +651,67 @@ class UserModel:
             return False
         finally:
             cursor.close()
-            conn.close()    
+            conn.close()  
+    
+    def get_correo_usuario(self, numNomina):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("SELECT correo_electronico FROM usuarios WHERE numNomina = ?", (numNomina,))
+            correo = cursor.fetchone()
+            return correo[0] if correo else None
+        except Exception as e:
+            print(f"Error al obtener correo del usuario: {e}")
+            return None
+        finally:
+            cursor.close()
+            conn.close()
+
+    def enviar_notificacion_incidencia(self, numNomina, estatus, motivo, fecha_inicio, fecha_fin):
+        try:
+            # Obtener correo del usuario
+            correo_usuario = self.get_correo_usuario(numNomina)
+            if not correo_usuario:
+                print(f"Usuario {numNomina} no tiene correo registrado")
+                return False
+
+            # Configurar el mensaje
+            asunto = f"Tu solicitud de incidencia ha sido {estatus}"
+            
+            cuerpo = f"""
+            <html>
+            <body>
+                <h2>Estado de tu solicitud de incidencia</h2>
+                <p><strong>Resultado:</strong> {estatus}</p>
+                <p><strong>Motivo:</strong> {motivo}</p>
+                <p><strong>Fecha de inicio:</strong> {fecha_inicio}</p>
+                <p><strong>Fecha de fin:</strong> {fecha_fin}</p>
+                <br>
+                <p>Por favor inicia sesión en el sistema para más detalles.</p>
+                <p>Este es un mensaje automático, por favor no responda a este correo.</p>
+            </body>
+            </html>
+            """
+
+            mensaje = MIMEText(cuerpo, 'html')
+            mensaje['Subject'] = asunto
+            mensaje['From'] = current_app.config["MAIL_USERNAME"]
+            mensaje['To'] = correo_usuario
+
+            # Conectar al servidor SMTP y enviar
+            with smtplib.SMTP(
+                current_app.config["MAIL_SERVER"],
+                current_app.config["MAIL_PORT"]
+            ) as server:
+                server.starttls()
+                server.login(
+                    current_app.config["MAIL_USERNAME"],
+                    current_app.config["MAIL_PASSWORD"]
+                )
+                server.send_message(mensaje)
+            
+            return True
+            
+        except Exception as e:
+            print(f"Error al enviar notificación de incidencia: {e}")
+            return False  
