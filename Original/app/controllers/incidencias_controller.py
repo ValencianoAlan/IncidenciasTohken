@@ -11,6 +11,7 @@ def procesar_incidencia(idIncidencia):
 
     # Obtener la incidencia por su ID
     incidencia = user_model.get_incidencia_by_id(idIncidencia)
+
     if not incidencia:
         flash("Incidencia no encontrada", "error")
         return redirect(url_for('incidencias.solicitudes_recibidas'))
@@ -21,28 +22,11 @@ def procesar_incidencia(idIncidencia):
         return redirect(url_for('incidencias.solicitudes_recibidas'))
 
     accion = request.form.get('accion')  # 'aprobar' o 'rechazar'
-    
     if accion == 'aprobar':
         user_model.actualizar_estatus_incidencia(idIncidencia, 'Aprobada')
-        # Enviar correo de aprobación
-        user_model.enviar_notificacion_incidencia(
-            incidencia['numNomina_solicitante'],
-            'Aprobada',
-            incidencia['motivo'],
-            incidencia['fecha_inicio'],
-            incidencia['fecha_fin']
-        )
         flash("Incidencia aprobada correctamente", "success")
     elif accion == 'rechazar':
         user_model.actualizar_estatus_incidencia(idIncidencia, 'Rechazada')
-        # Enviar correo de rechazo
-        user_model.enviar_notificacion_incidencia(
-            incidencia['numNomina_solicitante'],
-            'Rechazada',
-            incidencia['motivo'],
-            incidencia['fecha_inicio'],
-            incidencia['fecha_fin']
-        )
         flash("Incidencia rechazada correctamente", "success")
 
     return redirect(url_for('incidencias.solicitudes_recibidas'))

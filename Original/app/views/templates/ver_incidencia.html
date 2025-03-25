@@ -145,11 +145,11 @@
         <!-- Botones de Aprobar, Rechazar y Regresar -->
         <div class="mt-4 d-flex gap-2"> <!-- Contenedor flexible con espacio entre botones -->
           {% if origen == 'incidencias_recibidas' and incidencia.estatus == 'Pendiente' %}
-          <form method="POST" action="{{ url_for('incidencias.procesar_incidencia', idIncidencia=incidencia.idIncidencia) }}" class="d-flex gap-2">
-              <button type="submit" name="accion" value="aprobar" class="btn btn-success" onclick="return confirm('¿Aprobar esta incidencia y notificar al usuario?')">Aprobar</button>
-              <button type="submit" name="accion" value="rechazar" class="btn btn-danger" onclick="return confirm('¿Rechazar esta incidencia y notificar al usuario?')">Rechazar</button>
-          </form>
-      {% endif %}
+              <form method="POST" action="{{ url_for('incidencias.procesar_incidencia', idIncidencia=incidencia.idIncidencia) }}" class="d-flex gap-2">
+                  <button type="submit" name="accion" value="aprobar" class="btn btn-success">Aprobar</button>
+                  <button type="submit" name="accion" value="rechazar" class="btn btn-danger">Rechazar</button>
+              </form>
+          {% endif %}
           <!-- Botón de regresar -->
           <a href="{{ url_for('incidencias.mis_solicitudes') if origen == 'mis_incidencias' else url_for('incidencias.solicitudes_recibidas') }}" class="btn btn-secondary">
               Regresar
