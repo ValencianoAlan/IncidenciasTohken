@@ -17,7 +17,7 @@ def create_app():
     app.config["MAIL_PORT"] = 587
     app.config["MAIL_USE_TLS"] = True
     app.config["MAIL_USERNAME"] = "escaner.ttm@tohken.mx"
-    app.config["MAIL_PASSWORD"] = "Tohken2025"  # No la expongas públicamente
+    app.config["MAIL_PASSWORD"] = "flst rwdn vgam ouxh"  # No la expongas públicamente
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(user_bp)
