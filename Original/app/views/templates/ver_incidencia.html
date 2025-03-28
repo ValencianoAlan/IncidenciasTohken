@@ -142,19 +142,64 @@
             </div>
         </div>
 
-        <!-- Botones de Aprobar, Rechazar y Regresar -->
-        <div class="mt-4 d-flex gap-2"> <!-- Contenedor flexible con espacio entre botones -->
-          {% if origen == 'incidencias_recibidas' and incidencia.estatus == 'Pendiente' %}
-              <form method="POST" action="{{ url_for('incidencias.procesar_incidencia', idIncidencia=incidencia.idIncidencia) }}" class="d-flex gap-2">
-                  <button type="submit" name="accion" value="aprobar" class="btn btn-success">Aprobar</button>
-                  <button type="submit" name="accion" value="rechazar" class="btn btn-danger">Rechazar</button>
-              </form>
+                  <!-- Mostrar información de aprobaciones -->
+          {% if incidencia.aprobado_por_supervisor %}
+          <div class="card mb-3">
+              <div class="card-header bg-info text-white">Aprobación del Supervisor</div>
+              <div class="card-body">
+                  <p><strong>Aprobado por:</strong> {{ obtener_nombre_usuario(incidencia.aprobado_por_supervisor) }}</p>
+                  <p><strong>Fecha:</strong> {{ incidencia.fecha_aprobacion_supervisor }}</p>
+                  <p><strong>Comentarios:</strong> {{ incidencia.comentarios_supervisor or 'Sin comentarios' }}</p>
+              </div>
+          </div>
           {% endif %}
-          <!-- Botón de regresar -->
-          <a href="{{ url_for('incidencias.mis_solicitudes') if origen == 'mis_incidencias' else url_for('incidencias.solicitudes_recibidas') }}" class="btn btn-secondary">
-              Regresar
-          </a>
-        </div>
+
+          {% if incidencia.aprobado_por_gerente %}
+          <div class="card mb-3">
+              <div class="card-header bg-success text-white">Aprobación del Gerente</div>
+              <div class="card-body">
+                  <p><strong>Aprobado por:</strong> {{ obtener_nombre_usuario(incidencia.aprobado_por_gerente) }}</p>
+                  <p><strong>Fecha:</strong> {{ incidencia.fecha_aprobacion_gerente }}</p>
+                  <p><strong>Comentarios:</strong> {{ incidencia.comentarios_gerente or 'Sin comentarios' }}</p>
+              </div>
+          </div>
+          {% endif %}
+
+          <!-- Botones de acción según estado y rol -->
+          <div class="mt-4 d-flex gap-2">
+              {% if incidencia.estatus == 'Pendiente Supervisor' and session['numNomina'] == incidencia.jefe_directo %}
+              <form method="POST" action="{{ url_for('incidencias.procesar_incidencia', idIncidencia=incidencia.idIncidencia) }}" class="d-flex gap-2">
+                  <input type="hidden" name="comentarios" id="comentariosSupervisor">
+                  <button type="submit" name="accion" value="aprobar" class="btn btn-success" 
+                          onclick="document.getElementById('comentariosSupervisor').value = prompt('Comentarios (opcional):') || ''">
+                      Aprobar como Supervisor
+                  </button>
+                  <button type="submit" name="accion" value="rechazar" class="btn btn-danger"
+                          onclick="document.getElementById('comentariosSupervisor').value = prompt('Razón del rechazo:') || ''">
+                      Rechazar
+                  </button>
+              </form>
+              {% endif %}
+
+              {% if incidencia.estatus == 'Pendiente Gerente' and session['numNomina'] == incidencia.gerente_responsable %}
+              <form method="POST" action="{{ url_for('incidencias.procesar_incidencia', idIncidencia=incidencia.idIncidencia) }}" class="d-flex gap-2">
+                  <input type="hidden" name="comentarios" id="comentariosGerente">
+                  <button type="submit" name="accion" value="aprobar" class="btn btn-success"
+                          onclick="document.getElementById('comentariosGerente').value = prompt('Comentarios (opcional):') || ''">
+                      Aprobar como Gerente
+                  </button>
+                  <button type="submit" name="accion" value="rechazar" class="btn btn-danger"
+                          onclick="document.getElementById('comentariosGerente').value = prompt('Razón del rechazo:') || ''">
+                      Rechazar
+                  </button>
+              </form>
+              {% endif %}
+
+              <a href="{{ url_for('incidencias.mis_solicitudes') if origen == 'mis_incidencias' else url_for('incidencias.solicitudes_recibidas') }}" 
+                class="btn btn-secondary">
+                  Regresar
+              </a>
+          </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>

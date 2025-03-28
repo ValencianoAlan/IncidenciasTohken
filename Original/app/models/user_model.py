@@ -470,65 +470,42 @@ class UserModel:
             print(f"Error al enviar correo: {e}")
             return False
 
-    def crear_incidencia(self, numNomina_solicitante, nombre_solicitante, apellido_paterno, apellido_materno, fecha_solicitud, puesto, departamento, dias_vacaciones, motivo, fecha_inicio, fecha_fin, num_dias, observaciones, jefe_directo):
+    def crear_incidencia(self, numNomina_solicitante, nombre_solicitante, apellido_paterno, 
+                    apellido_materno, fecha_solicitud, puesto, departamento, 
+                    dias_vacaciones, motivo, fecha_inicio, fecha_fin, num_dias, 
+                    observaciones, jefe_directo):
         conn = self.get_connection()
         cursor = conn.cursor()
         try:
-            # Insertar la incidencia en la base de datos
+            # Obtener el gerente responsable (jefe del jefe directo)
+            cursor.execute("SELECT jefe_directo FROM usuarios WHERE numNomina = ?", (jefe_directo,))
+            gerente_responsable = cursor.fetchone()
+            gerente_responsable = gerente_responsable[0] if gerente_responsable else jefe_directo
+
             cursor.execute("""
                 INSERT INTO incidencias (
-                    numNomina_solicitante,
-                    nombre_solicitante,
-                    apellido_paterno,
-                    apellido_materno,
-                    fecha_solicitud,
-                    puesto,
-                    departamento,
-                    dias_vacaciones,
-                    motivo,
-                    fecha_inicio,
-                    fecha_fin,
-                    num_dias,
-                    observaciones,
-                    jefe_directo
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    numNomina_solicitante, nombre_solicitante, apellido_paterno, apellido_materno,
+                    fecha_solicitud, puesto, departamento, dias_vacaciones, motivo,
+                    fecha_inicio, fecha_fin, num_dias, observaciones, jefe_directo, gerente_responsable
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
+                numNomina_solicitante, nombre_solicitante, apellido_paterno, apellido_materno,
+                fecha_solicitud, puesto, departamento, dias_vacaciones, motivo,
+                fecha_inicio, fecha_fin, num_dias, observaciones, jefe_directo, gerente_responsable
+            ))
+            
+            conn.commit()
+            
+            # Notificar al supervisor
+            self.enviar_notificacion_incidencia(
                 numNomina_solicitante,
-                nombre_solicitante,
-                apellido_paterno,
-                apellido_materno,
-                fecha_solicitud,
-                puesto,
-                departamento,
-                dias_vacaciones,
+                'Nueva solicitud creada',
                 motivo,
                 fecha_inicio,
                 fecha_fin,
-                num_dias,
-                observaciones,
                 jefe_directo
-            ))
-            conn.commit()
-
-            # Obtener el correo electrónico del jefe directo
-            correo_jefe = self.get_correo_jefe_directo(numNomina_solicitante)
-
-            if correo_jefe:
-                # Enviar correo electrónico al jefe directo
-                asunto = f"Nueva Solicitud de Incidencia: "  # Incluir el ID de la incidencia
-                cuerpo = f"""
-                    Se ha recibido una nueva solicitud de incidencia:
-                    - Numero de Nomina: {numNomina_solicitante}
-                    - Solicitante: {nombre_solicitante} {apellido_paterno} {apellido_materno}
-                    - Fecha de Solicitud: {fecha_solicitud}
-                    - Motivo: {motivo}
-                    - Fecha de Inicio: {fecha_inicio}
-                    - Fecha de Fin: {fecha_fin}
-                    - Días de Vacaciones: {dias_vacaciones}
-                    - Observaciones: {observaciones}
-                """
-                self.enviar_correo(correo_jefe, asunto, cuerpo)
-
+            )
+            
             return True
         except Exception as e:
             print(f"Error al crear incidencia: {e}")
@@ -635,15 +612,35 @@ class UserModel:
             cursor.close()
             conn.close()
 
-    def actualizar_estatus_incidencia(self, idIncidencia, estatus):
+    def actualizar_estatus_incidencia(self, idIncidencia, estatus, numNomina_aprobador, comentarios=None):
         conn = self.get_connection()
         cursor = conn.cursor()
         try:
-            cursor.execute("""
-                UPDATE incidencias
-                SET estatus = ?
-                WHERE idIncidencia = ?
-            """, (estatus, idIncidencia))
+            # Obtener información actual de la incidencia
+            cursor.execute("SELECT estatus FROM incidencias WHERE idIncidencia = ?", (idIncidencia,))
+            current_status = cursor.fetchone()[0]
+            
+            if current_status == 'Pendiente Supervisor':
+                # Aprobación del supervisor
+                cursor.execute("""
+                    UPDATE incidencias 
+                    SET estatus = 'Pendiente Gerente',
+                        aprobado_por_supervisor = ?,
+                        fecha_aprobacion_supervisor = GETDATE(),
+                        comentarios_supervisor = ?
+                    WHERE idIncidencia = ?
+                """, (numNomina_aprobador, comentarios, idIncidencia))
+            elif current_status == 'Pendiente Gerente':
+                # Aprobación del gerente
+                cursor.execute("""
+                    UPDATE incidencias 
+                    SET estatus = ?,
+                        aprobado_por_gerente = ?,
+                        fecha_aprobacion_gerente = GETDATE(),
+                        comentarios_gerente = ?
+                    WHERE idIncidencia = ?
+                """, (estatus, numNomina_aprobador, comentarios, idIncidencia))
+            
             conn.commit()
             return True
         except Exception as e:
@@ -651,4 +648,60 @@ class UserModel:
             return False
         finally:
             cursor.close()
-            conn.close()    
+            conn.close()
+    
+    def enviar_notificacion_incidencia(self, numNomina, estado, motivo, fecha_inicio, fecha_fin, destinatario=None):
+        try:
+            # Si no se especifica destinatario, notificar al usuario
+            if destinatario is None:
+                correo = self.get_correo_usuario(numNomina)
+                titulo = "Tu solicitud de incidencia"
+            else:
+                correo = self.get_correo_usuario(destinatario)
+                usuario = self.get_user_by_numNomina(numNomina)
+                titulo = f"Solicitud de {usuario['nombre']} {usuario['apellidoPaterno']}"
+
+            if not correo:
+                print(f"No se encontró correo para {'usuario' if destinatario is None else 'destinatario'}")
+                return False
+
+            # Configurar el mensaje
+            asunto = f"{titulo}: {estado}"
+            
+            cuerpo = f"""
+            <html>
+            <body>
+                <h2>{titulo}</h2>
+                <p><strong>Estado:</strong> {estado}</p>
+                <p><strong>Motivo:</strong> {motivo}</p>
+                <p><strong>Fecha de inicio:</strong> {fecha_inicio}</p>
+                <p><strong>Fecha de fin:</strong> {fecha_fin}</p>
+                <br>
+                <p>Por favor inicia sesión en el sistema para más detalles.</p>
+                <p>Este es un mensaje automático, por favor no responda a este correo.</p>
+            </body>
+            </html>
+            """
+
+            mensaje = MIMEText(cuerpo, 'html')
+            mensaje['Subject'] = asunto
+            mensaje['From'] = current_app.config["MAIL_USERNAME"]
+            mensaje['To'] = correo
+
+            # Enviar correo
+            with smtplib.SMTP(
+                current_app.config["MAIL_SERVER"],
+                current_app.config["MAIL_PORT"]
+            ) as server:
+                server.starttls()
+                server.login(
+                    current_app.config["MAIL_USERNAME"],
+                    current_app.config["MAIL_PASSWORD"]
+                )
+                server.send_message(mensaje)
+            
+            return True
+            
+        except Exception as e:
+            print(f"Error al enviar notificación de incidencia: {e}")
+            return False
