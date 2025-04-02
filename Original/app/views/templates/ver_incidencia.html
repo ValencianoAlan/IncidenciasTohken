@@ -262,9 +262,7 @@
           {% endif %}
 
           <!-- Botón de regresar siempre visible -->
-            <a href="{% if origen == 'mis_solicitudes' %}{{ url_for('incidencias.mis_solicitudes') }}
-            {% elif origen == 'incidencias_recibidas' %}{{ url_for('incidencias.solicitudes_recibidas') }}
-            {% else %}{{ url_for('auth.bienvenida') }}{% endif %}" 
+            <a href="javascript:history.back()"
             class="btn btn-secondary">
             Regresar
  </a>
