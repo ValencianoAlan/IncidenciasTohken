@@ -9,40 +9,99 @@ def procesar_incidencia(idIncidencia):
     if 'user' not in session:
         return redirect(url_for('auth.login'))
 
-    # Obtener la incidencia
     incidencia = user_model.get_incidencia_by_id(idIncidencia)
     if not incidencia:
         flash("Incidencia no encontrada", "error")
         return redirect(url_for('incidencias.solicitudes_recibidas'))
+    
+    if 'jefe_directo' not in incidencia:
+        flash("Error en los datos de la incidencia", "error")
+        return redirect(url_for('incidencias.solicitudes_recibidas'))
 
-    # Verificar permisos según el estado actual
     current_user_nomina = session['numNomina']
     accion = request.form.get('accion')
     comentarios = request.form.get('comentarios', '')
 
+        # Verificar si ya está aprobada/rechazada
+    if incidencia['estatus'] in ['Aprobada', 'Rechazada']:
+        flash("Esta incidencia ya ha sido procesada y no puede modificarse", "warning")
+        return redirect(url_for('incidencias.solicitudes_recibidas'))
+
     if incidencia['estatus'] == 'Pendiente Supervisor':
-        # Solo el jefe directo puede aprobar en esta etapa
         if current_user_nomina != incidencia['jefe_directo']:
             flash("No tienes permiso para procesar esta incidencia", "error")
             return redirect(url_for('incidencias.solicitudes_recibidas'))
 
         if accion == 'aprobar':
-            user_model.actualizar_estatus_incidencia(
+            if not user_model.actualizar_estatus_incidencia(
                 idIncidencia, 
                 'Pendiente Gerente',
                 current_user_nomina,
                 comentarios
-            )
-            # Notificar al usuario y al gerente
+            ):
+                flash("Error al actualizar el estado", "error")
+                return redirect(url_for('incidencias.solicitudes_recibidas'))
+            
+            # Cuando el supervisor aprueba y envía al gerente
             user_model.enviar_notificacion_incidencia(
                 incidencia['numNomina_solicitante'],
-                'Aprobada por tu supervisor - Pendiente de gerente',
+                'Aprobada por supervisor - Pendiente de gerente',
                 incidencia['motivo'],
                 incidencia['fecha_inicio'],
                 incidencia['fecha_fin'],
-                incidencia['gerente_responsable']
+                incidencia['gerente_responsable'],  # destinatario
+                f"Aprobado por supervisor. Comentarios: {comentarios}"  # comentarios
             )
+            
+            # Cuando el supervisor aprueba y envía al gerente
+            user_model.enviar_notificacion_incidencia(
+                incidencia['numNomina_solicitante'],
+                'Aprobada por supervisor - Pendiente de gerente',
+                incidencia['motivo'],
+                incidencia['fecha_inicio'],
+                incidencia['fecha_fin'],
+                incidencia['gerente_responsable'],  # destinatario
+                f"Aprobado por supervisor. Comentarios: {comentarios}"  # comentarios
+            )
+
+            # Obtener correo del gerente (jefe del supervisor)
+            gerente = user_model.get_user_by_numNomina(incidencia['gerente_responsable'])
+            if not gerente:
+                flash("No se encontró al gerente responsable", "error")
+                return redirect(url_for('incidencias.solicitudes_recibidas'))
+            
+            solicitante = user_model.get_user_by_numNomina(incidencia['numNomina_solicitante'])
+
+
+            # 4. Enviar notificación al gerente
+            if not user_model.enviar_notificacion_gerente(
+                incidencia_id=idIncidencia,
+                gerente_nomina=incidencia['gerente_responsable'],
+                solicitante_nombre=f"{solicitante['nombre']} {solicitante['apellidoPaterno']}",
+                supervisor_nombre=session['user'],
+                motivo=incidencia['motivo'],
+                fecha_inicio=incidencia['fecha_inicio'],
+                fecha_fin=incidencia['fecha_fin'],
+                comentarios=comentarios
+            ):
+                flash("Incidencia aprobada pero no se pudo notificar al gerente", "warning")
+            else:
+                flash("Incidencia aprobada y gerente notificado", "success")
+            
+            # Notificar al EMPLEADO que su solicitud avanzó
+            # Cuando se notifica al usuario
+            user_model.enviar_notificacion_incidencia(
+                incidencia['numNomina_solicitante'],
+                'Aprobada por supervisor - Pendiente de gerente',
+                incidencia['motivo'],
+                incidencia['fecha_inicio'],
+                incidencia['fecha_fin'],
+                None,  # destinatario (None = usuario solicitante)
+                f"Tu solicitud ha sido aprobada por tu supervisor y está pendiente de aprobación por el gerente. Comentarios: {comentarios}"
+            )
+            
             flash("Incidencia aprobada por supervisor y enviada a gerente", "success")
+            
         elif accion == 'rechazar':
             user_model.actualizar_estatus_incidencia(
                 idIncidencia, 
@@ -50,13 +109,15 @@ def procesar_incidencia(idIncidencia):
                 current_user_nomina,
                 comentarios
             )
-            # Notificar al usuario
+            # Cuando se notifica al usuario
             user_model.enviar_notificacion_incidencia(
                 incidencia['numNomina_solicitante'],
-                'Rechazada por tu supervisor',
+                'Aprobada por supervisor - Pendiente de gerente',
                 incidencia['motivo'],
                 incidencia['fecha_inicio'],
-                incidencia['fecha_fin']
+                incidencia['fecha_fin'],
+                None,  # destinatario (None = usuario solicitante)
+                f"Tu solicitud ha sido rechazada por tu supervisor. Comentarios: {comentarios}"
             )
             flash("Incidencia rechazada por supervisor", "success")
 
@@ -73,13 +134,15 @@ def procesar_incidencia(idIncidencia):
                 current_user_nomina,
                 comentarios
             )
-            # Notificar al usuario
+            # Cuando se notifica al usuario
             user_model.enviar_notificacion_incidencia(
                 incidencia['numNomina_solicitante'],
-                'Aprobada por gerente',
+                'Aprobada por supervisor - Pendiente de gerente',
                 incidencia['motivo'],
                 incidencia['fecha_inicio'],
-                incidencia['fecha_fin']
+                incidencia['fecha_fin'],
+                None,  # destinatario (None = usuario solicitante)
+                f"Tu solicitud ha sido aprobada por tu Gerente. Comentarios: {comentarios}"
             )
             flash("Incidencia aprobada por gerente", "success")
         elif accion == 'rechazar':
@@ -90,12 +153,15 @@ def procesar_incidencia(idIncidencia):
                 comentarios
             )
             # Notificar al usuario
+            # Cuando se notifica al usuario
             user_model.enviar_notificacion_incidencia(
                 incidencia['numNomina_solicitante'],
-                'Rechazada por gerente',
+                'Aprobada por supervisor - Pendiente de gerente',
                 incidencia['motivo'],
                 incidencia['fecha_inicio'],
-                incidencia['fecha_fin']
+                incidencia['fecha_fin'],
+                None,  # destinatario (None = usuario solicitante)
+                f"Tu solicitud ha sido rechazada por tu Gerente. Comentarios: {comentarios}"
             )
             flash("Incidencia rechazada por gerente", "success")
 

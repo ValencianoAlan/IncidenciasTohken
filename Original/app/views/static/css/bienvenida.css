@@ -54,3 +54,28 @@
 .badge-nomina:hover {
     transform: scale(1.05);  /* Efecto de escala al hover */
 }
+
+/* Estilos para estados */
+.estado-aprobado {
+    background-color: #28a745;
+    color: white;
+    font-weight: bold;
+}
+
+.estado-rechazado {
+    background-color: #dc3545;
+    color: white;
+    font-weight: bold;
+}
+
+.estado-pendiente-supervisor {
+    background-color: #ffc107;
+    color: #212529;
+    font-weight: bold;
+}
+
+.estado-pendiente-gerente {
+    background-color: #17a2b8;
+    color: white;
+    font-weight: bold;
+}

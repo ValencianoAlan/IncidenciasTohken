@@ -27,8 +27,21 @@
         </div>
     </header>
 
+              <!-- Mensaje para incidencias ya procesadas -->
+            {% if incidencia.estatus in ['Aprobada', 'Rechazada'] %}
+              <div class="alert alert-info text-center mb-0">
+                  Esta incidencia ya ha sido procesada y no puede ser modificada.
+                  {% if incidencia.aprobado_por_supervisor %}
+                      <strong>Supervisor:</strong> {{ obtener_nombre_usuario(incidencia.aprobado_por_supervisor) }}
+                  {% endif %}
+                  {% if incidencia.aprobado_por_gerente %}
+                      <strong>Gerente:</strong> {{ obtener_nombre_usuario(incidencia.aprobado_por_gerente) }}
+                  {% endif %}
+              </div>
+          {% endif %}
+
     <div class="container py-2">
-        <div class="container mt-5">
+        <div class="container mt-0">
             <!-- Encabezado de la página -->
             <div class="card mb-2 shadow">
               <div class="card-header bg-primary">
@@ -142,32 +155,87 @@
             </div>
         </div>
 
-                  <!-- Mostrar información de aprobaciones -->
-          {% if incidencia.aprobado_por_supervisor %}
-          <div class="card mb-3">
-              <div class="card-header bg-info text-white">Aprobación del Supervisor</div>
-              <div class="card-body">
-                  <p><strong>Aprobado por:</strong> {{ obtener_nombre_usuario(incidencia.aprobado_por_supervisor) }}</p>
-                  <p><strong>Fecha:</strong> {{ incidencia.fecha_aprobacion_supervisor }}</p>
-                  <p><strong>Comentarios:</strong> {{ incidencia.comentarios_supervisor or 'Sin comentarios' }}</p>
+        <!-- Tarjetas de Aprobación en una fila -->
+        <div class="row mt-3 mb-0">
+          <!-- Tarjeta de Supervisor -->
+          <div class="col-md-6">
+              <div class="card h-100">
+                  <div class="card-header info bg-secondary text-white">
+                      {% if incidencia.aprobado_por_supervisor %}
+                          {% if incidencia.estatus == 'Rechazada' and incidencia.aprobado_por_supervisor %}
+                              Rechazo del Supervisor
+                          {% else %}
+                              Aprobación del Supervisor
+                          {% endif %}
+                      {% else %}
+                          Aprobación del Supervisor
+                      {% endif %}
+                  </div>
+                  <div class="card-body">
+                      <p><strong>
+                          {% if incidencia.aprobado_por_supervisor %}
+                              {% if incidencia.estatus == 'Rechazada' and incidencia.aprobado_por_supervisor %}
+                                  Rechazado por:
+                              {% else %}
+                                  Aprobado por:
+                              {% endif %}
+                          {% else %}
+                              Estado:
+                          {% endif %}
+                      </strong> 
+                      {% if incidencia.aprobado_por_supervisor %}
+                          {{ obtener_nombre_usuario(incidencia.aprobado_por_supervisor) }}
+                      {% else %}
+                          Pendiente
+                      {% endif %}</p>
+                      <p><strong>Fecha:</strong> {{ incidencia.fecha_aprobacion_supervisor or 'Pendiente' }}</p>
+                      <p><strong>Comentarios:</strong> {{ incidencia.comentarios_supervisor or 'Sin comentarios' }}</p>
+                  </div>
               </div>
           </div>
-          {% endif %}
 
-          {% if incidencia.aprobado_por_gerente %}
-          <div class="card mb-3">
-              <div class="card-header bg-success text-white">Aprobación del Gerente</div>
-              <div class="card-body">
-                  <p><strong>Aprobado por:</strong> {{ obtener_nombre_usuario(incidencia.aprobado_por_gerente) }}</p>
-                  <p><strong>Fecha:</strong> {{ incidencia.fecha_aprobacion_gerente }}</p>
-                  <p><strong>Comentarios:</strong> {{ incidencia.comentarios_gerente or 'Sin comentarios' }}</p>
+          <!-- Tarjeta de Gerente -->
+          <div class="col-md-6">
+              <div class="card h-100">
+                  <div class="card-header info bg-secondary text-white">
+                      {% if incidencia.aprobado_por_gerente %}
+                          {% if incidencia.estatus == 'Rechazada' and incidencia.aprobado_por_gerente %}
+                              Rechazo del Gerente
+                          {% else %}
+                              Aprobación del Gerente
+                          {% endif %}
+                      {% else %}
+                          Aprobación del Gerente
+                      {% endif %}
+                  </div>
+                  <div class="card-body">
+                      <p><strong>
+                          {% if incidencia.aprobado_por_gerente %}
+                              {% if incidencia.estatus == 'Rechazada' and incidencia.aprobado_por_gerente %}
+                                  Rechazado por:
+                              {% else %}
+                                  Aprobado por:
+                              {% endif %}
+                          {% else %}
+                              Estado:
+                          {% endif %}
+                      </strong> 
+                      {% if incidencia.aprobado_por_gerente %}
+                          {{ obtener_nombre_usuario(incidencia.aprobado_por_gerente) }}
+                      {% else %}
+                          Pendiente
+                      {% endif %}</p>
+                      <p><strong>Fecha:</strong> {{ incidencia.fecha_aprobacion_gerente or 'Pendiente' }}</p>
+                      <p><strong>Comentarios:</strong> {{ incidencia.comentarios_gerente or 'Sin comentarios' }}</p>
+                  </div>
               </div>
           </div>
-          {% endif %}
-
-          <!-- Botones de acción según estado y rol -->
-          <div class="mt-4 d-flex gap-2">
-              {% if incidencia.estatus == 'Pendiente Supervisor' and session['numNomina'] == incidencia.jefe_directo %}
+        </div>
+ 
+        <!-- Botones de acción -->
+        <div class="mt-2 d-flex gap-2">
+          {% if incidencia.estatus == 'Pendiente Supervisor' and session['numNomina'] == incidencia.jefe_directo %}
+              <!-- Botones para supervisor -->
               <form method="POST" action="{{ url_for('incidencias.procesar_incidencia', idIncidencia=incidencia.idIncidencia) }}" class="d-flex gap-2">
                   <input type="hidden" name="comentarios" id="comentariosSupervisor">
                   <button type="submit" name="accion" value="aprobar" class="btn btn-success" 
@@ -179,9 +247,8 @@
                       Rechazar
                   </button>
               </form>
-              {% endif %}
-
-              {% if incidencia.estatus == 'Pendiente Gerente' and session['numNomina'] == incidencia.gerente_responsable %}
+          {% elif incidencia.estatus == 'Pendiente Gerente' and session['numNomina'] == incidencia.gerente_responsable %}
+              <!-- Botones para gerente -->
               <form method="POST" action="{{ url_for('incidencias.procesar_incidencia', idIncidencia=incidencia.idIncidencia) }}" class="d-flex gap-2">
                   <input type="hidden" name="comentarios" id="comentariosGerente">
                   <button type="submit" name="accion" value="aprobar" class="btn btn-success"
@@ -193,13 +260,17 @@
                       Rechazar
                   </button>
               </form>
-              {% endif %}
+          {% endif %}
 
-              <a href="{{ url_for('incidencias.mis_solicitudes') if origen == 'mis_incidencias' else url_for('incidencias.solicitudes_recibidas') }}" 
-                class="btn btn-secondary">
-                  Regresar
-              </a>
-          </div>
+          <!-- Botón de regresar siempre visible -->
+            <a href="{% if origen == 'mis_solicitudes' %}{{ url_for('incidencias.mis_solicitudes') }}
+            {% elif origen == 'incidencias_recibidas' %}{{ url_for('incidencias.solicitudes_recibidas') }}
+            {% else %}{{ url_for('auth.bienvenida') }}{% endif %}" 
+            class="btn btn-secondary">
+            Regresar
+ </a>
+
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>

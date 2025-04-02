@@ -40,42 +40,44 @@
             <table class="table table-striped table-bordered">
                 <thead>
                     <tr>
-                        <th class="text-center">ID de Incidencia</th>
-                        <th class="text-center">Número de Nómina</th>
-                        <th class="text-center">Fecha de Solicitud</th>
+                        <th class="text-center">ID</th>
+                        <th class="text-center">Solicitante</th>
+                        <th class="text-center">Fecha</th>
                         <th class="text-center">Motivo</th>
-                        <th class="text-center">Estatus</th> <!-- Columna de Estatus -->
+                        <th class="text-center">Estado</th>
                         <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% if solicitudes %}
-                        {% for solicitud in solicitudes %}
-                            <tr>
-                                <td class="text-center">{{ solicitud.idIncidencia }}</td>
-                                <td class="text-center">{{ solicitud.numNomina_solicitante }}</td>
-                                <td class="text-center">{{ solicitud.fecha_solicitud }}</td>
-                                <td class="text-center">{{ solicitud.motivo }}</td>
-                                <td class="text-center fw-bold">
-                                    <a href="{{ url_for('incidencias.ver_incidencia', idIncidencia=solicitud.idIncidencia, origen='incidencias_recibidas') }}" class="btn btn-primary">
-                                        Ver Incidencia
-                                    </a>
-                                </td>
-                                <td class="text-center fw-bold
-                                {% if solicitud.estatus == 'Aprobada' %}bg-success
-                                {% elif solicitud.estatus == 'Rechazada' %}bg-danger
-                                {% elif solicitud.estatus == 'Pendiente' %}bg-warning
-                                {% endif %}
-                                text-white"> <!-- Aplicar clases condicionales -->
-                                {{ solicitud.estatus }}
-                            </td>
-                            </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="6" class="text-center">No hay solicitudes recibidas.</td>
-                        </tr>
-                    {% endif %}
+                    {% for solicitud in solicitudes %}
+                    <tr>
+                        <td class="text-center">{{ solicitud.idIncidencia }}</td>
+                        <td class="text-center">{{ solicitud.numNomina_solicitante }}</td>
+                        <td class="text-center">{{ solicitud.fecha_solicitud }}</td>
+                        <td class="text-center">{{ solicitud.motivo }}</td>
+                        <td class="text-center 
+                            {{ 'bg-success text-white' if solicitud.estatus == 'Aprobada' else 
+                            'bg-danger text-white' if solicitud.estatus == 'Rechazada' else
+                            'bg-warning text-dark' if solicitud.estatus == 'Pendiente Supervisor' else
+                            'bg-info text-white' if solicitud.estatus == 'Pendiente Gerente' else
+                            'bg-secondary text-white' }}">
+                            {{ solicitud.estatus }}
+                        </td>
+                        <td class="text-center">
+                            <a href="{{ url_for('incidencias.ver_incidencia', 
+                                idIncidencia=solicitud.idIncidencia, 
+                                origen='incidencias_recibidas') }}" 
+                                class="btn btn-primary">
+                                Ver Incidencia
+                            </a>
+                            
+                            {% if solicitud.estatus in ['Pendiente Supervisor', 'Pendiente Gerente'] %}
+                                {% set puede_aprobar = (session['rol'] == 'Supervisor' and solicitud.estatus == 'Pendiente Supervisor') or 
+                                                      (session['rol'] == 'Gerente' and solicitud.estatus == 'Pendiente Gerente') %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>

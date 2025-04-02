@@ -61,18 +61,31 @@ class UserModel:
             cursor.close()
             conn.close()
 
-    def add_user(self, numNomina, nombre, apellido_paterno, apellido_materno, username, password, idRol, idDepartamento, idPuesto, diasVacaciones, correo_electronico, jefe_directo):
+    def add_user(self, numNomina, nombre, apellido_paterno, apellido_materno, 
+                username, password, idRol, idDepartamento, idPuesto, 
+                diasVacaciones, correo_electronico, jefe_directo):
+        """Agrega un nuevo usuario con todos los campos requeridos"""
         try:
             conn = self.get_connection()
             cursor = conn.cursor()
+            
+            # Validar campos requeridos
+            if not all([numNomina, nombre, username, password, idRol, 
+                    idDepartamento, idPuesto, correo_electronico]):
+                raise ValueError("Todos los campos obligatorios deben ser proporcionados")
 
-            # Insertar en usuarios
+            # Insertar usuario
             cursor.execute("""
-                INSERT INTO usuarios (numNomina, nombre, apellidoPaterno, apellidoMaterno, idDepartamento, idPuesto, diasVacaciones, correo_electronico, jefe_directo)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (numNomina, nombre, apellido_paterno, apellido_materno, idDepartamento, idPuesto, diasVacaciones, correo_electronico, jefe_directo))
+                INSERT INTO usuarios (
+                    numNomina, nombre, apellidoPaterno, apellidoMaterno,
+                    idDepartamento, idPuesto, diasVacaciones, 
+                    correo_electronico, jefe_directo
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (numNomina, nombre, apellido_paterno, apellido_materno,
+                idDepartamento, idPuesto, diasVacaciones,
+                correo_electronico, jefe_directo))
 
-            # Insertar en credenciales
+            # Insertar credenciales
             cursor.execute("""
                 INSERT INTO credenciales (numNomina, username, password)
                 VALUES (?, ?, ?)
@@ -88,6 +101,7 @@ class UserModel:
             return True
         except Exception as e:
             print(f"Error al agregar usuario: {e}")
+            conn.rollback()
             return False
         finally:
             cursor.close()
@@ -402,23 +416,22 @@ class UserModel:
             cursor.close()
             conn.close()
 
-    def get_solicitudes_recibidas(self, numNomina_jefe, orden='asc'):
+    def get_solicitudes_recibidas(self, numNomina_jefe, rol_usuario, orden='asc'):
         conn = self.get_connection()
         cursor = conn.cursor()
         try:
             query = """
-                SELECT 
-                    idIncidencia,
-                    numNomina_solicitante,
-                    fecha_solicitud,
-                    motivo,
-                    estatus
+                SELECT idIncidencia, numNomina_solicitante, fecha_solicitud, 
+                    motivo, estatus, aprobado_por_supervisor, aprobado_por_gerente
                 FROM incidencias
-                WHERE jefe_directo = ?
-                ORDER BY idIncidencia {}  -- Ordenar por ID
+                WHERE (jefe_directo = ? AND (estatus IN ('Pendiente Supervisor', 'Aprobada', 'Rechazada')))
+                OR (gerente_responsable = ? AND (estatus IN ('Pendiente Gerente', 'Aprobada', 'Rechazada')))
+                ORDER BY 
+                    CASE WHEN estatus IN ('Pendiente Supervisor', 'Pendiente Gerente') THEN 1 ELSE 2 END,
+                    idIncidencia {}
             """.format('ASC' if orden == 'asc' else 'DESC')
-
-            cursor.execute(query, (numNomina_jefe,))
+            
+            cursor.execute(query, (numNomina_jefe, numNomina_jefe))
             return cursor.fetchall()
         except Exception as e:
             print(f"Error al obtener solicitudes recibidas: {e}")
@@ -477,11 +490,12 @@ class UserModel:
         conn = self.get_connection()
         cursor = conn.cursor()
         try:
-            # Obtener el gerente responsable (jefe del jefe directo)
+            # Obtener el gerente responsable
             cursor.execute("SELECT jefe_directo FROM usuarios WHERE numNomina = ?", (jefe_directo,))
-            gerente_responsable = cursor.fetchone()
-            gerente_responsable = gerente_responsable[0] if gerente_responsable else jefe_directo
+            gerente_responsable_result = cursor.fetchone()
+            gerente_responsable = gerente_responsable_result[0] if gerente_responsable_result else jefe_directo
 
+            # Insertar la incidencia
             cursor.execute("""
                 INSERT INTO incidencias (
                     numNomina_solicitante, nombre_solicitante, apellido_paterno, apellido_materno,
@@ -503,12 +517,14 @@ class UserModel:
                 motivo,
                 fecha_inicio,
                 fecha_fin,
-                jefe_directo
+                jefe_directo,  # destinatario (supervisor)
+                f"Nueva solicitud creada por {nombre_solicitante} {apellido_paterno}"
             )
             
             return True
         except Exception as e:
             print(f"Error al crear incidencia: {e}")
+            conn.rollback()
             return False
         finally:
             cursor.close()
@@ -563,25 +579,17 @@ class UserModel:
         cursor = conn.cursor()
         try:
             cursor.execute("""
-                SELECT 
-                    idIncidencia,
-                    numNomina_solicitante,
-                    nombre_solicitante,
-                    apellido_paterno,
-                    apellido_materno,
-                    fecha_solicitud,
-                    puesto,
-                    departamento,
-                    dias_vacaciones,
-                    motivo,
-                    fecha_inicio,
-                    fecha_fin,
-                    num_dias,
-                    observaciones,
-                    estatus
-                FROM incidencias
-                WHERE idIncidencia = ?
+                SELECT i.*, 
+                    s.nombre as nombre_supervisor, 
+                    s.apellidoPaterno as apellido_supervisor,
+                    g.nombre as nombre_gerente,
+                    g.apellidoPaterno as apellido_gerente
+                FROM incidencias i
+                LEFT JOIN usuarios s ON i.aprobado_por_supervisor = s.numNomina
+                LEFT JOIN usuarios g ON i.aprobado_por_gerente = g.numNomina
+                WHERE i.idIncidencia = ?
             """, (idIncidencia,))
+            
             incidencia = cursor.fetchone()
 
             if incidencia:
@@ -601,7 +609,15 @@ class UserModel:
                     'fecha_fin': incidencia.fecha_fin,
                     'num_dias': incidencia.num_dias,
                     'observaciones': incidencia.observaciones,
-                    'estatus': incidencia.estatus
+                    'estatus': incidencia.estatus,
+                    'jefe_directo' : incidencia.jefe_directo,
+                    'gerente_responsable' : incidencia.gerente_responsable,
+                    'aprobado_por_supervisor' : incidencia.aprobado_por_supervisor,
+                    'fecha_aprobacion_supervisor' : incidencia.fecha_aprobacion_supervisor,
+                    'aprobado_por_gerente' : incidencia.aprobado_por_gerente,
+                    'fecha_aprobacion_gerente' : incidencia.fecha_aprobacion_gerente,
+                    'comentarios_supervisor' : incidencia.comentarios_supervisor,
+                    'comentarios_gerente' : incidencia.comentarios_gerente
                 }
                 return incidencia_dict
             return None
@@ -650,35 +666,109 @@ class UserModel:
             cursor.close()
             conn.close()
     
-    def enviar_notificacion_incidencia(self, numNomina, estado, motivo, fecha_inicio, fecha_fin, destinatario=None):
+    def enviar_notificacion_incidencia(self, numNomina_solicitante, estado, motivo, 
+                                 fecha_inicio, fecha_fin, destinatario=None, 
+                                 comentarios=None):
+        """
+        Envía notificación por correo sobre el estado de una incidencia
+        
+        Args:
+            numNomina_solicitante: Nómina del usuario que creó la incidencia
+            estado: Estado actual de la incidencia
+            motivo: Motivo de la incidencia
+            fecha_inicio: Fecha de inicio del permiso
+            fecha_fin: Fecha de fin del permiso
+            destinatario: Nómina del destinatario (si es diferente al solicitante)
+            comentarios: Comentarios adicionales (opcional)
+        """
         try:
-            # Si no se especifica destinatario, notificar al usuario
+            # Determinar el destinatario del correo
             if destinatario is None:
-                correo = self.get_correo_usuario(numNomina)
-                titulo = "Tu solicitud de incidencia"
+                # Notificar al usuario solicitante
+                correo_destino = self.get_correo_usuario(numNomina_solicitante)
+                asunto = f"Tu solicitud de incidencia ha sido {estado}"
             else:
-                correo = self.get_correo_usuario(destinatario)
-                usuario = self.get_user_by_numNomina(numNomina)
-                titulo = f"Solicitud de {usuario['nombre']} {usuario['apellidoPaterno']}"
+                # Notificar a otro usuario (supervisor/gerente)
+                correo_destino = self.get_correo_usuario(destinatario)
+                usuario = self.get_user_by_numNomina(numNomina_solicitante)
+                nombre_usuario = f"{usuario['nombre']} {usuario['apellidoPaterno']}" if usuario else "Un usuario"
+                asunto = f"Solicitud de {nombre_usuario}: {estado}"
 
-            if not correo:
-                print(f"No se encontró correo para {'usuario' if destinatario is None else 'destinatario'}")
+            if not correo_destino:
+                print(f"No se puede enviar notificación: usuario {destinatario if destinatario else numNomina_solicitante} no tiene correo registrado")
                 return False
 
-            # Configurar el mensaje
-            asunto = f"{titulo}: {estado}"
+            # Crear el cuerpo del mensaje
+            cuerpo = f"""
+            <html>
+            <body>
+                <h2>{asunto}</h2>
+                <p><strong>Motivo:</strong> {motivo}</p>
+                <p><strong>Fecha de inicio:</strong> {fecha_inicio}</p>
+                <p><strong>Fecha de fin:</strong> {fecha_fin}</p>
+                {f'<p><strong>Comentarios:</strong> {comentarios}</p>' if comentarios else ''}
+                <br>
+                <p>Por favor inicia sesión en el sistema para más detalles.</p>
+                <p>Este es un mensaje automático, no responda a este correo.</p>
+            </body>
+            </html>
+            """
+
+            # Configurar y enviar el mensaje
+            mensaje = MIMEText(cuerpo, 'html')
+            mensaje['Subject'] = asunto
+            mensaje['From'] = current_app.config["MAIL_USERNAME"]
+            mensaje['To'] = correo_destino
+
+            with smtplib.SMTP(
+                current_app.config["MAIL_SERVER"],
+                current_app.config["MAIL_PORT"]
+            ) as server:
+                server.starttls()
+                server.login(
+                    current_app.config["MAIL_USERNAME"],
+                    current_app.config["MAIL_PASSWORD"]
+                )
+                server.send_message(mensaje)
+            
+            print(f"Notificación enviada a {correo_destino}: {asunto}")
+            return True
+            
+        except Exception as e:
+            print(f"Error al enviar notificación de incidencia: {e}")
+            return False
+
+    def enviar_notificacion_gerente(self, incidencia_id, gerente_nomina, solicitante_nombre, 
+                              supervisor_nombre, motivo, fecha_inicio, fecha_fin, comentarios):
+        try:
+            # Obtener correo del gerente
+            correo_gerente = self.get_correo_usuario(gerente_nomina)
+            if not correo_gerente:
+                print(f"No se encontró correo para el gerente {gerente_nomina}")
+                return False
+
+            # Crear enlace directo a la incidencia (ajusta tu URL base)
+            enlace_incidencia = f"http://tudominio.com/ver_incidencia/{incidencia_id}/gerente"
+            
+            # Construir el mensaje
+            asunto = f"[URGENTE] Solicitud pendiente de aprobación: {solicitante_nombre}"
             
             cuerpo = f"""
             <html>
             <body>
-                <h2>{titulo}</h2>
-                <p><strong>Estado:</strong> {estado}</p>
+                <h2>Solicitud pendiente de tu aprobación</h2>
+                <p><strong>Solicitante:</strong> {solicitante_nombre}</p>
+                <p><strong>Aprobado por supervisor:</strong> {supervisor_nombre}</p>
                 <p><strong>Motivo:</strong> {motivo}</p>
-                <p><strong>Fecha de inicio:</strong> {fecha_inicio}</p>
-                <p><strong>Fecha de fin:</strong> {fecha_fin}</p>
-                <br>
-                <p>Por favor inicia sesión en el sistema para más detalles.</p>
-                <p>Este es un mensaje automático, por favor no responda a este correo.</p>
+                <p><strong>Periodo solicitado:</strong> {fecha_inicio} al {fecha_fin}</p>
+                <p><strong>Comentarios del supervisor:</strong> {comentarios or 'Ninguno'}</p>
+                <hr>
+                <p>Por favor revisa esta solicitud lo antes posible:</p>
+                <a href="{enlace_incidencia}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; border-radius: 5px;">
+                    Revisar Solicitud
+                </a>
+                <hr>
+                <p><small>Este es un mensaje automático. Favor de no responder directamente.</small></p>
             </body>
             </html>
             """
@@ -686,9 +776,9 @@ class UserModel:
             mensaje = MIMEText(cuerpo, 'html')
             mensaje['Subject'] = asunto
             mensaje['From'] = current_app.config["MAIL_USERNAME"]
-            mensaje['To'] = correo
+            mensaje['To'] = correo_gerente
 
-            # Enviar correo
+            # Enviar el correo
             with smtplib.SMTP(
                 current_app.config["MAIL_SERVER"],
                 current_app.config["MAIL_PORT"]
@@ -703,5 +793,60 @@ class UserModel:
             return True
             
         except Exception as e:
-            print(f"Error al enviar notificación de incidencia: {e}")
+            print(f"Error al enviar notificación al gerente: {str(e)}")
             return False
+        
+    def obtener_nombre_usuario(self, numNomina):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                SELECT nombre, apellidoPaterno 
+                FROM usuarios 
+                WHERE numNomina = ?
+            """, (numNomina,))
+            usuario = cursor.fetchone()
+            return f"{usuario[0]} {usuario[1]}" if usuario else f"Nómina {numNomina}"
+        except Exception as e:
+            print(f"Error al obtener nombre de usuario: {e}")
+            return f"Nómina {numNomina}"
+        finally:
+            cursor.close()
+            conn.close()
+    
+    def get_nombre_usuario(self, numNomina):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                SELECT nombre + ' ' + ISNULL(apellidoPaterno, '') 
+                FROM usuarios 
+                WHERE numNomina = ?
+            """, (numNomina,))
+            nombre = cursor.fetchone()
+            return nombre[0] if nombre else f"Usuario {numNomina}"
+        except Exception as e:
+            print(f"Error al obtener nombre de usuario: {e}")
+            return f"Usuario {numNomina}"
+        finally:
+            cursor.close()
+            conn.close()
+    
+    def get_correo_usuario(self, numNomina):
+        """Obtiene el correo electrónico de un usuario por su número de nómina"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                SELECT correo_electronico 
+                FROM usuarios 
+                WHERE numNomina = ?
+            """, (numNomina,))
+            resultado = cursor.fetchone()
+            return resultado[0] if resultado else None
+        except Exception as e:
+            print(f"Error al obtener correo del usuario: {e}")
+            return None
+        finally:
+            cursor.close()
+            conn.close()
