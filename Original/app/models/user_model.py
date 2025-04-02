@@ -666,47 +666,60 @@ class UserModel:
             cursor.close()
             conn.close()
     
-    def enviar_notificacion_incidencia(self, numNomina_solicitante, estado, motivo, 
-                                 fecha_inicio, fecha_fin, destinatario=None, 
-                                 comentarios=None):
-        """
-        Envía notificación por correo sobre el estado de una incidencia
-        
-        Args:
-            numNomina_solicitante: Nómina del usuario que creó la incidencia
-            estado: Estado actual de la incidencia
-            motivo: Motivo de la incidencia
-            fecha_inicio: Fecha de inicio del permiso
-            fecha_fin: Fecha de fin del permiso
-            destinatario: Nómina del destinatario (si es diferente al solicitante)
-            comentarios: Comentarios adicionales (opcional)
-        """
+    def enviar_notificacion_incidencia(self, numNomina, estado, motivo, fecha_inicio, fecha_fin, destinatario=None, aprobador_rol=None):
+        """Envía notificación por correo con asunto dinámico"""
         try:
-            # Determinar el destinatario del correo
+            # Obtener información del solicitante
+            solicitante = self.get_user_by_numNomina(numNomina)
+            nombre_solicitante = f"{solicitante['nombre']} {solicitante['apellidoPaterno']}" if solicitante else "El usuario"
+
+            # Determinar el asunto según el estado y el rol del aprobador
+            if estado.lower() == 'aprobada':
+                if aprobador_rol == 'supervisor':
+                    asunto = f"Solicitud aprobada por tu supervisor - Pendiente de gerente"
+                elif aprobador_rol == 'gerente':
+                    asunto = f"¡Felicidades! Tu solicitud ha sido aprobada por el gerente"
+                else:
+                    asunto = f"Tu solicitud ha sido aprobada"
+            elif estado.lower() == 'rechazada':
+                if aprobador_rol == 'supervisor':
+                    asunto = f"Solicitud rechazada por tu supervisor"
+                elif aprobador_rol == 'gerente':
+                    asunto = f"Solicitud rechazada por el gerente"
+                else:
+                    asunto = f"Tu solicitud ha sido rechazada"
+            else:
+                asunto = f"Actualización en tu solicitud: {estado}"
+
+            # Determinar el destinatario
             if destinatario is None:
                 # Notificar al usuario solicitante
-                correo_destino = self.get_correo_usuario(numNomina_solicitante)
-                asunto = f"Tu solicitud de incidencia ha sido {estado}"
+                correo_destino = self.get_correo_usuario(numNomina)
+                saludo = f"Hola {nombre_solicitante},"
             else:
-                # Notificar a otro usuario (supervisor/gerente)
+                # Notificar a supervisor/gerente
                 correo_destino = self.get_correo_usuario(destinatario)
-                usuario = self.get_user_by_numNomina(numNomina_solicitante)
-                nombre_usuario = f"{usuario['nombre']} {usuario['apellidoPaterno']}" if usuario else "Un usuario"
-                asunto = f"Solicitud de {nombre_usuario}: {estado}"
+                aprobador = self.get_user_by_numNomina(destinatario)
+                nombre_aprobador = f"{aprobador['nombre']} {aprobador['apellidoPaterno']}" if aprobador else ""
+                saludo = f"Hola {nombre_aprobador}," if nombre_aprobador else "Hola,"
 
+            # Verificar que tenemos un correo destino
             if not correo_destino:
-                print(f"No se puede enviar notificación: usuario {destinatario if destinatario else numNomina_solicitante} no tiene correo registrado")
+                print(f"No se puede enviar notificación: no hay correo registrado")
                 return False
 
             # Crear el cuerpo del mensaje
             cuerpo = f"""
             <html>
             <body>
-                <h2>{asunto}</h2>
-                <p><strong>Motivo:</strong> {motivo}</p>
-                <p><strong>Fecha de inicio:</strong> {fecha_inicio}</p>
-                <p><strong>Fecha de fin:</strong> {fecha_fin}</p>
-                {f'<p><strong>Comentarios:</strong> {comentarios}</p>' if comentarios else ''}
+                <p>{saludo}</p>
+                <h3>{asunto}</h3>
+                <p><strong>Detalles de la solicitud:</strong></p>
+                <ul>
+                    <li><strong>Motivo:</strong> {motivo}</li>
+                    <li><strong>Fecha de inicio:</strong> {fecha_inicio}</li>
+                    <li><strong>Fecha de fin:</strong> {fecha_fin}</li>
+                </ul>
                 <br>
                 <p>Por favor inicia sesión en el sistema para más detalles.</p>
                 <p>Este es un mensaje automático, no responda a este correo.</p>

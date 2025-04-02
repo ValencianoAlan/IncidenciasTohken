@@ -42,26 +42,24 @@ def procesar_incidencia(idIncidencia):
                 flash("Error al actualizar el estado", "error")
                 return redirect(url_for('incidencias.solicitudes_recibidas'))
             
-            # Cuando el supervisor aprueba y envía al gerente
+            # Cuando el supervisor aprueba y envía al usuario
             user_model.enviar_notificacion_incidencia(
                 incidencia['numNomina_solicitante'],
-                'Aprobada por supervisor - Pendiente de gerente',
+                'Aprobada',
                 incidencia['motivo'],
                 incidencia['fecha_inicio'],
                 incidencia['fecha_fin'],
-                incidencia['gerente_responsable'],  # destinatario
-                f"Aprobado por supervisor. Comentarios: {comentarios}"  # comentarios
+                aprobador_rol='supervisor'
             )
             
             # Cuando el supervisor aprueba y envía al gerente
             user_model.enviar_notificacion_incidencia(
                 incidencia['numNomina_solicitante'],
-                'Aprobada por supervisor - Pendiente de gerente',
+                'Nueva solicitud para revisión',
                 incidencia['motivo'],
                 incidencia['fecha_inicio'],
                 incidencia['fecha_fin'],
-                incidencia['gerente_responsable'],  # destinatario
-                f"Aprobado por supervisor. Comentarios: {comentarios}"  # comentarios
+                incidencia['gerente_responsable']
             )
 
             # Obtener correo del gerente (jefe del supervisor)
@@ -112,12 +110,11 @@ def procesar_incidencia(idIncidencia):
             # Cuando se notifica al usuario
             user_model.enviar_notificacion_incidencia(
                 incidencia['numNomina_solicitante'],
-                'Aprobada por supervisor - Pendiente de gerente',
+                'Rechazada',
                 incidencia['motivo'],
                 incidencia['fecha_inicio'],
                 incidencia['fecha_fin'],
-                None,  # destinatario (None = usuario solicitante)
-                f"Tu solicitud ha sido rechazada por tu supervisor. Comentarios: {comentarios}"
+                aprobador_rol='supervisor'
             )
             flash("Incidencia rechazada por supervisor", "success")
 
@@ -137,12 +134,11 @@ def procesar_incidencia(idIncidencia):
             # Cuando se notifica al usuario
             user_model.enviar_notificacion_incidencia(
                 incidencia['numNomina_solicitante'],
-                'Aprobada por supervisor - Pendiente de gerente',
+                'Aprobada',
                 incidencia['motivo'],
                 incidencia['fecha_inicio'],
                 incidencia['fecha_fin'],
-                None,  # destinatario (None = usuario solicitante)
-                f"Tu solicitud ha sido aprobada por tu Gerente. Comentarios: {comentarios}"
+                aprobador_rol='gerente'
             )
             flash("Incidencia aprobada por gerente", "success")
         elif accion == 'rechazar':
@@ -156,12 +152,11 @@ def procesar_incidencia(idIncidencia):
             # Cuando se notifica al usuario
             user_model.enviar_notificacion_incidencia(
                 incidencia['numNomina_solicitante'],
-                'Aprobada por supervisor - Pendiente de gerente',
+                'Rechazada',
                 incidencia['motivo'],
                 incidencia['fecha_inicio'],
                 incidencia['fecha_fin'],
-                None,  # destinatario (None = usuario solicitante)
-                f"Tu solicitud ha sido rechazada por tu Gerente. Comentarios: {comentarios}"
+                aprobador_rol='gerente'
             )
             flash("Incidencia rechazada por gerente", "success")
 
