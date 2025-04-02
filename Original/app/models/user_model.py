@@ -439,24 +439,7 @@ class UserModel:
         finally:
             cursor.close()
             conn.close()
-    
-    def actualizar_estatus_incidencia(self, idIncidencia, estatus):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("""
-                UPDATE incidencias
-                SET estatus = ?
-                WHERE idIncidencia = ?
-            """, (estatus, idIncidencia))
-            conn.commit()
-            return True
-        except Exception as e:
-            print(f"Error al actualizar estatus de la incidencia: {e}")
-            return False
-        finally:
-            cursor.close()
-            conn.close()
+
     
     def enviar_correo(self, destinatario, asunto, cuerpo):
         try:
@@ -632,35 +615,44 @@ class UserModel:
         conn = self.get_connection()
         cursor = conn.cursor()
         try:
-            # Obtener información actual de la incidencia
-            cursor.execute("SELECT estatus FROM incidencias WHERE idIncidencia = ?", (idIncidencia,))
-            current_status = cursor.fetchone()[0]
-            
-            if current_status == 'Pendiente Supervisor':
-                # Aprobación del supervisor
+            # Si es rechazo, marcamos directamente como Rechazada
+            if estatus == 'Rechazada':
                 cursor.execute("""
                     UPDATE incidencias 
-                    SET estatus = 'Pendiente Gerente',
+                    SET estatus = 'Rechazada',
                         aprobado_por_supervisor = ?,
                         fecha_aprobacion_supervisor = GETDATE(),
                         comentarios_supervisor = ?
                     WHERE idIncidencia = ?
                 """, (numNomina_aprobador, comentarios, idIncidencia))
-            elif current_status == 'Pendiente Gerente':
-                # Aprobación del gerente
-                cursor.execute("""
-                    UPDATE incidencias 
-                    SET estatus = ?,
-                        aprobado_por_gerente = ?,
-                        fecha_aprobacion_gerente = GETDATE(),
-                        comentarios_gerente = ?
-                    WHERE idIncidencia = ?
-                """, (estatus, numNomina_aprobador, comentarios, idIncidencia))
+            else:
+                # Lógica normal para otros estados
+                current_status = self.get_estatus_incidencia(idIncidencia)
+                
+                if current_status == 'Pendiente Supervisor':
+                    cursor.execute("""
+                        UPDATE incidencias 
+                        SET estatus = ?,
+                            aprobado_por_supervisor = ?,
+                            fecha_aprobacion_supervisor = GETDATE(),
+                            comentarios_supervisor = ?
+                        WHERE idIncidencia = ?
+                    """, (estatus, numNomina_aprobador, comentarios, idIncidencia))
+                elif current_status == 'Pendiente Gerente':
+                    cursor.execute("""
+                        UPDATE incidencias 
+                        SET estatus = ?,
+                            aprobado_por_gerente = ?,
+                            fecha_aprobacion_gerente = GETDATE(),
+                            comentarios_gerente = ?
+                        WHERE idIncidencia = ?
+                    """, (estatus, numNomina_aprobador, comentarios, idIncidencia))
             
             conn.commit()
             return True
         except Exception as e:
             print(f"Error al actualizar estatus de la incidencia: {e}")
+            conn.rollback()
             return False
         finally:
             cursor.close()
@@ -859,6 +851,21 @@ class UserModel:
             return resultado[0] if resultado else None
         except Exception as e:
             print(f"Error al obtener correo del usuario: {e}")
+            return None
+        finally:
+            cursor.close()
+            conn.close()
+    
+    def get_estatus_incidencia(self, idIncidencia):
+        """Obtiene el estado actual de una incidencia"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("SELECT estatus FROM incidencias WHERE idIncidencia = ?", (idIncidencia,))
+            resultado = cursor.fetchone()
+            return resultado[0] if resultado else None
+        except Exception as e:
+            print(f"Error al obtener estado de incidencia: {e}")
             return None
         finally:
             cursor.close()

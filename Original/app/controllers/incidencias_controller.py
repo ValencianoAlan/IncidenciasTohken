@@ -14,6 +14,10 @@ def procesar_incidencia(idIncidencia):
         flash("Incidencia no encontrada", "error")
         return redirect(url_for('incidencias.solicitudes_recibidas'))
     
+    if incidencia['estatus'] in ['Aprobada', 'Rechazada']:
+        flash("Esta incidencia ya ha sido procesada y no puede modificarse", "error")
+        return redirect(url_for('incidencias.solicitudes_recibidas'))
+
     if 'jefe_directo' not in incidencia:
         flash("Error en los datos de la incidencia", "error")
         return redirect(url_for('incidencias.solicitudes_recibidas'))
@@ -101,21 +105,25 @@ def procesar_incidencia(idIncidencia):
             flash("Incidencia aprobada por supervisor y enviada a gerente", "success")
             
         elif accion == 'rechazar':
-            user_model.actualizar_estatus_incidencia(
+            # Cambiar estado directamente a Rechazada (sin pasar por gerente)
+            if not user_model.actualizar_estatus_incidencia(
                 idIncidencia, 
                 'Rechazada',
                 current_user_nomina,
                 comentarios
-            )
-            # Cuando se notifica al usuario
+            ):
+                flash("Error al actualizar la incidencia", "error")
+                return redirect(url_for('incidencias.solicitudes_recibidas'))
+
+            # Notificar solo al usuario solicitante
             user_model.enviar_notificacion_incidencia(
                 incidencia['numNomina_solicitante'],
-                'Rechazada',
+                'Rechazada por tu supervisor',
                 incidencia['motivo'],
                 incidencia['fecha_inicio'],
-                incidencia['fecha_fin'],
-                aprobador_rol='supervisor'
+                incidencia['fecha_fin']
             )
+            
             flash("Incidencia rechazada por supervisor", "success")
 
     elif incidencia['estatus'] == 'Pendiente Gerente':

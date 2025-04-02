@@ -235,18 +235,17 @@
         <!-- Botones de acción -->
         <div class="mt-2 d-flex gap-2">
           {% if incidencia.estatus == 'Pendiente Supervisor' and session['numNomina'] == incidencia.jefe_directo %}
-              <!-- Botones para supervisor -->
-              <form method="POST" action="{{ url_for('incidencias.procesar_incidencia', idIncidencia=incidencia.idIncidencia) }}" class="d-flex gap-2">
-                  <input type="hidden" name="comentarios" id="comentariosSupervisor">
-                  <button type="submit" name="accion" value="aprobar" class="btn btn-success" 
-                          onclick="document.getElementById('comentariosSupervisor').value = prompt('Comentarios (opcional):') || ''">
-                      Aprobar como Supervisor
-                  </button>
-                  <button type="submit" name="accion" value="rechazar" class="btn btn-danger"
-                          onclick="document.getElementById('comentariosSupervisor').value = prompt('Razón del rechazo:') || ''">
-                      Rechazar
-                  </button>
-              </form>
+            <form method="POST" action="{{ url_for('incidencias.procesar_incidencia', idIncidencia=incidencia.idIncidencia) }}" class="d-flex gap-2">
+                <input type="hidden" name="comentarios" id="comentariosRechazo">
+                <button type="submit" name="accion" value="aprobar" class="btn btn-success"
+                        onclick="document.getElementById('comentariosRechazo').value = prompt('Comentarios (opcional):') || ''">
+                    Aprobar (enviar a gerente)
+                </button>
+                <button type="submit" name="accion" value="rechazar" class="btn btn-danger"
+                        onclick="document.getElementById('comentariosRechazo').value = prompt('Motivo del rechazo (requerido):') || ''; return !!document.getElementById('comentariosRechazo').value;">
+                    Rechazar Definitivamente
+                </button>
+            </form>
           {% elif incidencia.estatus == 'Pendiente Gerente' and session['numNomina'] == incidencia.gerente_responsable %}
               <!-- Botones para gerente -->
               <form method="POST" action="{{ url_for('incidencias.procesar_incidencia', idIncidencia=incidencia.idIncidencia) }}" class="d-flex gap-2">
