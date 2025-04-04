@@ -416,22 +416,58 @@ class UserModel:
             cursor.close()
             conn.close()
 
-    def get_solicitudes_recibidas(self, numNomina_jefe, rol_usuario, orden='asc'):
+    def get_solicitudes_recibidas(self, numNomina_jefe, rol_usuario, filtros=None, orden='asc'):
         conn = self.get_connection()
         cursor = conn.cursor()
         try:
+            # Consulta base
             query = """
-                SELECT idIncidencia, numNomina_solicitante, fecha_solicitud, 
-                    motivo, estatus, aprobado_por_supervisor, aprobado_por_gerente
+                SELECT 
+                    idIncidencia,
+                    numNomina_solicitante,
+                    nombre_solicitante,
+                    apellido_paterno,
+                    apellido_materno,
+                    fecha_solicitud,
+                    motivo,
+                    estatus,
+                    fecha_inicio,
+                    fecha_fin,
+                    num_dias,
+                    jefe_directo,
+                    gerente_responsable
                 FROM incidencias
-                WHERE (jefe_directo = ? AND (estatus IN ('Pendiente Supervisor', 'Aprobada', 'Rechazada')))
-                OR (gerente_responsable = ? AND (estatus IN ('Pendiente Gerente', 'Aprobada', 'Rechazada')))
-                ORDER BY 
-                    CASE WHEN estatus IN ('Pendiente Supervisor', 'Pendiente Gerente') THEN 1 ELSE 2 END,
-                    idIncidencia {}
-            """.format('ASC' if orden == 'asc' else 'DESC')
+                WHERE 
+            """
             
-            cursor.execute(query, (numNomina_jefe, numNomina_jefe))
+            # Condiciones según rol
+            if rol_usuario == 'Supervisor':
+                query += "jefe_directo = ?"
+                params = [numNomina_jefe]
+            elif rol_usuario == 'Gerente':
+                query += "gerente_responsable = ?"
+                params = [numNomina_jefe]
+            else:
+                return []
+            
+            # Aplicar filtros si existen
+            if filtros:
+                if filtros.get('motivo'):
+                    query += " AND motivo = ?"
+                    params.append(filtros['motivo'])
+                
+                if filtros.get('estatus'):
+                    query += " AND estatus = ?"
+                    params.append(filtros['estatus'])
+                
+                if filtros.get('fecha_desde') and filtros.get('fecha_hasta'):
+                    query += " AND fecha_solicitud BETWEEN ? AND ?"
+                    params.extend([filtros['fecha_desde'], filtros['fecha_hasta']])
+            
+            # Ordenamiento
+            query += " ORDER BY fecha_solicitud {}".format('ASC' if orden == 'asc' else 'DESC')
+            
+            cursor.execute(query, tuple(params))
             return cursor.fetchall()
         except Exception as e:
             print(f"Error al obtener solicitudes recibidas: {e}")
@@ -870,3 +906,21 @@ class UserModel:
         finally:
             cursor.close()
             conn.close()
+
+    def get_motivos_incidencias(self):
+        """Obtiene todos los motivos distintos de incidencias"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("SELECT DISTINCT motivo FROM incidencias")
+            return [row.motivo for row in cursor.fetchall()]
+        except Exception as e:
+            print(f"Error al obtener motivos de incidencias: {e}")
+            return []
+        finally:
+            cursor.close()
+            conn.close()
+
+    def get_estatus_posibles(self):
+        """Obtiene todos los estatus posibles de incidencias"""
+        return ['Pendiente Supervisor', 'Pendiente Gerente', 'Aprobada', 'Rechazada']
