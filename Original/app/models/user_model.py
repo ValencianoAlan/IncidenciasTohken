@@ -111,7 +111,7 @@ class UserModel:
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT u.numNomina, u.nombre, u.apellidoPaterno, u.apellidoMaterno, c.username
+            SELECT u.numNomina, u.nombre, u.apellidoPaterno, u.apellidoMaterno, c.username 
             FROM usuarios u
             INNER JOIN credenciales c ON u.numNomina = c.numNomina
         """)
@@ -225,22 +225,30 @@ class UserModel:
         cursor = conn.cursor()
         try:
             cursor.execute("""
-                SELECT 
-                    u.numNomina, 
-                    u.nombre, 
-                    u.apellidoPaterno, 
-                    u.apellidoMaterno, 
+                SELECT
+                    u.numNomina,
+                    u.nombre,
+                    u.apellidoPaterno,
+                    u.apellidoMaterno,
                     c.username,
-                    c.password, 
-                    u.idDepartamento, 
-                    u.idPuesto, 
+                    c.password,
+                    d.idDepartamento,
+                    d.nombreDepartamento,
+                    p.idPuesto,
+                    p.nombrePuesto,
                     u.diasVacaciones,
-                    ur.idRol,
-                    u.correo_electronico,
-                    u.jefe_directo
+                    r.nombreRol,               -- Nuevo campo: rol
+                    u.correo_electronico,       -- Nuevo campo: correo electrónico
+                    u.jefe_directo,             -- Nuevo campo: jefe directo
+                    j.nombre AS nombre_jefe,    -- Nuevo campo: nombre del jefe directo
+                    j.apellidoPaterno AS apellido_jefe
                 FROM usuarios u
                 INNER JOIN credenciales c ON u.numNomina = c.numNomina
-                INNER JOIN usuario_rol ur ON u.numNomina = ur.numNomina
+                LEFT JOIN departamentos d ON u.idDepartamento = d.idDepartamento
+                LEFT JOIN puestos p ON u.idPuesto = p.idPuesto
+                LEFT JOIN usuario_rol ur ON u.numNomina = ur.numNomina
+                LEFT JOIN roles r ON ur.idRol = r.idRol
+                LEFT JOIN usuarios j ON u.jefe_directo = j.numNomina  -- Join para obtener el jefe directo
                 WHERE u.numNomina = ?
             """, (numNomina,))
             usuario = cursor.fetchone()
@@ -254,11 +262,15 @@ class UserModel:
                     'username': usuario.username,
                     'password': usuario.password,
                     'idDepartamento': usuario.idDepartamento,
+                    'nombreDepartamento': usuario.nombreDepartamento,
                     'idPuesto': usuario.idPuesto,
+                    'nombrePuesto': usuario.nombrePuesto,
                     'diasVacaciones': usuario.diasVacaciones,
-                    'idRol': usuario.idRol,
+                    'nombreRol': usuario.nombreRol,
                     'correo_electronico': usuario.correo_electronico,
                     'jefe_directo': usuario.jefe_directo,
+                    'nombre_jefe': usuario.nombre_jefe,
+                    'apellido_jefe': usuario.apellido_jefe
                 }
                 return usuario_dict
             return None
@@ -391,12 +403,12 @@ class UserModel:
 
 
 
-    def get_solicitudes_enviadas(self, numNomina, orden='asc'):
+    def get_solicitudes_enviadas(self, numNomina, orden='asc', motivo=None, estatus=None, fecha_inicio=None, fecha_fin=None):
         conn = self.get_connection()
         cursor = conn.cursor()
         try:
             query = """
-                SELECT 
+                SELECT
                     idIncidencia,
                     numNomina_solicitante,
                     fecha_solicitud,
@@ -404,10 +416,28 @@ class UserModel:
                     estatus
                 FROM incidencias
                 WHERE numNomina_solicitante = ?
-                ORDER BY idIncidencia {}  -- Ordenar por ID
-            """.format('ASC' if orden == 'asc' else 'DESC')
-
-            cursor.execute(query, (numNomina,))
+            """
+            
+            params = [numNomina]
+            
+            # Agregar condiciones de filtrado
+            if motivo:
+                query += " AND motivo = ?"
+                params.append(motivo)
+            if estatus:
+                query += " AND estatus = ?"
+                params.append(estatus)
+            if fecha_inicio:
+                if fecha_fin:
+                    query += " AND fecha_solicitud BETWEEN ? AND ?"
+                    params.extend([fecha_inicio, fecha_fin])
+                else:
+                    query += " AND fecha_solicitud >= ?"
+                    params.append(fecha_inicio)
+            
+            query += " ORDER BY idIncidencia {}".format('ASC' if orden == 'asc' else 'DESC')
+            
+            cursor.execute(query, params)
             return cursor.fetchall()
         except Exception as e:
             print(f"Error al obtener solicitudes enviadas: {e}")
@@ -416,22 +446,41 @@ class UserModel:
             cursor.close()
             conn.close()
 
-    def get_solicitudes_recibidas(self, numNomina_jefe, rol_usuario, orden='asc'):
+    def get_solicitudes_recibidas(self, numNomina_jefe, orden='asc', motivo=None, estatus=None, fecha_inicio=None, fecha_fin=None):
         conn = self.get_connection()
         cursor = conn.cursor()
         try:
             query = """
-                SELECT idIncidencia, numNomina_solicitante, fecha_solicitud, 
-                    motivo, estatus, aprobado_por_supervisor, aprobado_por_gerente
+                SELECT
+                    idIncidencia,
+                    numNomina_solicitante,
+                    fecha_solicitud,
+                    motivo,
+                    estatus
                 FROM incidencias
-                WHERE (jefe_directo = ? AND (estatus IN ('Pendiente Supervisor', 'Aprobada', 'Rechazada')))
-                OR (gerente_responsable = ? AND (estatus IN ('Pendiente Gerente', 'Aprobada', 'Rechazada')))
-                ORDER BY 
-                    CASE WHEN estatus IN ('Pendiente Supervisor', 'Pendiente Gerente') THEN 1 ELSE 2 END,
-                    idIncidencia {}
-            """.format('ASC' if orden == 'asc' else 'DESC')
+                WHERE jefe_directo = ?
+            """
             
-            cursor.execute(query, (numNomina_jefe, numNomina_jefe))
+            params = [numNomina_jefe]
+            
+            # Agregar condiciones de filtrado
+            if motivo:
+                query += " AND motivo = ?"
+                params.append(motivo)
+            if estatus:
+                query += " AND estatus = ?"
+                params.append(estatus)
+            if fecha_inicio:
+                if fecha_fin:
+                    query += " AND fecha_solicitud BETWEEN ? AND ?"
+                    params.extend([fecha_inicio, fecha_fin])
+                else:
+                    query += " AND fecha_solicitud >= ?"
+                    params.append(fecha_inicio)
+            
+            query += " ORDER BY idIncidencia {}".format('ASC' if orden == 'asc' else 'DESC')
+            
+            cursor.execute(query, params)
             return cursor.fetchall()
         except Exception as e:
             print(f"Error al obtener solicitudes recibidas: {e}")
