@@ -131,15 +131,18 @@ def procesar_incidencia(idIncidencia):
         if current_user_nomina != incidencia['gerente_responsable']:
             flash("No tienes permiso para procesar esta incidencia", "error")
             return redirect(url_for('incidencias.solicitudes_recibidas'))
-
+            
         if accion == 'aprobar':
-            user_model.actualizar_estatus_incidencia(
-                idIncidencia, 
+            if not user_model.actualizar_estatus_incidencia(
+                idIncidencia,
                 'Aprobada',
                 current_user_nomina,
                 comentarios
-            )
-            # Cuando se notifica al usuario
+            ):
+                flash("Error al actualizar el estado", "error")
+                return redirect(url_for('incidencias.solicitudes_recibidas'))
+            
+            # Notificar al usuario
             user_model.enviar_notificacion_incidencia(
                 incidencia['numNomina_solicitante'],
                 'Aprobada',
@@ -148,16 +151,18 @@ def procesar_incidencia(idIncidencia):
                 incidencia['fecha_fin'],
                 aprobador_rol='gerente'
             )
+            
             flash("Incidencia aprobada por gerente", "success")
+            
         elif accion == 'rechazar':
             user_model.actualizar_estatus_incidencia(
-                idIncidencia, 
+                idIncidencia,
                 'Rechazada',
                 current_user_nomina,
                 comentarios
             )
+            
             # Notificar al usuario
-            # Cuando se notifica al usuario
             user_model.enviar_notificacion_incidencia(
                 incidencia['numNomina_solicitante'],
                 'Rechazada',
@@ -166,8 +171,9 @@ def procesar_incidencia(idIncidencia):
                 incidencia['fecha_fin'],
                 aprobador_rol='gerente'
             )
+            
             flash("Incidencia rechazada por gerente", "success")
-
+    
     return redirect(url_for('incidencias.solicitudes_recibidas'))
 
 @incidencias_bp.route('/crear_incidencia', methods=['GET', 'POST'])
