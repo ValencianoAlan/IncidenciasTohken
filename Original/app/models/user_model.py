@@ -225,22 +225,31 @@ class UserModel:
         cursor = conn.cursor()
         try:
             cursor.execute("""
-                SELECT 
-                    u.numNomina, 
-                    u.nombre, 
-                    u.apellidoPaterno, 
-                    u.apellidoMaterno, 
+                SELECT
+                    u.numNomina,
+                    u.nombre,
+                    u.apellidoPaterno,
+                    u.apellidoMaterno,
                     c.username,
-                    c.password, 
-                    u.idDepartamento, 
-                    u.idPuesto, 
+                    c.password,
+                    u.idDepartamento,
+                    d.nombreDepartamento,
+                    u.idPuesto,
+                    p.nombrePuesto,
                     u.diasVacaciones,
                     ur.idRol,
-                    u.correo_electronico,
-                    u.jefe_directo
+                    r.nombreRol,               -- Nuevo campo: rol
+                    u.correo_electronico,       -- Nuevo campo: correo electrónico
+                    u.jefe_directo,
+                    j.nombre AS nombre_jefe,    -- Nuevo campo: nombre del jefe directo
+                    j.apellidoPaterno AS apellido_jefe
                 FROM usuarios u
                 INNER JOIN credenciales c ON u.numNomina = c.numNomina
-                INNER JOIN usuario_rol ur ON u.numNomina = ur.numNomina
+                LEFT JOIN departamentos d ON u.idDepartamento = d.idDepartamento
+                LEFT JOIN puestos p ON u.idPuesto = p.idPuesto
+                LEFT JOIN usuario_rol ur ON u.numNomina = ur.numNomina
+                LEFT JOIN roles r ON ur.idRol = r.idRol
+                LEFT JOIN usuarios j ON u.jefe_directo = j.numNomina  -- Join para obtener el jefe directo
                 WHERE u.numNomina = ?
             """, (numNomina,))
             usuario = cursor.fetchone()
@@ -254,11 +263,16 @@ class UserModel:
                     'username': usuario.username,
                     'password': usuario.password,
                     'idDepartamento': usuario.idDepartamento,
+                    'nombreDepartamento': usuario.nombreDepartamento,
+                    'nombrePuesto': usuario.nombrePuesto,
                     'idPuesto': usuario.idPuesto,
                     'diasVacaciones': usuario.diasVacaciones,
                     'idRol': usuario.idRol,
                     'correo_electronico': usuario.correo_electronico,
                     'jefe_directo': usuario.jefe_directo,
+                    'nombreRol': usuario.nombreRol,
+                    'nombre_jefe': usuario.nombre_jefe,
+                    'apellido_jefe': usuario.apellido_jefe
                 }
                 return usuario_dict
             return None
@@ -416,58 +430,22 @@ class UserModel:
             cursor.close()
             conn.close()
 
-    def get_solicitudes_recibidas(self, numNomina_jefe, rol_usuario, filtros=None, orden='asc'):
+    def get_solicitudes_recibidas(self, numNomina_jefe, rol_usuario, orden='asc'):
         conn = self.get_connection()
         cursor = conn.cursor()
         try:
-            # Consulta base
             query = """
-                SELECT 
-                    idIncidencia,
-                    numNomina_solicitante,
-                    nombre_solicitante,
-                    apellido_paterno,
-                    apellido_materno,
-                    fecha_solicitud,
-                    motivo,
-                    estatus,
-                    fecha_inicio,
-                    fecha_fin,
-                    num_dias,
-                    jefe_directo,
-                    gerente_responsable
+                SELECT idIncidencia, numNomina_solicitante, fecha_solicitud, 
+                    motivo, estatus, aprobado_por_supervisor, aprobado_por_gerente
                 FROM incidencias
-                WHERE 
-            """
+                WHERE (jefe_directo = ? AND (estatus IN ('Pendiente Supervisor', 'Aprobada', 'Rechazada')))
+                OR (gerente_responsable = ? AND (estatus IN ('Pendiente Gerente', 'Aprobada', 'Rechazada')))
+                ORDER BY 
+                    CASE WHEN estatus IN ('Pendiente Supervisor', 'Pendiente Gerente') THEN 1 ELSE 2 END,
+                    idIncidencia {}
+            """.format('ASC' if orden == 'asc' else 'DESC')
             
-            # Condiciones según rol
-            if rol_usuario == 'Supervisor':
-                query += "jefe_directo = ?"
-                params = [numNomina_jefe]
-            elif rol_usuario == 'Gerente':
-                query += "gerente_responsable = ?"
-                params = [numNomina_jefe]
-            else:
-                return []
-            
-            # Aplicar filtros si existen
-            if filtros:
-                if filtros.get('motivo'):
-                    query += " AND motivo = ?"
-                    params.append(filtros['motivo'])
-                
-                if filtros.get('estatus'):
-                    query += " AND estatus = ?"
-                    params.append(filtros['estatus'])
-                
-                if filtros.get('fecha_desde') and filtros.get('fecha_hasta'):
-                    query += " AND fecha_solicitud BETWEEN ? AND ?"
-                    params.extend([filtros['fecha_desde'], filtros['fecha_hasta']])
-            
-            # Ordenamiento
-            query += " ORDER BY fecha_solicitud {}".format('ASC' if orden == 'asc' else 'DESC')
-            
-            cursor.execute(query, tuple(params))
+            cursor.execute(query, (numNomina_jefe, numNomina_jefe))
             return cursor.fetchall()
         except Exception as e:
             print(f"Error al obtener solicitudes recibidas: {e}")
@@ -475,6 +453,32 @@ class UserModel:
         finally:
             cursor.close()
             conn.close()
+
+    
+    def enviar_correo(self, destinatario, asunto, cuerpo):
+        try:
+            # Configurar el mensaje
+            mensaje = MIMEText(cuerpo)
+            mensaje["Subject"] = asunto
+            mensaje["From"] = current_app.config["MAIL_USERNAME"]
+            mensaje["To"] = destinatario
+
+            # Conectar al servidor SMTP
+            with smtplib.SMTP(
+                current_app.config["MAIL_SERVER"],
+                current_app.config["MAIL_PORT"]
+            ) as server:
+                server.starttls()
+                server.login(
+                    current_app.config["MAIL_USERNAME"],
+                    current_app.config["MAIL_PASSWORD"]
+                )
+                server.send_message(mensaje)
+
+            return True
+        except Exception as e:
+            print(f"Error al enviar correo: {e}")
+            return False
 
     def crear_incidencia(self, numNomina_solicitante, nombre_solicitante, apellido_paterno, 
                     apellido_materno, fecha_solicitud, puesto, departamento, 
@@ -880,21 +884,3 @@ class UserModel:
         finally:
             cursor.close()
             conn.close()
-
-    def get_motivos_incidencias(self):
-        """Obtiene todos los motivos distintos de incidencias"""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("SELECT DISTINCT motivo FROM incidencias")
-            return [row.motivo for row in cursor.fetchall()]
-        except Exception as e:
-            print(f"Error al obtener motivos de incidencias: {e}")
-            return []
-        finally:
-            cursor.close()
-            conn.close()
-
-    def get_estatus_posibles(self):
-        """Obtiene todos los estatus posibles de incidencias"""
-        return ['Pendiente Supervisor', 'Pendiente Gerente', 'Aprobada', 'Rechazada']
