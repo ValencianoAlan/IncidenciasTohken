@@ -103,6 +103,59 @@
           </div>
           {% endif %}
       </div>
+
+        <!-- <div class="row justify-content-center mt-4">
+          <div class="col-md-8">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">Enviar Correo Electrónico</h5>
+              </div>
+              <div class="card-body">
+                <form
+                  method="POST"
+                  action="{{ url_for('auth.enviar_correo') }}"
+                >
+                  <div class="mb-3">
+                    <label for="destinatario" class="form-label"
+                      >Destinatarios (separados por comas)</label
+                    >
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="destinatario"
+                      name="destinatario"
+                      placeholder="ejemplo1@gmail.com, ejemplo2@hotmail.com"
+                      required
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label for="asunto" class="form-label">Asunto</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="asunto"
+                      name="asunto"
+                      required
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label for="cuerpo" class="form-label">Mensaje</label>
+                    <textarea
+                      class="form-control"
+                      id="cuerpo"
+                      name="cuerpo"
+                      rows="2"
+                      required
+                    ></textarea>
+                  </div>
+                  <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-send"></i> Enviar Correo
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div> -->
       </div>
     </div>
 
