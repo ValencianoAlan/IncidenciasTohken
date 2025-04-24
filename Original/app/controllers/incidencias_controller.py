@@ -1,7 +1,4 @@
-from datetime import datetime
-from io import BytesIO
-from flask import Blueprint, render_template, request, flash, redirect, send_file, url_for, session
-from openpyxl import Workbook
+from flask import Blueprint, render_template, request, flash, redirect, url_for, session
 from app.models.user_model import UserModel
 
 incidencias_bp = Blueprint('incidencias', __name__)
@@ -250,44 +247,19 @@ def ver_incidencia(idIncidencia, origen):
 
     return render_template('ver_incidencia.html', incidencia=incidencia, origen=origen)
 
-@incidencias_bp.route('/solicitudes_recibidas', methods=['GET', 'POST'])
+@incidencias_bp.route('/solicitudes_recibidas')
 def solicitudes_recibidas():
     if 'user' not in session:
         return redirect(url_for('auth.login'))
 
-    # Obtener parámetros de filtrado
-    filtros = {
-        'motivo': request.args.get('motivo') or request.form.get('motivo'),
-        'estatus': request.args.get('estatus') or request.form.get('estatus'),
-        'fecha_desde': request.args.get('fecha_desde') or request.form.get('fecha_desde'),
-        'fecha_hasta': request.args.get('fecha_hasta') or request.form.get('fecha_hasta')
-    }
-    
-    # Eliminar filtros vacíos
-    filtros = {k: v for k, v in filtros.items() if v}
-    
-    orden = request.args.get('orden', 'asc')
-    numNomina_jefe = session['numNomina']
-    rol_usuario = session['rol']
-    
-    # Obtener datos para los filtros
-    motivos = user_model.get_motivos_incidencias()
-    estatus = user_model.get_estatus_posibles()
-    
-    # Obtener incidencias filtradas
-    solicitudes = user_model.get_solicitudes_recibidas(
-        numNomina_jefe, 
-        rol_usuario, 
-        filtros, 
-        orden
-    )
+    # Obtener el parámetro de orden (ascendente o descendente)
+    orden = request.args.get('orden', 'asc')  # Por defecto, orden ascendente
 
-    return render_template('solicitudes_recibidas.html',
-                         solicitudes=solicitudes,
-                         motivos=motivos,
-                         estatus=estatus,
-                         filtros=filtros,
-                         orden=orden)
+    # Obtener las solicitudes recibidas por el jefe directo
+    numNomina_jefe = session['numNomina']
+    solicitudes = user_model.get_solicitudes_recibidas(numNomina_jefe, orden)
+
+    return render_template('solicitudes_recibidas.html', solicitudes=solicitudes, orden=orden)
 
 @incidencias_bp.route('/mis_solicitudes')
 def mis_solicitudes():
@@ -366,85 +338,3 @@ def crear_incidencia_usuario(numNomina, origen):
                            puestos=puestos,
                            departamentos=departamentos,
                            origen=origen)  # Pasamos el origen a la plantilla
-
-@incidencias_bp.route('/exportar_incidencias', methods=['GET'])
-def exportar_incidencias():
-    if 'user' not in session:
-        return redirect(url_for('auth.login'))
-
-    # Obtener los mismos filtros que en solicitudes_recibidas
-    filtros = {
-        'motivo': request.args.get('motivo'),
-        'estatus': request.args.get('estatus'),
-        'fecha_desde': request.args.get('fecha_desde'),
-        'fecha_hasta': request.args.get('fecha_hasta')
-    }
-    filtros = {k: v for k, v in filtros.items() if v}
-    
-    numNomina_jefe = session['numNomina']
-    rol_usuario = session['rol']
-    
-    # Obtener datos filtrados
-    incidencias = user_model.get_solicitudes_recibidas(
-        numNomina_jefe, 
-        rol_usuario, 
-        filtros
-    )
-
-    # Crear archivo Excel
-    output = BytesIO()
-    workbook = Workbook()
-    sheet = workbook.active
-    sheet.title = "Incidencias"
-
-    # Encabezados
-    headers = [
-        "ID", "No. Nómina", "Solicitante", "Fecha Solicitud", 
-        "Motivo", "Estado", "Fecha Inicio", "Fecha Fin", "Días"
-    ]
-    sheet.append(headers)
-
-    # Datos
-    for inc in incidencias:
-        nombre_completo = f"{inc.nombre_solicitante} {inc.apellido_paterno}"
-        if inc.apellido_materno:
-            nombre_completo += f" {inc.apellido_materno}"
-        
-        sheet.append([
-            inc.idIncidencia,
-            inc.numNomina_solicitante,
-            nombre_completo,
-            inc.fecha_solicitud,
-            inc.motivo,
-            inc.estatus,
-            inc.fecha_inicio,
-            inc.fecha_fin,
-            inc.num_dias
-        ])
-
-    # Ajustar anchos de columna
-    for col in sheet.columns:
-        max_length = 0
-        column = col[0].column_letter
-        for cell in col:
-            try:
-                if len(str(cell.value)) > max_length:
-                    max_length = len(str(cell.value))
-            except:
-                pass
-        adjusted_width = (max_length + 2) * 1.2
-        sheet.column_dimensions[column].width = adjusted_width
-
-    workbook.save(output)
-    output.seek(0)
-
-    # Crear respuesta
-    fecha_exportacion = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"incidencias_exportadas_{fecha_exportacion}.xlsx"
-    
-    return send_file(
-        output,
-        as_attachment=True,
-        download_name=filename,
-        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
