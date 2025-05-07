@@ -88,6 +88,9 @@
             method="POST"
             action="{{ url_for('incidencias.crear_incidencia') }}"
           >
+            <div class="alert alert-info mb-3">
+              Esta incidencia está siendo creada por <strong>{{ admin_creador }}</strong> en nombre de <strong>{{ usuario_solicitante.nombre }}</strong>.
+          </div>
               <!-- Información del solicitante -->
               <div class="row mb-3" style="font-size: 14px">
                 <div class="col-md-3">
