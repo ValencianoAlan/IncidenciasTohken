@@ -430,17 +430,24 @@ class UserModel:
             cursor.close()
             conn.close()
 
-    def get_solicitudes_recibidas(self, numNomina_jefe, rol_usuario, orden='asc'):
+    def get_solicitudes_recibidas(self, numNomina_jefe, orden='asc'):
         conn = self.get_connection()
         cursor = conn.cursor()
         try:
             query = """
-                SELECT idIncidencia, numNomina_solicitante, fecha_solicitud, 
-                    motivo, estatus, aprobado_por_supervisor, aprobado_por_gerente
+                SELECT 
+                    idIncidencia, 
+                    numNomina_solicitante,
+                    fecha_solicitud,
+                    motivo, 
+                    estatus,
+                    aprobado_por_supervisor,
+                    aprobado_por_gerente,
+                    fecha_aprobacion_supervisor,
+                    fecha_aprobacion_gerente
                 FROM incidencias
-                WHERE (jefe_directo = ? AND (estatus IN ('Pendiente Supervisor', 'Aprobada', 'Rechazada')))
-                OR (gerente_responsable = ? AND (estatus IN ('Pendiente Gerente', 'Aprobada', 'Rechazada')))
-                ORDER BY 
+                WHERE jefe_directo = ? OR gerente_responsable = ?
+                ORDER BY
                     CASE WHEN estatus IN ('Pendiente Supervisor', 'Pendiente Gerente') THEN 1 ELSE 2 END,
                     idIncidencia {}
             """.format('ASC' if orden == 'asc' else 'DESC')

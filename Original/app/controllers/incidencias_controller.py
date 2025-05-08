@@ -257,19 +257,17 @@ def ver_incidencia(idIncidencia, origen):
 def solicitudes_recibidas():
     if 'user' not in session:
         return redirect(url_for('auth.login'))
-
+        
     # Obtener el parámetro de orden (ascendente o descendente)
     orden = request.args.get('orden', 'asc')  # Por defecto, orden ascendente
-
+    
     # Obtener las solicitudes recibidas por el jefe directo
     numNomina_jefe = session['numNomina']
-    rol_usuario = session.get('rol', '')
-    solicitudes = user_model.get_solicitudes_recibidas(numNomina_jefe, rol_usuario, orden)
-
+    solicitudes = user_model.get_solicitudes_recibidas(numNomina_jefe, orden)
+    
     return render_template('solicitudes_recibidas.html', 
                          solicitudes=solicitudes, 
-                         orden=orden,
-                         username=session['user'])
+                         orden=orden)
 
 @incidencias_bp.route('/mis_solicitudes')
 def mis_solicitudes():
@@ -299,7 +297,11 @@ def ver_incidencias():
 
     return render_template('incidencia.html', puestos=puestos, departamentos=departamentos, vacaciones=vacaciones)
 
-
+@incidencias_bp.context_processor
+def utility_processor():
+    def obtener_nombre_usuario(numNomina):
+        return user_model.obtener_nombre_usuario(numNomina)
+    return dict(obtener_nombre_usuario=obtener_nombre_usuario)
 
 
 
