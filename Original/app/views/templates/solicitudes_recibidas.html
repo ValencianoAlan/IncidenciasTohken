@@ -127,6 +127,9 @@
                             {% elif solicitud.estatus == 'Pendiente Gerente' %}
                                 <span class="badge bg-info text-dark">{{ solicitud.estatus }}</span>
                             {% else %}
+                            {% if solicitud.estatus == 'Cancelada' %}
+                                <i class="bi bi-x-circle-fill"></i> 
+                            {% endif %}
                                 <span class="badge bg-light text-dark">{{ solicitud.estatus }}</span>
                             {% endif %}
                         </td>

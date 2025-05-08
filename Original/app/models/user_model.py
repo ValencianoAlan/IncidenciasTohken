@@ -909,7 +909,7 @@ class UserModel:
             cursor.close()
             conn.close()
     
-    def cancelar_incidencia(self, idIncidencia, numNomina_solicitante):
+    def cancelar_incidencia(self, idIncidencia, numNomina_solicitante, comentarios=""):
         """Cancela una incidencia si aún no ha sido procesada"""
         conn = self.get_connection()
         cursor = conn.cursor()
@@ -933,9 +933,10 @@ class UserModel:
             cursor.execute("""
                 UPDATE incidencias
                 SET estatus = 'Cancelada',
-                    fecha_cancelacion = GETDATE()
+                    fecha_cancelacion = GETDATE(),
+                    comentarios_cancelacion = ?
                 WHERE idIncidencia = ?
-            """, (idIncidencia,))
+            """, (comentarios, idIncidencia))
             
             conn.commit()
             return {"success": True}

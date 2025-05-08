@@ -12,6 +12,7 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='css/bienvenida.css') }}"
     />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 <body>
     <header class="bg-light py-3 mb-2">
@@ -263,16 +264,16 @@
 
           {% if incidencia.estatus in ['Pendiente Supervisor', 'Pendiente Gerente'] 
           and session['numNomina'] == incidencia.numNomina_solicitante %}
-            <form method="POST" action="{{ url_for('incidencias.cancelar_incidencia', 
-                idIncidencia=incidencia.idIncidencia) }}" class="d-flex gap-2">
-                <input type="hidden" name="comentarios" id="comentariosCancelacion">
-                <button type="submit" class="btn btn-warning"
-                    onclick="document.getElementById('comentariosCancelacion').value = 
-                    prompt('Motivo de la cancelación (opcional):') || ''">
-                    Cancelar Solicitud
-                </button>
-            </form>
-        {% endif %}
+                <form method="POST" action="{{ url_for('incidencias.cancelar_incidencia', 
+                    idIncidencia=incidencia.idIncidencia) }}" 
+                    id="formCancelarIncidencia" class="d-flex gap-2">
+                    <input type="hidden" name="comentarios" id="comentariosCancelacion">
+                    <button type="button" class="btn btn-warning"
+                        onclick="confirmarCancelacion()">
+                        <i class="bi bi-x-circle"></i> Cancelar Solicitud
+                    </button>
+                </form>
+            {% endif %}
 
           <!-- Botón de regresar siempre visible -->
             <a href="javascript:history.back()"
@@ -289,5 +290,45 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
     />
+
+    <!-- Agrega esto antes del cierre de </body> -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    async function confirmarCancelacion() {
+        const { value: comentarios } = await Swal.fire({
+            title: 'Cancelar solicitud',
+            input: 'text',
+            inputLabel: 'Motivo de cancelación (opcional)',
+            inputPlaceholder: 'Ingresa el motivo si lo deseas...',
+            showCancelButton: true,
+            confirmButtonText: 'Continuar',
+            cancelButtonText: 'No cancelar',
+            inputValidator: (value) => {
+                // Validación opcional si quieres requerir comentarios
+                // if (!value) {
+                //     return 'Por favor ingresa un motivo';
+                // }
+            }
+        });
+        
+        if (comentarios !== undefined) {
+            const { isConfirmed } = await Swal.fire({
+                title: '¿Confirmar cancelación?',
+                text: "Esta acción no se puede deshacer",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, cancelar',
+                cancelButtonText: 'No, volver'
+            });
+            
+            if (isConfirmed) {
+                document.getElementById('comentariosCancelacion').value = comentarios;
+                document.getElementById('formCancelarIncidencia').submit();
+            }
+        }
+    }
+    </script>
 </body>
 </html>

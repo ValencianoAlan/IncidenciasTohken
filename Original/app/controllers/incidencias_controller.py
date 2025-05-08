@@ -386,8 +386,9 @@ def cancelar_incidencia(idIncidencia):
     if 'user' not in session:
         return redirect(url_for('auth.login'))
         
+    comentarios = request.form.get('comentarios', '')
     numNomina = session['numNomina']
-    resultado = user_model.cancelar_incidencia(idIncidencia, numNomina)
+    resultado = user_model.cancelar_incidencia(idIncidencia, numNomina, comentarios)
     
     if resultado.get('success'):
         # Obtener datos de la incidencia para notificación
