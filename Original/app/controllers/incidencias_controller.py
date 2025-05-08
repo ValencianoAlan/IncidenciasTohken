@@ -312,46 +312,11 @@ def crear_incidencia_usuario(numNomina, origen):
     if 'user' not in session:
         return redirect(url_for('auth.login'))
 
-    # Obtener datos del usuario SOLICITANTE (Yarenci en el ejemplo)
-    usuario_solicitante = user_model.get_user_by_numNomina(numNomina)
-    # Obtener datos del usuario ACTUAL (Admin Alan)
-    usuario_actual = user_model.get_user_by_numNomina(session['numNomina'])
-
-    if not usuario_solicitante:
-        flash("Usuario no encontrado", "error")
-        return redirect(url_for('auth.bienvenida'))
-
     # Obtener los datos del usuario
     usuario = user_model.get_user_by_numNomina(numNomina)
     if not usuario:
         flash("Usuario no encontrado", "error")
         return redirect(url_for('auth.bienvenida'))
-    
-    jefe_directo = user_model.get_jefe_directo(numNomina)
-
-    if request.method == 'POST':
-        # Usar numNomina del SOLICITANTE, no de la sesión
-        idIncidencia = user_model.crear_incidencia(
-            numNomina_solicitante=numNomina,  # Usar el numNomina del solicitante
-            nombre_solicitante=usuario_solicitante['nombre'],
-            apellido_paterno=usuario_solicitante['apellidoPaterno'],
-            apellido_materno=usuario_solicitante['apellidoMaterno'],
-            fecha_solicitud=datetime.now().strftime('%Y-%m-%d'),
-            puesto=usuario_solicitante['nombrePuesto'],
-            departamento=usuario_solicitante['nombreDepartamento'],
-            dias_vacaciones=request.form.get('dias_vacaciones'),
-            motivo=request.form.get('motivo'),
-            fecha_inicio=request.form.get('fecha_inicio'),
-            fecha_fin=request.form.get('fecha_fin'),
-            num_dias=request.form.get('num_dias'),
-            observaciones=f"Incidencia creada por {usuario_actual['nombre']} (Admin)",
-            jefe_directo=jefe_directo  # Jefe del SOLICITANTE
-        )
-        if idIncidencia:
-            flash("Incidencia creada exitosamente", "success")
-            return redirect(url_for('incidencias.incidencias_usuario'))
-        else:
-            flash("Error al crear la incidencia", "error")
 
     # Obtener la fecha actual
     from datetime import datetime

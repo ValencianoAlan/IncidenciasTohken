@@ -8,7 +8,7 @@ class UserModel:
         self.connection_string = (
             "DRIVER={ODBC Driver 17 for SQL Server};"
             "SERVER=localhost;"
-            "DATABASE=Prueba_11;"
+            "DATABASE=Prueba_10;"
             "UID=sa;"
             "PWD=root"
         )
@@ -674,7 +674,6 @@ class UserModel:
     
     def enviar_notificacion_incidencia(self, numNomina, estado, motivo, fecha_inicio, fecha_fin, destinatario=None, aprobador_rol=None):
         """Envía notificación por correo con asunto dinámico"""
-
         try:
             # Obtener información del solicitante
             solicitante = self.get_user_by_numNomina(numNomina)
