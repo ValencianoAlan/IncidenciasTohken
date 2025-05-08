@@ -22,35 +22,44 @@ class UserModel:
         try:
             # Primero verificar si existe el usuario/nómina
             if login_input.isdigit():
+                # Es un número de nómina
                 query_user = "SELECT numNomina FROM usuarios WHERE numNomina = ?"
                 query_credenciales = "SELECT password FROM credenciales WHERE numNomina = ?"
+                param = login_input
             else:
+                # Es un nombre de usuario
                 query_user = "SELECT numNomina FROM credenciales WHERE username = ?"
                 query_credenciales = "SELECT password FROM credenciales WHERE username = ?"
+                param = login_input
 
             # 1. Verificar existencia del usuario
-            cursor.execute(query_user, (login_input,))
+            cursor.execute(query_user, (param,))
             usuario_existente = cursor.fetchone()
+            
             if not usuario_existente:
                 return {"success": False, "error": "user_not_found"}
 
+            # Obtener el numNomina real para usar en las siguientes consultas
+            numNomina = usuario_existente[0]
+
             # 2. Verificar contraseña
-            cursor.execute(query_credenciales, (login_input,))
+            cursor.execute(query_credenciales, (param,))
             credencial = cursor.fetchone()
-            if credencial.password != password:
+            
+            if not credencial or credencial.password != password:
                 return {"success": False, "error": "wrong_password"}
 
             # 3. Obtener datos completos del usuario
             cursor.execute("""
-                SELECT u.numNomina, u.nombre, u.apellidoPaterno, u.apellidoMaterno, 
+                SELECT u.numNomina, u.nombre, u.apellidoPaterno, u.apellidoMaterno,
                     c.username, r.nombreRol
                 FROM usuarios u
                 INNER JOIN credenciales c ON u.numNomina = c.numNomina
                 INNER JOIN usuario_rol ur ON u.numNomina = ur.numNomina
                 INNER JOIN roles r ON ur.idRol = r.idRol
-                WHERE c.username = ? OR u.numNomina = ?
-            """, (login_input, login_input))
-            
+                WHERE u.numNomina = ?
+            """, (numNomina,))
+
             usuario = cursor.fetchone()
             return {"success": True, "data": usuario}
 

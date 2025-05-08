@@ -9,9 +9,7 @@
 </head>
 <body>
     <header class="bg-light py-3 mb-2">
-        <div
-          class="container d-flex justify-content-between align-items-center gap-3"
-        >
+        <div class="container d-flex justify-content-between align-items-center gap-3">
           <div class="d-flex align-items-center gap-3">
             <span class="badge bg-primary badge-nomina rounded-pill">
               <i class="bi bi-person-badge me-2"></i>
@@ -19,24 +17,24 @@
             </span>
             <h1 class="h3 mb-0 text-nowrap">{{ session['user'] }}</h1>
           </div>
-          <a href="{{ url_for('auth.logout') }}" class="btn btn-danger"
-            >Cerrar Sesión</a
-          >
+          <a href="{{ url_for('auth.logout') }}" class="btn btn-danger">Cerrar Sesión</a>
         </div>
-      </header>
+    </header>
 
     <div class="container py-5">
         <h2>Agregar Usuario</h2>
 
         <!-- Mensajes de retroalimentación -->
-        {% if mensaje %}
-        <div class="alert alert-info mt-3" role="alert">{{ mensaje }}</div>
-        {% endif %}
-
-
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} mt-3" role="alert">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
 
         <!-- Formulario para agregar usuario -->
-        <form method="POST" class="row g-3">
+        <form method="POST" action="{{ url_for('user.agregar_usuario') }}" class="row g-3">
             <div class="col-md-6">
                 <div class="mb-3">
                     <label for="numNomina" class="form-label">Número de Nómina</label>
@@ -70,7 +68,7 @@
             </div>
 
             <div class="col-md-6">
-                    <!-- Campo de Departamento -->
+                <!-- Campo de Departamento -->
                 <div class="mb-3">
                     <label for="idDepartamento" class="form-label">Departamento</label>
                     <select class="form-select" id="idDepartamento" name="idDepartamento" required>
@@ -99,13 +97,12 @@
                     </select>
                 </div>
 
-                            <!-- Campo de Días de Vacaciones -->
+                <!-- Campo de Días de Vacaciones -->
                 <div class="mb-3">
                     <label for="diasVacaciones" class="form-label">Días de Vacaciones</label>
-                    <input type="number" class="form-control" id="diasVacaciones" name="diasVacaciones" required />
+                    <input type="number" class="form-control" id="diasVacaciones" name="diasVacaciones" value="0" required />
                 </div>
 
-                            <!-- Dentro del formulario de agregar_usuario.html -->
                 <div class="mb-3">
                     <label for="correo_electronico" class="form-label">Correo Electrónico</label>
                     <input type="email" class="form-control" id="correo_electronico" name="correo_electronico" required>
@@ -121,20 +118,17 @@
                     </select>
                 </div>
             </div>
+            
+            <div class="col-12">
+                <button type="submit" class="btn btn-success">Agregar Usuario</button>
+                <a href="{{ url_for('auth.bienvenida') }}" class="btn btn-secondary">Cancelar</a>
+            </div>
         </form>
-        <button type="submit" class="btn btn-success">Agregar Usuario</button>
-        <a href="{{ url_for('auth.bienvenida') }}" class="btn btn-secondary">Cancelar</a>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-    />
-
-    <!-- Al final del body -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -144,7 +138,12 @@
             // Función para cargar los puestos según el departamento seleccionado
             function cargarPuestos(idDepartamento) {
                 fetch(`/obtener_puestos_por_departamento/${idDepartamento}`)
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Error en la respuesta del servidor');
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         // Limpiar el select de puestos
                         selectPuesto.innerHTML = '';
@@ -157,13 +156,18 @@
                             selectPuesto.appendChild(option);
                         });
                     })
-                    .catch(error => console.error('Error al cargar puestos:', error));
+                    .catch(error => {
+                        console.error('Error al cargar puestos:', error);
+                        // Mostrar un mensaje de error al usuario si es necesario
+                    });
             }
     
             // Cargar puestos cuando se seleccione un departamento
             selectDepartamento.addEventListener('change', function () {
                 const idDepartamento = this.value;
-                cargarPuestos(idDepartamento);
+                if (idDepartamento) {
+                    cargarPuestos(idDepartamento);
+                }
             });
     
             // Cargar puestos al cargar la página (según el primer departamento)
