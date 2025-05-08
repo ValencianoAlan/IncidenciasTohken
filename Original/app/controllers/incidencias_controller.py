@@ -253,35 +253,65 @@ def ver_incidencia(idIncidencia, origen):
 
     return render_template('ver_incidencia.html', incidencia=incidencia, origen=origen)
 
-@incidencias_bp.route('/solicitudes_recibidas')
+@incidencias_bp.route('/solicitudes_recibidas', methods=['GET', 'POST'])
 def solicitudes_recibidas():
     if 'user' not in session:
         return redirect(url_for('auth.login'))
         
-    # Obtener el parámetro de orden (ascendente o descendente)
-    orden = request.args.get('orden', 'asc')  # Por defecto, orden ascendente
-    
-    # Obtener las solicitudes recibidas por el jefe directo
     numNomina_jefe = session['numNomina']
-    solicitudes = user_model.get_solicitudes_recibidas(numNomina_jefe, orden)
+    motivos = user_model.get_motivos_incidencias()
     
-    return render_template('solicitudes_recibidas.html', 
-                         solicitudes=solicitudes, 
-                         orden=orden)
+    # Procesar filtros
+    filtros = {}
+    if request.method == 'POST':
+        filtros['estado'] = request.form.get('estado')
+        filtros['fecha_desde'] = request.form.get('fecha_desde')
+        filtros['fecha_hasta'] = request.form.get('fecha_hasta')
+        filtros['id_incidencia'] = request.form.get('id_incidencia')
+        filtros['motivo'] = request.form.get('motivo')
+    else:
+        filtros['estado'] = request.args.get('estado')
+        filtros['fecha_desde'] = request.args.get('fecha_desde')
+        filtros['fecha_hasta'] = request.args.get('fecha_hasta')
+        filtros['id_incidencia'] = request.args.get('id_incidencia')
+        filtros['motivo'] = request.args.get('motivo')
+    
+    solicitudes = user_model.get_solicitudes_recibidas_filtradas(numNomina_jefe, filtros)
+    
+    return render_template('solicitudes_recibidas.html',
+                         solicitudes=solicitudes,
+                         motivos=motivos,
+                         filtros=filtros)
 
-@incidencias_bp.route('/mis_solicitudes')
+@incidencias_bp.route('/mis_solicitudes', methods=['GET', 'POST'])
 def mis_solicitudes():
     if 'user' not in session:
         return redirect(url_for('auth.login'))
-
-    # Obtener el parámetro de orden (ascendente o descendente)
-    orden = request.args.get('orden', 'asc')  # Por defecto, orden ascendente
-
-    # Obtener las solicitudes enviadas por el usuario actual
+        
     numNomina = session['numNomina']
-    solicitudes = user_model.get_solicitudes_enviadas(numNomina, orden)
-
-    return render_template('mis_solicitudes.html', solicitudes=solicitudes, orden=orden)
+    motivos = user_model.get_motivos_incidencias()
+    
+    # Procesar filtros
+    filtros = {}
+    if request.method == 'POST':
+        filtros['estado'] = request.form.get('estado')
+        filtros['fecha_desde'] = request.form.get('fecha_desde')
+        filtros['fecha_hasta'] = request.form.get('fecha_hasta')
+        filtros['id_incidencia'] = request.form.get('id_incidencia')
+        filtros['motivo'] = request.form.get('motivo')
+    else:
+        filtros['estado'] = request.args.get('estado')
+        filtros['fecha_desde'] = request.args.get('fecha_desde')
+        filtros['fecha_hasta'] = request.args.get('fecha_hasta')
+        filtros['id_incidencia'] = request.args.get('id_incidencia')
+        filtros['motivo'] = request.args.get('motivo')
+    
+    solicitudes = user_model.get_solicitudes_enviadas_filtradas(numNomina, filtros)
+    
+    return render_template('mis_solicitudes.html',
+                         solicitudes=solicitudes,
+                         motivos=motivos,
+                         filtros=filtros)
 
 @incidencias_bp.route('/ver_incidencias')
 def ver_incidencias():

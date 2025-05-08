@@ -1,0 +1,31 @@
+/* Estilos para los filtros */
+.card-header.bg-light {
+    background-color: #f8f9fa !important;
+}
+
+.form-label {
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+/* Mejorar aspecto de la tabla */
+.table-responsive {
+    border-radius: 0.25rem;
+    overflow: hidden;
+}
+
+.table thead th {
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+
+.table tbody td {
+    vertical-align: middle;
+}
+
+/* Estilos para los badges de estado */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+}

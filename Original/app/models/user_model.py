@@ -973,4 +973,116 @@ class UserModel:
             cursor.close()
             conn.close()
 
+    def get_motivos_incidencias(self):
+        """Obtiene todos los motivos distintos de incidencias"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("SELECT DISTINCT motivo FROM incidencias WHERE motivo IS NOT NULL")
+            return [row[0] for row in cursor.fetchall()]
+        except Exception as e:
+            print(f"Error al obtener motivos de incidencias: {e}")
+            return []
+        finally:
+            cursor.close()
+            conn.close()
+
+    def get_solicitudes_recibidas_filtradas(self, numNomina_jefe, filtros):
+        """Obtiene solicitudes recibidas con filtros"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            query = """
+                SELECT 
+                    idIncidencia, 
+                    numNomina_solicitante,
+                    fecha_solicitud,
+                    motivo, 
+                    estatus,
+                    aprobado_por_supervisor,
+                    aprobado_por_gerente
+                FROM incidencias
+                WHERE (jefe_directo = ? OR gerente_responsable = ?)
+            """
+            params = [numNomina_jefe, numNomina_jefe]
+            
+            # Aplicar filtros
+            if filtros.get('estado'):
+                query += " AND estatus = ?"
+                params.append(filtros['estado'])
+                
+            if filtros.get('fecha_desde'):
+                query += " AND fecha_solicitud >= ?"
+                params.append(filtros['fecha_desde'])
+                
+            if filtros.get('fecha_hasta'):
+                query += " AND fecha_solicitud <= ?"
+                params.append(filtros['fecha_hasta'])
+                
+            if filtros.get('id_incidencia'):
+                query += " AND idIncidencia = ?"
+                params.append(filtros['id_incidencia'])
+                
+            if filtros.get('motivo'):
+                query += " AND motivo = ?"
+                params.append(filtros['motivo'])
+                
+            query += " ORDER BY fecha_solicitud DESC"
+            
+            cursor.execute(query, params)
+            return cursor.fetchall()
+        except Exception as e:
+            print(f"Error al obtener solicitudes recibidas filtradas: {e}")
+            return []
+        finally:
+            cursor.close()
+            conn.close()
     
+    def get_solicitudes_enviadas_filtradas(self, numNomina, filtros):
+        """Obtiene solicitudes enviadas con filtros"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            query = """
+                SELECT 
+                    idIncidencia, 
+                    numNomina_solicitante,
+                    fecha_solicitud,
+                    motivo, 
+                    estatus
+                FROM incidencias
+                WHERE numNomina_solicitante = ?
+            """
+            params = [numNomina]
+            
+            # Aplicar filtros
+            if filtros.get('estado'):
+                query += " AND estatus = ?"
+                params.append(filtros['estado'])
+                
+            if filtros.get('fecha_desde'):
+                query += " AND fecha_solicitud >= ?"
+                params.append(filtros['fecha_desde'])
+                
+            if filtros.get('fecha_hasta'):
+                query += " AND fecha_solicitud <= ?"
+                params.append(filtros['fecha_hasta'])
+                
+            if filtros.get('id_incidencia'):
+                query += " AND idIncidencia = ?"
+                params.append(filtros['id_incidencia'])
+                
+            if filtros.get('motivo'):
+                query += " AND motivo = ?"
+                params.append(filtros['motivo'])
+                
+            query += " ORDER BY fecha_solicitud DESC"
+            
+            cursor.execute(query, params)
+            return cursor.fetchall()
+        except Exception as e:
+            print(f"Error al obtener solicitudes enviadas filtradas: {e}")
+            return []
+        finally:
+            cursor.close()
+            conn.close()
