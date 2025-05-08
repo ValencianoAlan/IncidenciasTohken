@@ -8,7 +8,7 @@ class UserModel:
         self.connection_string = (
             "DRIVER={ODBC Driver 17 for SQL Server};"
             "SERVER=localhost;"
-            "DATABASE=Prueba_10;"
+            "DATABASE=Prueba_12;"
             "UID=sa;"
             "PWD=root"
         )
@@ -510,7 +510,7 @@ class UserModel:
             # Notificar al supervisor
             self.enviar_notificacion_incidencia(
                 numNomina_solicitante,
-                'Nueva solicitud creada',
+                'Nueva solicitud recibida',
                 motivo,
                 fecha_inicio,
                 fecha_fin,
@@ -629,10 +629,14 @@ class UserModel:
         conn = self.get_connection()
         cursor = conn.cursor()
         try:
+            # Primero obtener los detalles de la incidencia
+            cursor.execute("SELECT motivo, num_dias, numNomina_solicitante FROM incidencias WHERE idIncidencia = ?", (idIncidencia,))
+            incidencia = cursor.fetchone()
+            
             # Si es rechazo, marcamos directamente como Rechazada
             if estatus == 'Rechazada':
                 cursor.execute("""
-                    UPDATE incidencias 
+                    UPDATE incidencias
                     SET estatus = 'Rechazada',
                         aprobado_por_supervisor = ?,
                         fecha_aprobacion_supervisor = GETDATE(),
@@ -645,7 +649,7 @@ class UserModel:
                 
                 if current_status == 'Pendiente Supervisor':
                     cursor.execute("""
-                        UPDATE incidencias 
+                        UPDATE incidencias
                         SET estatus = ?,
                             aprobado_por_supervisor = ?,
                             fecha_aprobacion_supervisor = GETDATE(),
@@ -654,16 +658,29 @@ class UserModel:
                     """, (estatus, numNomina_aprobador, comentarios, idIncidencia))
                 elif current_status == 'Pendiente Gerente':
                     cursor.execute("""
-                        UPDATE incidencias 
+                        UPDATE incidencias
                         SET estatus = ?,
                             aprobado_por_gerente = ?,
                             fecha_aprobacion_gerente = GETDATE(),
                             comentarios_gerente = ?
                         WHERE idIncidencia = ?
                     """, (estatus, numNomina_aprobador, comentarios, idIncidencia))
+                    
+                    # Si es aprobación final y el motivo es vacaciones, restamos los días
+                    if estatus == 'Aprobada' and incidencia and incidencia.motivo.lower() == 'vacaciones':
+                        num_dias = incidencia.num_dias
+                        numNomina = incidencia.numNomina_solicitante
+                        
+                        # Restar días de vacaciones
+                        cursor.execute("""
+                            UPDATE usuarios
+                            SET diasVacaciones = diasVacaciones - ?
+                            WHERE numNomina = ?
+                        """, (num_dias, numNomina))
             
             conn.commit()
             return True
+            
         except Exception as e:
             print(f"Error al actualizar estatus de la incidencia: {e}")
             conn.rollback()
@@ -695,7 +712,7 @@ class UserModel:
                 else:
                     asunto = f"Tu solicitud ha sido rechazada"
             else:
-                asunto = f"Actualización en tu solicitud: {estado}"
+                asunto = f" {estado}"
 
             # Determinar el destinatario
             if destinatario is None:
@@ -884,3 +901,69 @@ class UserModel:
         finally:
             cursor.close()
             conn.close()
+    
+    def cancelar_incidencia(self, idIncidencia, numNomina_solicitante):
+        """Cancela una incidencia si aún no ha sido procesada"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            # Verificar que la incidencia pertenece al solicitante y está pendiente
+            cursor.execute("""
+                SELECT estatus FROM incidencias 
+                WHERE idIncidencia = ? AND numNomina_solicitante = ?
+            """, (idIncidencia, numNomina_solicitante))
+            resultado = cursor.fetchone()
+            
+            if not resultado:
+                return {"success": False, "error": "incidencia_no_encontrada"}
+                
+            estatus_actual = resultado[0]
+            
+            if estatus_actual in ['Aprobada', 'Rechazada', 'Cancelada']:
+                return {"success": False, "error": "incidencia_ya_procesada"}
+                
+            # Actualizar el estado a Cancelada
+            cursor.execute("""
+                UPDATE incidencias
+                SET estatus = 'Cancelada',
+                    fecha_cancelacion = GETDATE()
+                WHERE idIncidencia = ?
+            """, (idIncidencia,))
+            
+            conn.commit()
+            return {"success": True}
+            
+        except Exception as e:
+            print(f"Error al cancelar incidencia: {e}")
+            conn.rollback()
+            return {"success": False, "error": "server_error"}
+        finally:
+            cursor.close()
+            conn.close()
+
+    def get_solicitudes_enviadas(self, numNomina, orden='asc'):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            query = """
+                SELECT
+                    idIncidencia,
+                    numNomina_solicitante,
+                    fecha_solicitud,
+                    motivo,
+                    estatus
+                FROM incidencias
+                WHERE numNomina_solicitante = ?
+                ORDER BY idIncidencia {}  -- Ordenar por ID
+            """.format('ASC' if orden == 'asc' else 'DESC')
+            
+            cursor.execute(query, (numNomina,))
+            return cursor.fetchall()
+        except Exception as e:
+            print(f"Error al obtener solicitudes enviadas: {e}")
+            return []
+        finally:
+            cursor.close()
+            conn.close()
+
+    

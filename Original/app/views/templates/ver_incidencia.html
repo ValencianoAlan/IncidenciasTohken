@@ -261,6 +261,19 @@
               </form>
           {% endif %}
 
+          {% if incidencia.estatus in ['Pendiente Supervisor', 'Pendiente Gerente'] 
+          and session['numNomina'] == incidencia.numNomina_solicitante %}
+            <form method="POST" action="{{ url_for('incidencias.cancelar_incidencia', 
+                idIncidencia=incidencia.idIncidencia) }}" class="d-flex gap-2">
+                <input type="hidden" name="comentarios" id="comentariosCancelacion">
+                <button type="submit" class="btn btn-warning"
+                    onclick="document.getElementById('comentariosCancelacion').value = 
+                    prompt('Motivo de la cancelación (opcional):') || ''">
+                    Cancelar Solicitud
+                </button>
+            </form>
+        {% endif %}
+
           <!-- Botón de regresar siempre visible -->
             <a href="javascript:history.back()"
             class="btn btn-secondary">

@@ -263,9 +263,13 @@ def solicitudes_recibidas():
 
     # Obtener las solicitudes recibidas por el jefe directo
     numNomina_jefe = session['numNomina']
-    solicitudes = user_model.get_solicitudes_recibidas(numNomina_jefe, orden)
+    rol_usuario = session.get('rol', '')
+    solicitudes = user_model.get_solicitudes_recibidas(numNomina_jefe, rol_usuario, orden)
 
-    return render_template('solicitudes_recibidas.html', solicitudes=solicitudes, orden=orden)
+    return render_template('solicitudes_recibidas.html', 
+                         solicitudes=solicitudes, 
+                         orden=orden,
+                         username=session['user'])
 
 @incidencias_bp.route('/mis_solicitudes')
 def mis_solicitudes():
@@ -344,3 +348,48 @@ def crear_incidencia_usuario(numNomina, origen):
                            puestos=puestos,
                            departamentos=departamentos,
                            origen=origen)  # Pasamos el origen a la plantilla
+
+@incidencias_bp.route('/cancelar_incidencia/<int:idIncidencia>', methods=['POST'])
+def cancelar_incidencia(idIncidencia):
+    if 'user' not in session:
+        return redirect(url_for('auth.login'))
+        
+    numNomina = session['numNomina']
+    resultado = user_model.cancelar_incidencia(idIncidencia, numNomina)
+    
+    if resultado.get('success'):
+        # Obtener datos de la incidencia para notificación
+        incidencia = user_model.get_incidencia_by_id(idIncidencia)
+        if incidencia:
+            # Notificar al solicitante
+            user_model.enviar_notificacion_incidencia(
+                numNomina,
+                'Cancelada',
+                incidencia['motivo'],
+                incidencia['fecha_inicio'],
+                incidencia['fecha_fin']
+            )
+            
+            # Notificar al jefe directo si estaba pendiente
+            if incidencia['estatus'] == 'Pendiente Supervisor':
+                user_model.enviar_notificacion_incidencia(
+                    numNomina,
+                    'Solicitud cancelada por el empleado',
+                    incidencia['motivo'],
+                    incidencia['fecha_inicio'],
+                    incidencia['fecha_fin'],
+                    incidencia['jefe_directo']
+                )
+                
+        flash("Incidencia cancelada exitosamente", "success")
+    else:
+        error = resultado.get('error')
+        if error == 'incidencia_no_encontrada':
+            flash("No se encontró la incidencia o no tienes permiso para cancelarla", "error")
+        elif error == 'incidencia_ya_procesada':
+            flash("Esta incidencia ya ha sido procesada y no puede cancelarse", "error")
+        else:
+            flash("Error al cancelar la incidencia", "error")
+            
+    return redirect(url_for('incidencias.mis_solicitudes'))
+

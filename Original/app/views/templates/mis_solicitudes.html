@@ -51,13 +51,14 @@
                         <td class="text-center">{{ solicitud.fecha_solicitud }}</td>
                         <td class="text-center">{{ solicitud.motivo }}</td>
                         <td class="text-center 
-                            {{ 'bg-success text-white' if solicitud.estatus == 'Aprobada' else 
-                            'bg-danger text-white' if solicitud.estatus == 'Rechazada' else
-                            'bg-warning text-dark' if solicitud.estatus == 'Pendiente Supervisor' else
-                            'bg-info text-white' if solicitud.estatus == 'Pendiente Gerente' else
-                            'bg-secondary text-white' }}">
-                            {{ solicitud.estatus }}
-                        </td>
+                        {{ 'bg-success text-white' if solicitud.estatus == 'Aprobada' else 
+                           'bg-danger text-white' if solicitud.estatus == 'Rechazada' else
+                           'bg-warning text-dark' if solicitud.estatus == 'Pendiente Supervisor' else
+                           'bg-info text-white' if solicitud.estatus == 'Pendiente Gerente' else
+                           'bg-secondary text-white' if solicitud.estatus == 'Cancelada' else
+                           'bg-light text-dark' }}">
+                        {{ solicitud.estatus }}
+                    </td>
                         <td class="text-center">
                             <a href="{{ url_for('incidencias.ver_incidencia', 
                                 idIncidencia=solicitud.idIncidencia, 
