@@ -7,7 +7,7 @@ class UserModel:
     def __init__(self):
         self.connection_string = (
             "DRIVER={ODBC Driver 17 for SQL Server};"
-            "SERVER=localhost;"
+            "SERVER=PC-052\\SQLEXPRESS;"
             "DATABASE=Prueba_12;"
             "UID=sa;"
             "PWD=root"
