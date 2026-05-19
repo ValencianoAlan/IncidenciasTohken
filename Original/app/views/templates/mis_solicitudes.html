@@ -12,24 +12,24 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='css/bienvenida.css') }}"
     />
-    <link
-    rel="stylesheet"
-    href="{{ url_for('static', filename='css/filtros.css') }}"
-  />
   </head>
 </head>
 <body>
     <header class="bg-light py-3 mb-2">
-        <div class="container d-flex justify-content-between align-items-center gap-3">
-            <div class="d-flex align-items-center gap-3">
-                <span class="badge bg-primary badge-nomina rounded-pill">
-                    <i class="bi bi-person-badge me-2"></i>
-                    {{ session['numNomina'] }}
-                </span>
-                <h1 class="h3 mb-0 text-nowrap">{{ session['user'] }}</h1>
-            </div>
-            <a href="{{ url_for('auth.logout') }}" class="btn btn-danger">Cerrar Sesión</a>
+      <div
+        class="container d-flex justify-content-between align-items-center gap-3"
+      >
+        <div class="d-flex align-items-center gap-3">
+          <span class="badge bg-primary badge-nomina rounded-pill">
+            <i class="bi bi-person-badge me-2"></i>
+            {{ session['numNomina'] }}
+          </span>
+          <h1 class="h3 mb-0 text-nowrap">{{ session['user'] }}</h1>
         </div>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-danger"
+          >Cerrar Sesión</a
+        >
+      </div>
     </header>
 
     <div class="container py-5">
@@ -97,52 +97,52 @@
         </div>
 
         <!-- Resto de la tabla permanece igual -->
-            <table class="table table-striped table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>Solicitante</th>
-                        <th>Fecha</th>
-                        <th>Motivo</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for solicitud in solicitudes %}
-                    <tr>
-                        <td>{{ solicitud.idIncidencia }}</td>
-                        <td>{{ obtener_nombre_usuario(solicitud.numNomina_solicitante) }}</td>
-                        <td>{{ solicitud.fecha_solicitud.strftime('%d/%m/%Y') if solicitud.fecha_solicitud else '' }}</td>
-                        <td>{{ solicitud.motivo }}</td>
-                        <td>
-                            {% if solicitud.estatus == 'Aprobada' %}
-                                <span class="badge bg-success">{{ solicitud.estatus }}</span>
-                            {% elif solicitud.estatus == 'Rechazada' %}
-                                <span class="badge bg-danger">{{ solicitud.estatus }}</span>
-                            {% elif solicitud.estatus == 'Cancelada' %}
-                                <span class="badge bg-secondary">{{ solicitud.estatus }}</span>
-                            {% elif solicitud.estatus == 'Pendiente Supervisor' %}
-                                <span class="badge bg-warning text-dark">{{ solicitud.estatus }}</span>
-                            {% elif solicitud.estatus == 'Pendiente Gerente' %}
-                                <span class="badge bg-info text-dark">{{ solicitud.estatus }}</span>
-                            {% else %}
-                                <span class="badge bg-light text-dark">{{ solicitud.estatus }}</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <a href="{{ url_for('incidencias.ver_incidencia', 
-                                idIncidencia=solicitud.idIncidencia, 
-                                origen='incidencias_recibidas') }}" 
-                                class="btn btn-primary">
-                                Ver Solicitud
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+            <table class="table table-striped table-hover table-bordered table-sm align-middle" style="font-size: 0.85rem;">
+    <thead class="table-dark text-center">
+        <tr>
+            <th style="width: 80px;">ID</th>
+            <th>Solicitante</th>
+            <th style="width: 120px;">Fecha</th>
+            <th>Motivo</th>
+            <th style="width: 150px;">Estado</th>
+            <th style="width: 100px;" class="text-center">Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for solicitud in solicitudes %}
+        <tr>
+            <td class="text-center font-weight-bold">{{ solicitud.idIncidencia }}</td>
+            <td>{{ obtener_nombre_usuario(solicitud.numNomina_solicitante) }}</td>
+            <td class="text-center">{{ solicitud.fecha_solicitud.strftime('%d/%m/%Y') if solicitud.fecha_solicitud else '' }}</td>
+            <td>{{ solicitud.motivo }}</td>
+            <td class="text-center">
+                {% if solicitud.estatus == 'Aprobada' %}
+                    <span class="badge bg-success d-block py-1">{{ solicitud.estatus }}</span>
+                {% elif solicitud.estatus == 'Rechazada' %}
+                    <span class="badge bg-danger d-block py-1">{{ solicitud.estatus }}</span>
+                {% elif solicitud.estatus == 'Cancelada' %}
+                    <span class="badge bg-secondary d-block py-1">{{ solicitud.estatus }}</span>
+                {% elif solicitud.estatus == 'Pendiente Supervisor' %}
+                    <span class="badge bg-warning text-dark d-block py-1">{{ solicitud.estatus }}</span>
+                {% elif solicitud.estatus == 'Pendiente Gerente' %}
+                    <span class="badge bg-info text-dark d-block py-1">{{ solicitud.estatus }}</span>
+                {% else %}
+                    <span class="badge bg-light text-dark d-block py-1">{{ solicitud.estatus }}</span>
+                {% endif %}
+            </td>
+            <td>
+                <div class="d-flex justify-content-center">
+                    <a href="{{ url_for('incidencias.ver_incidencia', idIncidencia=solicitud.idIncidencia, origen='incidencias_recibidas') }}" 
+                       class="btn btn-primary btn-sm" 
+                       title="Ver Solicitud">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
         <!-- Botón de regresar -->
         <div class="mt-4">

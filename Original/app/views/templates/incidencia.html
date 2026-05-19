@@ -35,7 +35,22 @@
       </div>
     </header>
 
+    
+
     <div class="container mt-5">
+      
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    <i class="bi {{ 'bi-exclamation-triangle-fill' if category == 'error' else 'bi-check-circle-fill' }} me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
       <!-- Encabezado de la página -->
       <div class="card mb-2 shadow">
         <div class="card-header bg-primary">
@@ -136,23 +151,17 @@
           <div class="row mb-2" style="font-size: 14px;">
             <div class="col-md-3">
               <label for="motivo_ausencia" class="form-label">Motivo</label>
-              <select
-                class="form-select"
-                id="motivo_ausencia"
-                name="motivo"
-                style="font-size: 14px"
-                required
-              >
-                <option value="goce_sueldo">
-                  Permiso con goce de sueldo
-                </option>
-                <option value="sin_goce_sueldo">
-                  Permiso sin goce de sueldo
-                </option>
-                <option value="vacaciones">Vacaciones</option>
-                <option value="olvido_gafete">Olvido de gafete</option>
-                <option value="tiempo_x_tiempo">Tiempo x Tiempo</option>
-              </select>
+                <select class="form-select" id="motivo_ausencia" name="motivo" style="font-size: 14px" required>
+                    <option value="goce_sueldo">Permiso con goce de sueldo</option>
+                    <option value="sin_goce_sueldo">Permiso sin goce de sueldo</option>
+                    
+                    <option value="vacaciones" {% if dias_vacaciones|int <= 0 %}disabled{% endif %}>
+                        Vacaciones {% if dias_vacaciones|int <= 0 %}(No disponibles){% endif %}
+                    </option>
+                    
+                    <option value="olvido_gafete">Olvido de gafete</option>
+                    <option value="tiempo_x_tiempo">Tiempo x Tiempo</option>
+                </select>
             </div>
 
             <!-- Campo de fecha de inicio -->

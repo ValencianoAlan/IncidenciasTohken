@@ -180,7 +180,7 @@ def procesar_incidencia(idIncidencia):
 def crear_incidencia():
     if 'user' not in session:
         return redirect(url_for('auth.login'))
-
+        
     if request.method == 'POST':
         # Obtener los datos del formulario
         numNomina_solicitante = session['numNomina']
@@ -197,9 +197,23 @@ def crear_incidencia():
         num_dias = request.form.get('num_dias')
         observaciones = request.form.get('comentarios')
 
+        # --- VALIDACIÓN DE VACACIONES ---
+        if motivo == 'vacaciones':
+            dias_vacaciones_int = int(dias_vacaciones) if dias_vacaciones else 0
+            num_dias_int = int(num_dias) if num_dias else 0
+            
+            if dias_vacaciones_int <= 0:
+                flash("No tienes días de vacaciones disponibles.", "error")
+                return redirect(request.referrer or url_for('auth.bienvenida'))
+                
+            if num_dias_int > dias_vacaciones_int:
+                flash(f"Estás solicitando {num_dias_int} días, pero solo tienes {dias_vacaciones_int} disponibles.", "error")
+                return redirect(request.referrer or url_for('auth.bienvenida'))
+        # --------------------------------
+
         # Obtener el jefe directo del usuario
         jefe_directo = user_model.get_jefe_directo(numNomina_solicitante)
-
+        
         # Guardar la incidencia en la base de datos
         idIncidencia = user_model.crear_incidencia(
             numNomina_solicitante,
@@ -217,13 +231,12 @@ def crear_incidencia():
             observaciones,
             jefe_directo
         )
-
+        
         if idIncidencia:
             return redirect(url_for('incidencias.mis_solicitudes'))
         else:
             flash("Error al enviar la solicitud", "error")
-
-    return render_template('incidencia.html')
+            return render_template('incidencia.html')
 
 
 @incidencias_bp.route('/ver_incidencia/<int:idIncidencia>/<origen>', methods=['GET'])
@@ -332,16 +345,6 @@ def utility_processor():
     def obtener_nombre_usuario(numNomina):
         return user_model.obtener_nombre_usuario(numNomina)
     return dict(obtener_nombre_usuario=obtener_nombre_usuario)
-
-
-
-
-
-
-
-
-
-
 
 @incidencias_bp.route('/crear_incidencia_usuario/<int:numNomina>/<origen>', methods=['GET', 'POST'])
 def crear_incidencia_usuario(numNomina, origen):

@@ -75,21 +75,25 @@ def borrar_usuario(numNomina):
 
 @user_bp.route('/editar_usuario/<int:numNomina>', methods=['GET', 'POST'])
 def editar_usuario(numNomina):
+    # 1. Verificación de permisos [cite: 1, 511-513]
     if 'rol' not in session or session['rol'] not in ['Admin', 'Supervisor', 'Gerente']:
         flash("No tienes permiso para acceder a esta página", "error")
         return redirect(url_for('auth.bienvenida'))
 
+    # 2. Obtención de datos iniciales para cargar el formulario [cite: 1, 514-518]
     usuario = user_model.get_user_by_numNomina(numNomina)
     departamentos = user_model.get_departamentos()
     puestos = user_model.get_puestos()
     roles = user_model.get_roles()
-    usuarios = user_model.get_all_users()  # Obtener todos los usuarios para seleccionar jefe directo
+    usuarios = user_model.get_all_users()  # Necesario para el selector de jefe directo
 
     if not usuario:
         flash("Usuario no encontrado", "error")
         return redirect(url_for('auth.bienvenida'))
 
+    # 3. Procesamiento del formulario al enviar (POST) [cite: 1, 522]
     if request.method == 'POST':
+        # Captura de datos básicos [cite: 1, 523-532]
         nombre = request.form['nombre']
         apellido_paterno = request.form['apellidoPaterno']
         apellido_materno = request.form['apellidoMaterno']
@@ -99,16 +103,37 @@ def editar_usuario(numNomina):
         idPuesto = request.form['idPuesto']
         idRol = request.form['idRol']
         diasVacaciones = request.form['diasVacaciones']
-        correo_electronico = request.form['correo_electronico']  # Nuevo campo
-        jefe_directo = request.form['jefe_directo']  # Nuevo campo
+        correo_electronico = request.form['correo_electronico']
+        
+        # --- CORRECCIÓN DE JEFE DIRECTO ---
+        # Si el valor viene vacío del formulario, lo convertimos a None para que SQL lo trate como NULL
+        jefe_directo = request.form.get('jefe_directo')
+        if not jefe_directo or jefe_directo.strip() == "":
+            jefe_directo = None
+        # ----------------------------------
 
-        if user_model.update_user(numNomina, nombre, apellido_paterno, apellido_materno, username, password, idDepartamento, idPuesto, idRol, diasVacaciones, correo_electronico, jefe_directo):
+        # 4. Intento de actualización en la base de datos [cite: 1, 534]
+        if user_model.update_user(
+            numNomina, nombre, apellido_paterno, apellido_materno, 
+            username, password, idDepartamento, idPuesto, idRol, 
+            diasVacaciones, correo_electronico, jefe_directo
+        ):
             flash("Usuario actualizado exitosamente", "success")
-            return redirect(url_for('user.ver_registros'))
+            # --- MEJORA DE UX ---
+            # Redirigimos a la misma página de edición para ver el mensaje flash
+            return redirect(url_for('user.editar_usuario', numNomina=numNomina))
         else:
             flash("Error al actualizar usuario", "error")
 
-    return render_template('editar_usuario.html', usuario=usuario, departamentos=departamentos, puestos=puestos, roles=roles, usuarios=usuarios)
+    # 5. Renderizado de la vista [cite: 1, 539]
+    return render_template(
+        'editar_usuario.html', 
+        usuario=usuario, 
+        departamentos=departamentos, 
+        puestos=puestos, 
+        roles=roles, 
+        usuarios=usuarios
+    )
 
 @user_bp.route('/obtener_puestos_por_departamento/<int:idDepartamento>', methods=['GET'])
 def obtener_puestos_por_departamento(idDepartamento):
