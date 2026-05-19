@@ -48,6 +48,7 @@ def procesar_incidencia(idIncidencia):
             
             # Cuando el supervisor aprueba y envía al usuario
             user_model.enviar_notificacion_incidencia(
+                idIncidencia,
                 incidencia['numNomina_solicitante'],
                 'Aprobada',
                 incidencia['motivo'],
@@ -58,6 +59,7 @@ def procesar_incidencia(idIncidencia):
             
             # Cuando el supervisor aprueba y envía al gerente
             user_model.enviar_notificacion_incidencia(
+                idIncidencia,
                 incidencia['numNomina_solicitante'],
                 'Nueva solicitud para revisión',
                 incidencia['motivo'],
@@ -93,6 +95,7 @@ def procesar_incidencia(idIncidencia):
             # Notificar al EMPLEADO que su solicitud avanzó
             # Cuando se notifica al usuario
             user_model.enviar_notificacion_incidencia(
+                idIncidencia, # <-- NUEVO
                 incidencia['numNomina_solicitante'],
                 'Aprobada por supervisor - Pendiente de gerente',
                 incidencia['motivo'],
@@ -117,6 +120,7 @@ def procesar_incidencia(idIncidencia):
 
             # Notificar solo al usuario solicitante
             user_model.enviar_notificacion_incidencia(
+                idIncidencia, # <-- NUEVO
                 incidencia['numNomina_solicitante'],
                 'Rechazada por tu supervisor',
                 incidencia['motivo'],
@@ -144,6 +148,7 @@ def procesar_incidencia(idIncidencia):
             
             # Notificar al usuario
             user_model.enviar_notificacion_incidencia(
+                idIncidencia, # <-- NUEVO
                 incidencia['numNomina_solicitante'],
                 'Aprobada',
                 incidencia['motivo'],
@@ -178,11 +183,12 @@ def procesar_incidencia(idIncidencia):
 
 @incidencias_bp.route('/crear_incidencia', methods=['GET', 'POST'])
 def crear_incidencia():
+    # 1. Validación de sesión activa
     if 'user' not in session:
         return redirect(url_for('auth.login'))
         
     if request.method == 'POST':
-        # Obtener los datos del formulario
+        # 2. Obtener los datos enviados desde el formulario HTML [cite: 1, 253-266]
         numNomina_solicitante = session['numNomina']
         nombre_solicitante = request.form.get('nombre')
         apellido_paterno = request.form.get('apellido_paterno')
@@ -197,24 +203,26 @@ def crear_incidencia():
         num_dias = request.form.get('num_dias')
         observaciones = request.form.get('comentarios')
 
-        # --- VALIDACIÓN DE VACACIONES ---
+        # 3. --- VALIDACIÓN DE CANDIDATURA A VACACIONES ---
         if motivo == 'vacaciones':
             dias_vacaciones_int = int(dias_vacaciones) if dias_vacaciones else 0
             num_dias_int = int(num_dias) if num_dias else 0
             
+            # Si el saldo es 0 o negativo
             if dias_vacaciones_int <= 0:
                 flash("No tienes días de vacaciones disponibles.", "error")
                 return redirect(request.referrer or url_for('auth.bienvenida'))
                 
+            # Si pide más días de los que realmente tiene
             if num_dias_int > dias_vacaciones_int:
                 flash(f"Estás solicitando {num_dias_int} días, pero solo tienes {dias_vacaciones_int} disponibles.", "error")
                 return redirect(request.referrer or url_for('auth.bienvenida'))
-        # --------------------------------
+        # -------------------------------------------------
 
-        # Obtener el jefe directo del usuario
+        # 4. Obtener el jefe directo asignado al empleado [cite: 1, 268]
         jefe_directo = user_model.get_jefe_directo(numNomina_solicitante)
         
-        # Guardar la incidencia en la base de datos
+        # 5. Guardar la incidencia en la base de datos (retorna el ID autogenerado)
         idIncidencia = user_model.crear_incidencia(
             numNomina_solicitante,
             nombre_solicitante,
@@ -232,11 +240,17 @@ def crear_incidencia():
             jefe_directo
         )
         
+        # 6. Manejo de respuestas y avisos Flash
         if idIncidencia:
+            flash("Solicitud creada y notificada correctamente.", "success")
             return redirect(url_for('incidencias.mis_solicitudes'))
         else:
-            flash("Error al enviar la solicitud", "error")
-            return render_template('incidencia.html')
+            flash("Error interno al procesar y enviar la solicitud.", "error")
+            # Redirigir a la página anterior para que Jinja no pierda el contexto de las variables
+            return redirect(request.referrer or url_for('auth.bienvenida'))
+
+    # Por seguridad, si se accede por GET directamente a esta URL sin enviar formulario, se redirige al menú principal
+    return redirect(url_for('auth.bienvenida'))
 
 
 @incidencias_bp.route('/ver_incidencia/<int:idIncidencia>/<origen>', methods=['GET'])
@@ -399,6 +413,7 @@ def cancelar_incidencia(idIncidencia):
         if incidencia:
             # Notificar al solicitante
             user_model.enviar_notificacion_incidencia(
+                idIncidencia, # <-- NUEVO
                 numNomina,
                 'Cancelada',
                 incidencia['motivo'],
@@ -409,6 +424,7 @@ def cancelar_incidencia(idIncidencia):
             # Notificar al jefe directo si estaba pendiente
             if incidencia['estatus'] == 'Pendiente Supervisor':
                 user_model.enviar_notificacion_incidencia(
+                    idIncidencia, # <-- NUEVO
                     numNomina,
                     'Solicitud cancelada por el empleado',
                     incidencia['motivo'],

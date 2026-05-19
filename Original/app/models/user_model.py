@@ -496,10 +496,10 @@ class UserModel:
             print(f"Error al enviar correo: {e}")
             return False
 
-    def crear_incidencia(self, numNomina_solicitante, nombre_solicitante, apellido_paterno, 
-                    apellido_materno, fecha_solicitud, puesto, departamento, 
-                    dias_vacaciones, motivo, fecha_inicio, fecha_fin, num_dias, 
-                    observaciones, jefe_directo):
+    def crear_incidencia(self, numNomina_solicitante, nombre_solicitante, apellido_paterno,
+                        apellido_materno, fecha_solicitud, puesto, departamento,
+                        dias_vacaciones, motivo, fecha_inicio, fecha_fin, num_dias,
+                        observaciones, jefe_directo):
         conn = self.get_connection()
         cursor = conn.cursor()
         try:
@@ -507,34 +507,41 @@ class UserModel:
             cursor.execute("SELECT jefe_directo FROM usuarios WHERE numNomina = ?", (jefe_directo,))
             gerente_responsable_result = cursor.fetchone()
             gerente_responsable = gerente_responsable_result[0] if gerente_responsable_result else jefe_directo
-
-            # Insertar la incidencia
+            
+            # Insertar la incidencia y recuperar el ID INMEDIATAMENTE usando OUTPUT
             cursor.execute("""
                 INSERT INTO incidencias (
                     numNomina_solicitante, nombre_solicitante, apellido_paterno, apellido_materno,
                     fecha_solicitud, puesto, departamento, dias_vacaciones, motivo,
                     fecha_inicio, fecha_fin, num_dias, observaciones, jefe_directo, gerente_responsable
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) 
+                OUTPUT INSERTED.idIncidencia 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 numNomina_solicitante, nombre_solicitante, apellido_paterno, apellido_materno,
                 fecha_solicitud, puesto, departamento, dias_vacaciones, motivo,
                 fecha_inicio, fecha_fin, num_dias, observaciones, jefe_directo, gerente_responsable
             ))
+
+            # Recuperar el ID de forma segura
+            idIncidencia = cursor.fetchone()[0]
             
             conn.commit()
-            
+
             # Notificar al supervisor
             self.enviar_notificacion_incidencia(
+                idIncidencia,
                 numNomina_solicitante,
                 'Nueva solicitud recibida',
                 motivo,
                 fecha_inicio,
                 fecha_fin,
-                jefe_directo,  # destinatario (supervisor)
-                f"Nueva solicitud creada por {nombre_solicitante} {apellido_paterno}"
+                jefe_directo,
+                mensaje_extra=f"Nueva solicitud creada por {nombre_solicitante} {apellido_paterno}"
             )
-            
-            return True
+
+            return idIncidencia
+
         except Exception as e:
             print(f"Error al crear incidencia: {e}")
             conn.rollback()
@@ -705,31 +712,34 @@ class UserModel:
             cursor.close()
             conn.close()
     
-    def enviar_notificacion_incidencia(self, numNomina, estado, motivo, fecha_inicio, fecha_fin, destinatario=None, aprobador_rol=None):
-        """Envía notificación por correo con asunto dinámico"""
+    def enviar_notificacion_incidencia(self, incidencia_id, numNomina, estado, motivo, fecha_inicio, fecha_fin, destinatario=None, aprobador_rol=None, mensaje_extra=None):
+        """Envía notificación por correo con asunto dinámico e ID único"""
         try:
             # Obtener información del solicitante
             solicitante = self.get_user_by_numNomina(numNomina)
             nombre_solicitante = f"{solicitante['nombre']} {solicitante['apellidoPaterno']}" if solicitante else "El usuario"
-
-            # Determinar el asunto según el estado y el rol del aprobador
+            
+            # Determinar el asunto base según el estado y el rol del aprobador
             if estado.lower() == 'aprobada':
                 if aprobador_rol == 'supervisor':
-                    asunto = f"Solicitud aprobada por tu supervisor - Pendiente de gerente"
+                    asunto_base = "Solicitud aprobada por tu supervisor - Pendiente de gerente"
                 elif aprobador_rol == 'gerente':
-                    asunto = f"¡Felicidades! Tu solicitud ha sido aprobada por el gerente"
+                    asunto_base = "¡Felicidades! Tu solicitud ha sido aprobada por el gerente"
                 else:
-                    asunto = f"Tu solicitud ha sido aprobada"
+                    asunto_base = "Tu solicitud ha sido aprobada"
             elif estado.lower() == 'rechazada':
                 if aprobador_rol == 'supervisor':
-                    asunto = f"Solicitud rechazada por tu supervisor"
+                    asunto_base = "Solicitud rechazada por tu supervisor"
                 elif aprobador_rol == 'gerente':
-                    asunto = f"Solicitud rechazada por el gerente"
+                    asunto_base = "Solicitud rechazada por el gerente"
                 else:
-                    asunto = f"Tu solicitud ha sido rechazada"
+                    asunto_base = "Tu solicitud ha sido rechazada"
             else:
-                asunto = f" {estado}"
-
+                asunto_base = estado
+                
+            # Construir el asunto final con el ID de la incidencia
+            asunto = f"[Incidencia #{incidencia_id}] {asunto_base}"
+            
             # Determinar el destinatario
             if destinatario is None:
                 # Notificar al usuario solicitante
@@ -741,37 +751,41 @@ class UserModel:
                 aprobador = self.get_user_by_numNomina(destinatario)
                 nombre_aprobador = f"{aprobador['nombre']} {aprobador['apellidoPaterno']}" if aprobador else ""
                 saludo = f"Hola {nombre_aprobador}," if nombre_aprobador else "Hola,"
-
+                
             # Verificar que tenemos un correo destino
             if not correo_destino:
                 print(f"No se puede enviar notificación: no hay correo registrado")
                 return False
+                
+            # Crear el bloque del mensaje extra si existe
+            bloque_extra = f"<p><strong>Mensaje adicional:</strong> {mensaje_extra}</p>" if mensaje_extra else ""
 
             # Crear el cuerpo del mensaje
             cuerpo = f"""
             <html>
             <body>
                 <p>{saludo}</p>
-                <h3>{asunto}</h3>
-                <p><strong>Detalles de la solicitud:</strong></p>
+                <h3>{asunto_base}</h3>
+                <p><strong>Detalles de la solicitud (Folio #{incidencia_id}):</strong></p>
                 <ul>
                     <li><strong>Motivo:</strong> {motivo}</li>
                     <li><strong>Fecha de inicio:</strong> {fecha_inicio}</li>
                     <li><strong>Fecha de fin:</strong> {fecha_fin}</li>
                 </ul>
+                {bloque_extra}
                 <br>
                 <p>Por favor inicia sesión en el sistema para más detalles.</p>
-                <p>Este es un mensaje automático, no responda a este correo.</p>
+                <p><small>Este es un mensaje automático, no responda a este correo.</small></p>
             </body>
             </html>
             """
-
+            
             # Configurar y enviar el mensaje
             mensaje = MIMEText(cuerpo, 'html')
             mensaje['Subject'] = asunto
             mensaje['From'] = current_app.config["MAIL_USERNAME"]
             mensaje['To'] = correo_destino
-
+            
             with smtplib.SMTP(
                 current_app.config["MAIL_SERVER"],
                 current_app.config["MAIL_PORT"]
@@ -782,10 +796,10 @@ class UserModel:
                     current_app.config["MAIL_PASSWORD"]
                 )
                 server.send_message(mensaje)
-            
+
             print(f"Notificación enviada a {correo_destino}: {asunto}")
             return True
-            
+
         except Exception as e:
             print(f"Error al enviar notificación de incidencia: {e}")
             return False
@@ -803,7 +817,7 @@ class UserModel:
             enlace_incidencia = f"http://tudominio.com/ver_incidencia/{incidencia_id}/gerente"
             
             # Construir el mensaje
-            asunto = f"[URGENTE] Solicitud pendiente de aprobación: {solicitante_nombre}"
+            asunto = f"[Incidencia #{incidencia_id}] URGENTE Solicitud pendiente de aprobación: {solicitante_nombre}"
             
             cuerpo = f"""
             <html>
