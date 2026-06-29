@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Menú Principal - DocuFlow{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 60vh;">
+    <div class="col-md-8 text-center">
+        <h2 class="mb-2 fw-bold">¡Bienvenido al Sistema!</h2>
+        <p class="text-muted mb-5">Por favor, selecciona el módulo al que deseas acceder hoy.</p>
+        
+        <div class="row g-4 justify-content-center">
+            <div class="col-sm-5">
+                <div class="card h-100 shadow-sm border-0 border-top border-primary border-4 p-3 text-center">
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="display-4 text-primary mb-3">📁</div>
+                            <h5 class="card-title fw-bold">Mis Documentos</h5>
+                            <p class="card-text text-muted small">Sube tus archivos PDF, consulta el estatus de revisión y gestiona tus entregas individuales.</p>
+                        </div>
+                            <a href="{{ url_for('usuario.mi_documento') }}" class="btn btn-primary w-100 mt-4 py-2">Acceder Módulo</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-5">
+                <div class="card h-100 shadow-sm border-0 border-top border-warning border-4 p-3 text-center">
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="display-4 text-warning mb-3">💼</div>
+                            <h5 class="card-title fw-bold">Panel del Jefe</h5>
+                            <p class="card-text text-muted small">Revisa la bandeja de entrada, previsualiza los PDFs pendientes de los empleados y aprueba o rechaza solicitudes.</p>
+                        </div>
+                        <a href="{{ url_for('jefe.panel') }}" class="btn btn-warning text-dark w-100 mt-4 py-2">Acceder Panel</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
