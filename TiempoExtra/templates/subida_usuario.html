@@ -3,72 +3,145 @@
 {% block title %}Mis Documentos - DocuFlow{% endblock %}
 
 {% block content %}
-<div class="container">
-    
+<div class="container py-3">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold mb-0">📁 Historial de mis Documentos</h2>
-            <p class="text-muted mb-0">Gestiona y consulta el estado de tus archivos entregados.</p>
+            <h2 class="fw-bold mb-0">📁 Gestión de Mis Documentos</h2>
+            <p class="text-muted mb-0">Sube tus formatos de tiempo extra y consulta el estado de tus validaciones.</p>
         </div>
-        <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSubida" aria-expanded="false" aria-controls="collapseSubida">
-            <i class="bi bi-cloud-arrow-up-fill"></i> Subir Nuevo PDF
+        <button class="btn btn-primary shadow-sm fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSubida" aria-expanded="false" aria-controls="collapseSubida">
+            <i class="bi bi-cloud-arrow-up-fill me-1"></i> Nueva Solicitud
         </button>
     </div>
 
     <div class="collapse mb-4" id="collapseSubida">
         <div class="card card-body shadow-sm border-0 bg-light">
             <h5 class="card-title fw-bold text-primary mb-3">Subir un nuevo documento a revisión</h5>
-            <form action="{{ url_for('usuario.mi_documento') }}" method="POST" enctype="multipart/form-data" class="row g-3 align-items-center">
-                <div class="col-md-9">
+            <form action="{{ url_for('usuario.mi_documento') }}" method="POST" enctype="multipart/form-data" class="row g-3">
+                
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">1. Selecciona tu Archivo PDF</label>
                     <input class="form-control" type="file" id="archivo_pdf" name="archivo_pdf" accept=".pdf" required>
                 </div>
-                <div class="col-md-3">
-                    <button type="submit" class="btn btn-success w-100">Enviar a Revisión</button>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-bold text-warning">2. Enviar a revisión de Gerencia</label>
+                    <select class="form-select" name="aprobador_1" required>
+                        <option value="" disabled selected>-- Elige a tu Asistente de Gerente o Gerente --</option>
+                        {% for jefe in aprobadores_1 %}
+                            <option value="{{ jefe.num_nomina }}">{{ jefe.nombre }} {{ jefe.apellido }} ({{ jefe.nombre_rol }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-12 mt-3 text-end">
+                    <button type="submit" class="btn btn-success fw-bold">Enviar a Revisión</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div class="card shadow-sm border-0 mb-4">
+    {% if doc_seleccionado %}
+    <div class="card shadow-sm border-0 mb-4 border-start border-info border-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold text-info"><i class="bi bi-info-circle-fill me-2"></i> Detalles de la Solicitud #{{ doc_seleccionado.id }}</h5>
+            <a href="{{ url_for('usuario.mi_documento') }}" class="btn-close" title="Cerrar Detalles"></a>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-5">
+                    <p><strong>Archivo:</strong> {{ doc_seleccionado.nombre_archivo }}</p>
+                    <p><strong>Estatus actual:</strong> 
+                        <span class="badge bg-secondary">{{ doc_seleccionado.estado }}</span>
+                    </p>
+                    <hr>
+                    <div class="bg-light p-3 rounded mb-3 border-start border-warning border-4">
+                        <p class="text-warning mb-1 fw-bold">Comentarios Gerencia:</p>
+                        <p class="mb-0 small text-dark">{{ doc_seleccionado.comentarios_gerencia or 'Sin comentarios en esta etapa.' }}</p>
+                    </div>
+                    <div class="bg-light p-3 rounded border-start border-danger border-4">
+                        <p class="text-danger mb-1 fw-bold">Comentarios Jefe Japonés:</p>
+                        <p class="mb-0 small text-dark">{{ doc_seleccionado.comentarios_japones or 'Sin comentarios en esta etapa.' }}</p>
+                    </div>
+                </div>
+                
+                <div class="col-md-7">
+                    <p class="fw-bold mb-2"><i class="bi bi-file-earmark-pdf text-danger"></i> Vista Previa del Documento:</p>
+                    <div class="ratio ratio-4x3 border rounded shadow-sm bg-light">
+                        <iframe src="{{ url_for('static', filename=doc_seleccionado.ruta_archivo) }}" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card shadow border-0">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0 py-1 fw-bold"><i class="bi bi-history me-2"></i> Historial de Solicitudes Enviadas</h5>
+        </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="table-dark">
+                    <thead class="table-secondary">
                         <tr>
-                            <th style="width: 10%;">ID Doc</th>
-                            <th style="width: 45%;">Nombre del Documento</th>
-                            <th style="width: 20%;">Fecha de Subida</th>
-                            <th style="width: 15%;">Estatus</th>
-                            <th style="width: 10%; text-align: center;">Acciones</th>
+                            <th class="ps-3" style="width: 10%;">ID Doc</th>
+                            <th style="width: 35%;">Nombre del Archivo</th>
+                            <th style="width: 20%;">Fecha de Envío</th>
+                            <th style="width: 15%;">Estatus Actual</th>
+                            <th class="text-center" style="width: 20%;">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% if documentos %}
                             {% for doc in documentos %}
                             <tr>
-                                <td><strong>#{{ doc.id }}</strong></td>
-                                <td><i class="bi bi-file-earmark-pdf text-danger me-2"></i>{{ doc.nombre_archivo }}</td>
-                                <td>{{ doc.fecha_subida.strftime('%d/%m/%Y %H:%M') if doc.fecha_subida else 'N/A' }}</td>
+                                <td class="ps-3"><strong>#{{ doc.id }}</strong></td>
                                 <td>
-                                    <span class="badge 
-                                        {% if doc.estado == 'Aprobado' %}bg-success
-                                        {% elif doc.estado == 'Rechazado' %}bg-danger
-                                        {% else %}bg-warning text-dark{% endif %}">
-                                        {{ doc.estado }}
-                                    </span>
+                                    <i class="bi bi-file-earmark-pdf text-danger me-2 fs-5"></i>
+                                    {{ doc.nombre_archivo }}
+                                </td>
+                                <td>{{ doc.fecha_subida.strftime('%d/%m/%Y %H:%M') if doc.fecha_subida else '---' }}</td>
+                                <td>
+                                <span class="badge 
+                                    {% if doc.estado == 'Pendiente Gerencia' %}bg-warning text-dark
+                                    {% elif doc.estado == 'Pendiente Jefe Japonés' %}bg-info text-white
+                                    {% elif doc.estado == 'Aprobado' %}bg-success text-white
+                                    {% elif doc.estado == 'Cancelado' %}bg-secondary text-white
+                                    {% else %}bg-danger text-white{% endif %}">
+                                    {{ doc.estado }}
+                                </span>
                                 </td>
                                 <td class="text-center">
-                                    <a href="{{ url_for('usuario.mi_documento', doc_id=doc.id) }}" class="btn btn-outline-primary btn-sm">
-                                        <i class="bi bi-eye"></i> Detalles
-                                    </a>
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <a href="{{ url_for('usuario.descargar_pdf', doc_id=doc.id) }}" class="btn btn-sm btn-outline-primary" title="Descargar PDF">
+                                            <i class="bi bi-download"></i>
+                                        </a>
+
+                                        <a href="{{ url_for('usuario.mi_documento', doc_id=doc.id) }}" class="btn btn-sm btn-info text-white" title="Ver Comentarios">
+                                            <i class="bi bi-eye-fill"></i> Detalles
+                                        </a>
+
+                                        {% if doc.estado == 'Pendiente Gerencia' %}
+                                            <form action="{{ url_for('usuario.eliminar_documento', doc_id=doc.id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas cancelar esta solicitud?');">
+                                                <button type="submit" class="btn btn-sm btn-danger" title="Cancelar Solicitud">
+                                                    <i class="bi bi-trash-fill"></i>
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <button class="btn btn-sm btn-secondary" disabled title="Bloqueado">
+                                                <i class="bi bi-lock-fill"></i>
+                                            </button>
+                                        {% endif %}
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
                         {% else %}
                             <tr>
-                                <td colspan="5" class="text-center py-4 text-muted">
-                                    <i class="bi bi-folder-x display-4"></i>
-                                    <p class="mt-2 mb-0">No has subido ningún documento todavía.</p>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="bi bi-folder-x display-4 d-block mb-2 text-secondary"></i>
+                                    Aún no has subido ningún formato de tiempo extra a revisión.
                                 </td>
                             </tr>
                         {% endif %}
@@ -78,62 +151,10 @@
         </div>
     </div>
 
-    {% if doc_seleccionado %}
-    <div class="row pt-2" id="seccion-detalles">
-        <div class="col-md-4 mb-4">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0 fw-bold">Detalles del Estado (#{{ doc_seleccionado.id }})</h5>
-                </div>
-                <div class="card-body">
-                    <p class="mb-2"><strong>Archivo:</strong> {{ doc_seleccionado.nombre_archivo }}</p>
-                    <div class="alert 
-                        {% if doc_seleccionado.estado == 'Aprobado' %}alert-success
-                        {% elif doc_seleccionado.estado == 'Rechazado' %}alert-danger
-                        {% else %}alert-warning{% endif %}">
-                        <strong>Estatus actual:</strong> {{ doc_seleccionado.estado }}
-                    </div>
-                    
-                    {% if doc_seleccionado.estado == 'Rechazado' and doc_seleccionado.comentarios_jefe %}
-                        <div class="card border-danger mb-3">
-                            <div class="card-header bg-danger text-white small fw-bold">Motivo del Rechazo</div>
-                            <div class="card-body text-danger">
-                                <p class="card-text">{{ doc_seleccionado.comentarios_jefe }}</p>
-                            </div>
-                        </div>
-                    {% elif doc_seleccionado.estado == 'Aprobado' %}
-                        <div class="alert alert-info small">
-                            <i class="bi bi-check-circle-fill"></i> Tu documento cumple con todos los requisitos.
-                        </div>
-                    {% else %}
-                        <div class="alert alert-light border small text-muted">
-                            <i class="bi bi-clock-history"></i> Esperando a que un jefe revise este archivo.
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-8 mb-4">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0 fw-bold">Vista Previa del Archivo</h5>
-                </div>
-                <div class="card-body p-0" style="min-height: 450px;">
-                    <object data="{{ url_for('static', filename=doc_seleccionado.ruta_archivo) }}" type="application/pdf" width="100%" height="100%" style="min-height: 450px;">
-                        <p>Tu navegador no puede mostrar el PDF incorporado. 
-                           <a href="{{ url_for('static', filename=doc_seleccionado.ruta_archivo) }}" target="_blank">Haz clic aquí para descargarlo.</a>
-                        </p>
-                    </object>
-                </div>
-            </div>
-        </div>
+    <div class="mt-4">
+        <a href="{{ url_for('auth.menu') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver al Menú
+        </a>
     </div>
-    
-    <script>
-        document.getElementById('seccion-detalles').scrollIntoView({ behavior: 'smooth' });
-    </script>
-    {% endif %}
-
 </div>
 {% endblock %}

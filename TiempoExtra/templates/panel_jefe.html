@@ -1,96 +1,168 @@
-{% extends 'base.html' %}
-
-{% block title %}Panel de Jefes - DocuFlow{% endblock %}
-
-{% block content %}
+{% extends 'base.html' %} {% block title %}Panel de Jefes - DocuFlow{% endblock
+%} {% block content %}
 <div class="row">
-    <div class="col-md-4 mb-4">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Bandeja de Pendientes</h5>
-                <span class="badge bg-warning text-dark">{{ documentos|length }}</span>
-            </div>
-            <div class="list-group list-group-flush" style="max-height: 600px; overflow-y: auto;">
-                
-                {% if documentos %}
-                    {% for doc in documentos %}
-                        <a href="{{ url_for('jefe.panel', doc_id=doc.id) }}" 
-                           class="list-group-item list-group-item-action {% if doc_seleccionado and doc_seleccionado.id == doc.id %}active{% endif %}">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1">👤 Usuario ID: {{ doc.usuario_id }}</h6>
-                                <small>{{ doc.fecha_subida.strftime('%d/%m/%Y') if doc.fecha_subida else '' }}</small>
-                            </div>
-                            <p class="mb-1 text-truncate"><small>📄 {{ doc.nombre_archivo }}</small></p>
-                        </a>
-                    {% endfor %}
-                {% else %}
-                    <div class="p-4 text-center text-muted">
-                        <i class="bi bi-check-circle display-4"></i>
-                        <p class="mt-2">No hay documentos pendientes por revisar.</p>
-                    </div>
-                {% endif %}
-                
-            </div>
+  <div class="col-md-4 mb-4">
+    <div class="card shadow-sm border-0 h-100">
+      <div
+        class="card-header bg-dark text-white d-flex justify-content-between align-items-center"
+      >
+        <h5 class="mb-0">Bandeja de Pendientes</h5>
+        <span class="badge bg-warning text-dark">{{ documentos|length }}</span>
+      </div>
+      <div
+        class="list-group list-group-flush"
+        style="max-height: 600px; overflow-y: auto"
+      >
+        {% if documentos %} {% for doc in documentos %}
+        <a
+          href="{{ url_for('jefe.panel', doc_id=doc.id) }}"
+          class="list-group-item list-group-item-action {% if doc_seleccionado and doc_seleccionado.id == doc.id %}active{% endif %}"
+        >
+          <div class="d-flex w-100 justify-content-between">
+            <h6 class="mb-1">👤 Usuario ID: {{ doc.usuario_id }}</h6>
+            <small
+              >{{ doc.fecha_subida.strftime('%d/%m/%Y') if doc.fecha_subida else
+              '' }}</small
+            >
+          </div>
+          <p class="mb-1 text-truncate">
+            <small>📄 {{ doc.nombre_archivo }}</small>
+          </p>
+        </a>
+        {% endfor %} {% else %}
+        <div class="p-4 text-center text-muted">
+          <i class="bi bi-check-circle display-4 text-success"></i>
+          <p class="mt-2 mb-0">No hay documentos pendientes por revisar.</p>
         </div>
+        {% endif %}
+      </div>
     </div>
+  </div>
 
-    <div class="col-md-8">
-        <div class="card shadow-sm border-0 h-100">
-            
-            {% if doc_seleccionado %}
-                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 text-primary">Revisando: {{ doc_seleccionado.nombre_archivo }}</h5>
-                    
-                    <div class="btn-group">
-                        <form action="{{ url_for('jefe.procesar_documento', doc_id=doc_seleccionado.id) }}" method="POST" class="d-inline">
-                            <input type="hidden" name="accion" value="aprobar">
-                            <button type="submit" class="btn btn-success rounded-start">✅ Aprobar</button>
-                        </form>
-                        
-                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalRechazo">
-                            ❌ Rechazar
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="card-body p-0" style="min-height: 600px;">
-                    <object data="{{ url_for('static', filename=doc_seleccionado.ruta_archivo) }}" type="application/pdf" width="100%" height="100%" style="min-height: 600px;">
-                        <p>No se puede previsualizar. <a href="{{ url_for('static', filename=doc_seleccionado.ruta_archivo) }}" target="_blank">Descargar PDF</a></p>
-                    </object>
-                </div>
+  <div class="col-md-8">
+    <div class="card shadow-sm border-0 h-100">
+      {% if doc_seleccionado %}
+      <div
+        class="card-header bg-light d-flex justify-content-between align-items-center py-3"
+      >
+        <h5 class="mb-0 text-primary fw-bold">
+          Revisando: {{ doc_seleccionado.nombre_archivo }}
+        </h5>
 
-                <div class="modal fade" id="modalRechazo" tabindex="-1" aria-labelledby="modalRechazoLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <form action="{{ url_for('jefe.procesar_documento', doc_id=doc_seleccionado.id) }}" method="POST">
-                                <div class="modal-header bg-danger text-white">
-                                    <h5 class="modal-title" id="modalRechazoLabel">Motivo de Rechazo</h5>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <input type="hidden" name="accion" value="rechazar">
-                                    <div class="mb-3">
-                                        <label for="comentarios" class="form-label">Por favor, explica por qué se rechaza este documento:</label>
-                                        <textarea class="form-control" id="comentarios" name="comentarios" rows="3" required placeholder="Ej: Falta la firma en la página 2..."></textarea>
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                    <button type="submit" class="btn btn-danger">Confirmar Rechazo</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-
-            {% else %}
-                <div class="d-flex flex-column align-items-center justify-content-center h-100 bg-light text-muted p-5 text-center" style="min-height: 600px;">
-                    <h4>👈 Selecciona un documento</h4>
-                    <p>Haz clic en uno de los elementos de la lista de la izquierda para comenzar la revisión.</p>
-                </div>
-            {% endif %}
-
+        <div class="btn-group">
+          <a
+            href="{{ url_for('usuario.descargar_pdf', doc_id=doc_seleccionado.id) }}"
+            class="btn btn-outline-secondary"
+            title="Descargar Archivo Original"
+          >
+            <i class="bi bi-download"></i> Descargar
+          </a>
+          <form
+            action="{{ url_for('jefe.procesar_documento', doc_id=doc_seleccionado.id) }}"
+            method="POST"
+            class="d-inline"
+          >
+            <input type="hidden" name="accion" value="aprobar" />
+            <button type="submit" class="btn btn-success">✅ Aprobar</button>
+          </form>
+          <button
+            type="button"
+            class="btn btn-danger rounded-end"
+            data-bs-toggle="modal"
+            data-bs-target="#modalRechazo"
+          >
+            ❌ Rechazar
+          </button>
         </div>
+      </div>
+
+      <div class="card-body p-0" style="min-height: 600px">
+        <object
+          data="{{ url_for('static', filename=doc_seleccionado.ruta_archivo) }}"
+          type="application/pdf"
+          width="100%"
+          height="100%"
+          style="min-height: 600px"
+        >
+          <p>
+            No se puede previsualizar.
+            <a
+              href="{{ url_for('static', filename=doc_seleccionado.ruta_archivo) }}"
+              target="_blank"
+              >Descargar PDF</a
+            >
+          </p>
+        </object>
+      </div>
+
+      <div
+        class="modal fade"
+        id="modalRechazo"
+        tabindex="-1"
+        aria-labelledby="modalRechazoLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <form
+              action="{{ url_for('jefe.procesar_documento', doc_id=doc_seleccionado.id) }}"
+              method="POST"
+            >
+              <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="modalRechazoLabel">
+                  Motivo de Rechazo
+                </h5>
+                <button
+                  type="button"
+                  class="btn-close btn-close-white"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                ></button>
+              </div>
+              <div class="modal-body">
+                <input type="hidden" name="accion" value="rechazar" />
+                <div class="mb-3">
+                  <label class="form-label fw-bold"
+                    >Comentarios / Motivo del Dictamen:</label
+                  >
+                  <textarea
+                    class="form-control"
+                    name="comentarios"
+                    rows="3"
+                    placeholder="Escribe aquí las observaciones o razón del rechazo..."
+                  ></textarea>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  data-bs-dismiss="modal"
+                >
+                  Cancelar
+                </button>
+                <button type="submit" class="btn btn-danger">
+                  Confirmar Rechazo
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      {% else %}
+      <div
+        class="d-flex flex-column align-items-center justify-content-center h-100 bg-light text-muted p-5 text-center"
+        style="min-height: 600px"
+      >
+        <h4>👈 Selecciona un documento</h4>
+        <p>
+          Haz clic en uno de los elementos de la izquierda para comenzar la
+          revisión.
+        </p>
+      </div>
+      {% endif %}
     </div>
+  </div>
 </div>
 {% endblock %}

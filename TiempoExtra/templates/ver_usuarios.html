@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista de Usuarios - DocuFlow{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0">👥 Directorio de Usuarios</h2>
+            <p class="text-muted mb-0">Listado general de cuentas con acceso al sistema DocuFlow.</p>
+        </div>
+        <a href="{{ url_for('jefe.agregar_usuario_vista') }}" class="btn btn-dark shadow-sm">
+            <i class="bi bi-person-plus-fill me-1"></i> Nuevo Usuario
+        </a>
+    </div>
+
+    <div class="card shadow border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="font-size: 0.95rem;">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="ps-3">Nómina</th>
+                            <th>Nombre Completo</th>
+                            <th>Usuario (Login)</th>
+                            <th>Departamento</th>
+                            <th>Puesto</th>
+                            <th>Vacaciones</th>
+                            <th>Correo Electrónico</th>
+                            <th>Rol Asignado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if usuarios %}
+                            {% for usr in usuarios %}
+                            <tr>
+                                <td class="ps-3"><strong>{{ usr.num_nomina }}</strong></td>
+                                <td>{{ usr.nombre }} {{ usr.apellido_paterno }} {{ usr.apellido_materno or '' }}</td>
+                                <td><span class="text-muted">@{{ usr.username }}</span></td>
+                                <td>{{ usr.nombre_departamento }}</td>
+                                <td>{{ usr.puesto }}</td>
+                                <td>{{ usr.dias_vacaciones }} días</td>
+                                <td><a href="mailto:{{ usr.correo_electronico }}" class="text-decoration-none">{{ usr.correo_electronico }}</a></td>
+                                <td>
+                                    <span class="badge 
+                                        {% if usr.nombre_rol == 'Admin' %}bg-dark
+                                        {% elif usr.nombre_rol == 'Gerente' %}bg-danger
+                                        {% elif usr.nombre_rol == 'Supervisor' %}bg-warning text-dark
+                                        {% else %}bg-primary{% endif %}">
+                                        {{ usr.nombre_rol }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center py-5 text-muted">
+                                    <i class="bi bi-people display-4 d-block mb-2"></i>
+                                    No hay usuarios registrados en la base de datos.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{{ url_for('auth.menu') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver al Menú
+        </a>
+    </div>
+</div>
+{% endblock %}

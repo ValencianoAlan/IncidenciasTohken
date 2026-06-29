@@ -3,38 +3,70 @@
 {% block title %}Menú Principal - DocuFlow{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center align-items-center" style="min-height: 60vh;">
-    <div class="col-md-8 text-center">
-        <h2 class="mb-2 fw-bold">¡Bienvenido al Sistema!</h2>
-        <p class="text-muted mb-5">Por favor, selecciona el módulo al que deseas acceder hoy.</p>
+<div class="container py-2">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold mb-2">¡Bienvenido al Sistema, {{ session.get('nombre_usuario') }}!</h2>
+        <p class="text-muted">Por favor, selecciona el módulo al que deseas acceder hoy.</p>
+    </div>
+    
+    <div class="row g-4 justify-content-center">
         
-        <div class="row g-4 justify-content-center">
-            <div class="col-sm-5">
-                <div class="card h-100 shadow-sm border-0 border-top border-primary border-4 p-3 text-center">
+        {% if session.get('rol') == 'Admin' %}
+            <div class="col-xl-3 col-md-6">
+                <div class="card h-100 shadow-sm border-0 border-top border-success border-4 p-3 text-center">
                     <div class="card-body d-flex flex-column justify-content-between">
                         <div>
-                            <div class="display-4 text-primary mb-3">📁</div>
-                            <h5 class="card-title fw-bold">Mis Documentos</h5>
-                            <p class="card-text text-muted small">Sube tus archivos PDF, consulta el estatus de revisión y gestiona tus entregas individuales.</p>
+                            <div class="display-4 text-success mb-3">👥</div>
+                            <h5 class="card-title fw-bold">Ver Usuarios</h5>
+                            <p class="card-text text-muted small">Consulta el listado general y relacional de las cuentas dadas de alta, departamentos y sus días de vacaciones.</p>
                         </div>
-                            <a href="{{ url_for('usuario.mi_documento') }}" class="btn btn-primary w-100 mt-4 py-2">Acceder Módulo</a>
+                        <a href="{{ url_for('jefe.ver_usuarios_vista') }}" class="btn btn-success w-100 mt-4 py-2">Ver Directorio</a>
                     </div>
                 </div>
             </div>
 
-            <div class="col-sm-5">
+            <div class="col-xl-3 col-md-6">
+                <div class="card h-100 shadow-sm border-0 border-top border-danger border-4 p-3 text-center">
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="display-4 text-danger mb-3">👤➕</div>
+                            <h5 class="card-title fw-bold">Agregar Usuario</h5>
+                            <p class="card-text text-muted small">Crea y registra nuevos accesos integrando de forma automática los catálogos relacionales de roles y departamentos.</p>
+                        </div>
+                        <a href="{{ url_for('jefe.agregar_usuario_vista') }}" class="btn btn-danger w-100 mt-4 py-2">Registrar Nuevo</a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card h-100 shadow-sm border-0 border-top border-primary border-4 p-3 text-center">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="display-4 text-primary mb-3">📁</div>
+                        <h5 class="card-title fw-bold">Mis Documentos</h5>
+                        <p class="card-text text-muted small">Sube tus formatos de tiempo extra en formato PDF y selecciona al aprobador del primer nivel de tu departamento.</p>
+                    </div>
+                    <a href="{{ url_for('usuario.mi_documento') }}" class="btn btn-primary w-100 mt-4 py-2">Acceder Módulo</a>
+                </div>
+            </div>
+        </div>
+
+        {% if session.get('rol') in ['Admin', 'Gerente', 'Supervisor', 'Asistente de Gerente', 'Jefe Japonés'] %}
+            <div class="col-xl-3 col-md-6">
                 <div class="card h-100 shadow-sm border-0 border-top border-warning border-4 p-3 text-center">
                     <div class="card-body d-flex flex-column justify-content-between">
                         <div>
                             <div class="display-4 text-warning mb-3">💼</div>
                             <h5 class="card-title fw-bold">Panel del Jefe</h5>
-                            <p class="card-text text-muted small">Revisa la bandeja de entrada, previsualiza los PDFs pendientes de los empleados y aprueba o rechaza solicitudes.</p>
+                            <p class="card-text text-muted small">Previsualiza las solicitudes de tiempo extra pendientes de tu equipo, asigna comentarios y realiza dictámenes.</p>
                         </div>
-                        <a href="{{ url_for('jefe.panel') }}" class="btn btn-warning text-dark w-100 mt-4 py-2">Acceder Panel</a>
+                        <a href="{{ url_for('jefe.panel') }}" class="btn btn-warning text-dark w-100 mt-4 py-2 fw-bold">Acceder Panel</a>
                     </div>
                 </div>
             </div>
-        </div>
+        {% endif %}
+
     </div>
 </div>
 {% endblock %}

@@ -17,7 +17,9 @@ def login():
             session['usuario_id'] = usuario.id
             session['num_nomina'] = usuario.num_nomina
             session['nombre_usuario'] = usuario.nombre
-            session['rol'] = usuario.rol
+            
+            # 🚀 AQUÍ ESTÁ EL CAMBIO: Ahora usamos nombre_rol porque viene de la tabla Roles
+            session['rol'] = usuario.nombre_rol 
             
             flash(f'¡Bienvenido de nuevo, {usuario.nombre}!', 'success')
             return redirect(url_for('auth.menu'))
@@ -26,7 +28,6 @@ def login():
             return redirect(url_for('auth.login'))
             
     return render_template('login.html')
-
 
 @auth_bp.route('/menu', methods=['GET'])
 def menu():

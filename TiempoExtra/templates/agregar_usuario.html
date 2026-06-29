@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}Agregar Usuario - DocuFlow{% endblock %}
+{% block content %}
+<div class="container d-flex justify-content-center">
+    <div class="card shadow-sm border-0 col-md-10">
+        <div class="card-header bg-dark text-white text-center py-3">
+            <h4 class="mb-0 fw-bold"><i class="bi bi-person-plus-fill me-2"></i> Registrar Nuevo Usuario</h4>
+        </div>
+        <div class="card-body p-4">
+            <form action="{{ url_for('jefe.agregar_usuario_vista') }}" method="POST" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">No. Nómina o Clave ID</label>
+                    <input class="form-control" type="text" name="num_nomina" placeholder="Ej. 12345 o JP-001" maxlength="20" required>
+                    <div class="form-text">Para directivos extranjeros, usa un ID interno (ej. JP-001).</div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Nombre</label>
+                    <input type="text" class="form-control" name="nombre" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Apellido Paterno</label>
+                    <input type="text" class="form-control" name="apellidoPaterno" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Apellido Materno</label>
+                    <input type="text" class="form-control" name="apellidoMaterno">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Usuario (Username)</label>
+                    <input type="text" class="form-control" name="username" required autocomplete="off">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Contraseña</label>
+                    <input type="password" class="form-control" name="password" required>
+                </div>
+                
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Departamento</label>
+                    <select class="form-select" name="id_departamento" required>
+                        <option value="" disabled selected>-- Selecciona --</option>
+                        {% for depto in departamentos %}
+                            <option value="{{ depto.id_departamento }}">{{ depto.nombre_departamento }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Puesto</label>
+                    <input type="text" class="form-control" name="puesto" required placeholder="Ej: Supervisor de Línea">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Días de Vacaciones</label>
+                    <input type="number" class="form-control" name="diasVacaciones" value="0" required>
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label fw-bold">Correo Electrónico</label>
+                    <input type="email" class="form-control" name="correo_electronico" required placeholder="empleado@tohken.mx">
+                </div>
+                
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Rol del Sistema</label>
+                    <select class="form-select" name="id_rol" required>
+                        <option value="" disabled selected>-- Selecciona --</option>
+                        {% for rol in roles %}
+                            <option value="{{ rol.id_rol }}">{{ rol.nombre_rol }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-12 mt-4 text-end">
+                    <a href="{{ url_for('jefe.ver_usuarios_vista') }}" class="btn btn-secondary me-2">Cancelar</a>
+                    <button type="submit" class="btn btn-success fw-bold">Guardar Usuario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
