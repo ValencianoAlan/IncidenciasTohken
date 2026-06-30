@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container py-2">
     <div class="text-center mb-5">
-        <h2 class="fw-bold mb-2">¡Bienvenido al Sistema, {{ session.get('nombre_usuario') }}!</h2>
+        <h2 class="fw-bold mt-4 mb-2">¡Bienvenido al Sistema, {{ session.get('nombre_usuario') }}!</h2>
         <p class="text-muted">Por favor, selecciona el módulo al que deseas acceder hoy.</p>
     </div>
     
@@ -54,14 +54,29 @@
 
         {% if session.get('rol') in ['Admin', 'Gerente', 'Supervisor', 'Asistente de Gerente', 'Jefe Japonés'] %}
             <div class="col-xl-3 col-md-6">
-                <div class="card h-100 shadow-sm border-0 border-top border-warning border-4 p-3 text-center">
+                <div class="card h-100 shadow-sm border-0 border-top border-warning border-4 p-3 text-center position-relative">
+                    
+                    {% if total_pendientes and total_pendientes > 0 %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow fs-6 animate-pulse" style="z-index: 5; margin-top: 10px; margin-left: -25px;">
+                            {{ total_pendientes }}
+                            <span class="visually-hidden">solicitudes pendientes</span>
+                        </span>
+                    {% endif %}
+
                     <div class="card-body d-flex flex-column justify-content-between">
                         <div>
                             <div class="display-4 text-warning mb-3">💼</div>
                             <h5 class="card-title fw-bold">Panel del Jefe</h5>
                             <p class="card-text text-muted small">Previsualiza las solicitudes de tiempo extra pendientes de tu equipo, asigna comentarios y realiza dictámenes.</p>
                         </div>
-                        <a href="{{ url_for('jefe.panel') }}" class="btn btn-warning text-dark w-100 mt-4 py-2 fw-bold">Acceder Panel</a>
+                        
+                        <a href="{{ url_for('jefe.panel') }}" class="btn {% if total_pendientes and total_pendientes > 0 %}btn-danger text-white pulse-button{% else %}btn-warning text-dark{% endif %} w-100 mt-4 py-2 fw-bold">
+                            {% if total_pendientes and total_pendientes > 0 %}
+                                <i class="bi bi-exclamation-circle-fill me-1"></i> Revisar Pendientes
+                            {% else %}
+                                Acceder Panel
+                            {% endif %}
+                        </a>
                     </div>
                 </div>
             </div>
@@ -69,4 +84,15 @@
 
     </div>
 </div>
+
+<style>
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    .animate-pulse {
+        animation: pulse 2s infinite ease-in-out;
+    }
+</style>
 {% endblock %}

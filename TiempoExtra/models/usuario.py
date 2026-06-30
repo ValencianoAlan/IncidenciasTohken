@@ -164,3 +164,19 @@ def obtener_aprobadores_nivel_2(id_departamento):
     rows = cursor.fetchall()
     conn.close()
     return rows
+
+def obtener_todos_jefes_japoneses():
+    """Trae a todos los directivos con el rol de Jefe Japonés para el panel del Gerente"""
+    conn = get_db_connection()
+    if not conn:
+        return []
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT u.num_nomina, u.nombre, ISNULL(u.apellido_paterno, '') AS apellido
+        FROM Usuarios u
+        INNER JOIN Roles r ON u.id_rol = r.id_rol
+        WHERE r.nombre_rol = 'Jefe Japonés'
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+    return rows

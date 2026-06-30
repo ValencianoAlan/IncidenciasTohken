@@ -1,168 +1,256 @@
-{% extends 'base.html' %} {% block title %}Panel de Jefes - DocuFlow{% endblock
-%} {% block content %}
-<div class="row">
-  <div class="col-md-4 mb-4">
-    <div class="card shadow-sm border-0 h-100">
-      <div
-        class="card-header bg-dark text-white d-flex justify-content-between align-items-center"
-      >
-        <h5 class="mb-0">Bandeja de Pendientes</h5>
-        <span class="badge bg-warning text-dark">{{ documentos|length }}</span>
-      </div>
-      <div
-        class="list-group list-group-flush"
-        style="max-height: 600px; overflow-y: auto"
-      >
-        {% if documentos %} {% for doc in documentos %}
-        <a
-          href="{{ url_for('jefe.panel', doc_id=doc.id) }}"
-          class="list-group-item list-group-item-action {% if doc_seleccionado and doc_seleccionado.id == doc.id %}active{% endif %}"
-        >
-          <div class="d-flex w-100 justify-content-between">
-            <h6 class="mb-1">👤 Usuario ID: {{ doc.usuario_id }}</h6>
-            <small
-              >{{ doc.fecha_subida.strftime('%d/%m/%Y') if doc.fecha_subida else
-              '' }}</small
-            >
-          </div>
-          <p class="mb-1 text-truncate">
-            <small>📄 {{ doc.nombre_archivo }}</small>
-          </p>
-        </a>
-        {% endfor %} {% else %}
-        <div class="p-4 text-center text-muted">
-          <i class="bi bi-check-circle display-4 text-success"></i>
-          <p class="mt-2 mb-0">No hay documentos pendientes por revisar.</p>
+{% extends 'base.html' %}
+
+{% block title %}Panel de Autorizaciones - DocuFlow{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0 text-warning"><i class="bi bi-briefcase-fill me-2"></i> Panel de Autorizaciones</h2>
+            <p class="text-muted mb-0">Revisa, comenta y dictamina las solicitudes de tiempo extra de tu equipo.</p>
         </div>
-        {% endif %}
-      </div>
     </div>
-  </div>
 
-  <div class="col-md-8">
-    <div class="card shadow-sm border-0 h-100">
-      {% if doc_seleccionado %}
-      <div
-        class="card-header bg-light d-flex justify-content-between align-items-center py-3"
-      >
-        <h5 class="mb-0 text-primary fw-bold">
-          Revisando: {{ doc_seleccionado.nombre_archivo }}
-        </h5>
-
-        <div class="btn-group">
-          <a
-            href="{{ url_for('usuario.descargar_pdf', doc_id=doc_seleccionado.id) }}"
-            class="btn btn-outline-secondary"
-            title="Descargar Archivo Original"
-          >
-            <i class="bi bi-download"></i> Descargar
-          </a>
-          <form
-            action="{{ url_for('jefe.procesar_documento', doc_id=doc_seleccionado.id) }}"
-            method="POST"
-            class="d-inline"
-          >
-            <input type="hidden" name="accion" value="aprobar" />
-            <button type="submit" class="btn btn-success">✅ Aprobar</button>
-          </form>
-          <button
-            type="button"
-            class="btn btn-danger rounded-end"
-            data-bs-toggle="modal"
-            data-bs-target="#modalRechazo"
-          >
-            ❌ Rechazar
-          </button>
-        </div>
-      </div>
-
-      <div class="card-body p-0" style="min-height: 600px">
-        <object
-          data="{{ url_for('static', filename=doc_seleccionado.ruta_archivo) }}"
-          type="application/pdf"
-          width="100%"
-          height="100%"
-          style="min-height: 600px"
-        >
-          <p>
-            No se puede previsualizar.
-            <a
-              href="{{ url_for('static', filename=doc_seleccionado.ruta_archivo) }}"
-              target="_blank"
-              >Descargar PDF</a
-            >
-          </p>
-        </object>
-      </div>
-
-      <div
-        class="modal fade"
-        id="modalRechazo"
-        tabindex="-1"
-        aria-labelledby="modalRechazoLabel"
-        aria-hidden="true"
-      >
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <form
-              action="{{ url_for('jefe.procesar_documento', doc_id=doc_seleccionado.id) }}"
-              method="POST"
-            >
-              <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="modalRechazoLabel">
-                  Motivo de Rechazo
-                </h5>
-                <button
-                  type="button"
-                  class="btn-close btn-close-white"
-                  data-bs-dismiss="modal"
-                  aria-label="Close"
-                ></button>
-              </div>
-              <div class="modal-body">
-                <input type="hidden" name="accion" value="rechazar" />
-                <div class="mb-3">
-                  <label class="form-label fw-bold"
-                    >Comentarios / Motivo del Dictamen:</label
-                  >
-                  <textarea
-                    class="form-control"
-                    name="comentarios"
-                    rows="3"
-                    placeholder="Escribe aquí las observaciones o razón del rechazo..."
-                  ></textarea>
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-dark p-2 rounded-top">
+                    <ul class="nav nav-tabs card-header-tabs border-bottom-0 ms-1" id="panelTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link text-white active fw-bold small" id="pendientes-tab" data-bs-toggle="tab" data-bs-target="#pendientes-pane" type="button" role="tab" aria-controls="pendientes-pane" aria-selected="true">
+                                <i class="bi bi-inbox-fill me-1 text-warning"></i> Pendientes ({{ documentos|length }})
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link text-white-50 fw-bold small" id="historial-tab" data-bs-toggle="tab" data-bs-target="#historial-pane" type="button" role="tab" aria-controls="historial-pane" aria-selected="false">
+                                <i class="bi bi-clock-history me-1 text-info"></i> Historial ({{ historial|length }})
+                            </button>
+                        </li>
+                    </ul>
                 </div>
-              </div>
-              <div class="modal-footer">
-                <button
-                  type="button"
-                  class="btn btn-secondary"
-                  data-bs-dismiss="modal"
-                >
-                  Cancelar
-                </button>
-                <button type="submit" class="btn btn-danger">
-                  Confirmar Rechazo
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
+                
+                <div class="card-body p-0">
+                    <div class="tab-content" id="panelTabsContent">
+                        
+                        <div class="tab-pane fade show active" id="pendientes-pane" role="tabpanel" aria-labelledby="pendientes-tab" tabindex="0">
+                            <div class="list-group list-group-flush" style="max-height: 700px; overflow-y: auto;">
+                                {% if documentos %}
+                                    {% for doc in documentos %}
+                                        <a href="{{ url_for('jefe.panel', doc_id=doc.id) }}" 
+                                           class="list-group-item list-group-item-action py-3 {% if doc_seleccionado and doc_seleccionado.id == doc.id and doc.estado in ['Pendiente Gerencia', 'Pendiente Jefe Japonés'] %}bg-light border-start border-warning border-4{% endif %}">
+                                            <div class="d-flex w-100 justify-content-between align-items-center mb-1">
+                                                <h6 class="mb-0 fw-bold">Doc #{{ doc.id }}</h6>
+                                                <small class="text-muted">{{ doc.fecha_subida.strftime('%d/%m/%Y') if doc.fecha_subida else '' }}</small>
+                                            </div>
+                                            <p class="mb-1 small text-truncate text-dark"><i class="bi bi-file-earmark-pdf text-danger me-1"></i> {{ doc.nombre_archivo }}</p>
+                                            <span class="badge bg-warning text-dark">{{ doc.estado }}</span>
+                                        </a>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center py-5 text-muted">
+                                        <i class="bi bi-check2-circle display-4 text-success mb-2 d-block"></i>
+                                        <p class="mb-0 small">No tienes documentos pendientes por revisar.</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
 
-      {% else %}
-      <div
-        class="d-flex flex-column align-items-center justify-content-center h-100 bg-light text-muted p-5 text-center"
-        style="min-height: 600px"
-      >
-        <h4>👈 Selecciona un documento</h4>
-        <p>
-          Haz clic en uno de los elementos de la izquierda para comenzar la
-          revisión.
-        </p>
-      </div>
-      {% endif %}
+                        <div class="tab-pane fade" id="historial-pane" role="tabpanel" aria-labelledby="historial-tab" tabindex="0">
+                            <div class="list-group list-group-flush" style="max-height: 700px; overflow-y: auto;">
+                                {% if historial %}
+                                    {% for doc in historial %}
+                                        <a href="{{ url_for('jefe.panel', doc_id=doc.id) }}" 
+                                           class="list-group-item list-group-item-action py-3 {% if doc_seleccionado and doc_seleccionado.id == doc.id and doc.estado not in ['Pendiente Gerencia', 'Pendiente Jefe Japonés'] %}bg-light border-start border-info border-4{% endif %}">
+                                            <div class="d-flex w-100 justify-content-between align-items-center mb-1">
+                                                <h6 class="mb-0 fw-bold text-muted">Doc #{{ doc.id }}</h6>
+                                                <small class="fw-semibold text-primary"><i class="bi bi-person-fill"></i> Solicitó: {{ doc.nombre_empleado or doc.usuario_id }}</small>
+                                            </div>
+                                            
+                                            <div class="mb-1 x-small text-muted">
+                                                <i class="bi bi-calendar-event me-1"></i>Recibido: {{ doc.fecha_subida.strftime('%d/%m/%Y %H:%M') if doc.fecha_subida else '---' }}
+                                            </div>
+
+                                            {% if doc.nombre_aprobador_1 %}
+                                                <div class="mb-1 x-small text-success fw-bold">
+                                                    <i class="bi bi-person-check-fill me-1"></i>Aprobó: <span class="text-dark fw-normal">{{ doc.nombre_aprobador_1 }}</span>
+                                                </div>
+                                            {% endif %}
+
+                                            <p class="mb-1 small text-truncate text-muted"><i class="bi bi-file-earmark-pdf text-secondary me-1"></i> {{ doc.nombre_archivo }}</p>
+                                            
+                                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                                <span class="badge 
+                                                    {% if doc.estado == 'Aprobado' %}bg-success
+                                                    {% elif 'Rechazado' in doc.estado %}bg-danger
+                                                    {% else %}bg-secondary{% endif %}">
+                                                    {{ doc.estado }}
+                                                </span>
+                                                <small class="text-muted x-small">ID Emp: {{ doc.usuario_id }}</small>
+                                            </div>
+                                        </a>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center py-5 text-muted">
+                                        <i class="bi bi-folder-symlink display-4 text-secondary mb-2 d-block opacity-50"></i>
+                                        <p class="mb-0 small">Aún no hay registros procesados en este historial.</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            {% if doc_seleccionado %}
+                <div class="card shadow-sm border-0 mb-3 border-top border-warning border-4 h-100">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                        <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-file-earmark-text-fill text-primary me-2"></i> Revisión del Documento #{{ doc_seleccionado.id }}</h5>
+                    </div>
+                    
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-5">
+                                <p class="mb-1"><strong>Archivo:</strong> {{ doc_seleccionado.nombre_archivo }}</p>
+                                <p class="mb-1"><strong>Estatus actual:</strong> 
+                                    <span class="badge 
+                                        {% if doc_seleccionado.estado == 'Pendiente Gerencia' %}bg-warning text-dark
+                                        {% elif doc_seleccionado.estado == 'Pendiente Jefe Japonés' %}bg-info text-white
+                                        {% elif doc_seleccionado.estado == 'Aprobado' %}bg-success
+                                        {% elif 'Rechazado' in doc_seleccionado.estado %}bg-danger
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ doc_seleccionado.estado }}
+                                    </span>
+                                </p>
+                                <hr>
+                                <div class="bg-light p-3 rounded mb-3 border-start border-warning border-3">
+                                    <p class="text-warning mb-1 fw-bold small">Comentarios Gerencia:</p>
+                                    <p class="mb-0 small text-dark">{{ doc_seleccionado.comentarios_gerencia or 'Sin comentarios aún.' }}</p>
+                                </div>
+                                {% if session.get('rol') == 'Jefe Japonés' or doc_seleccionado.estado == 'Pendiente Jefe Japonés' or doc_seleccionado.estado == 'Aprobado' or doc_seleccionado.estado == 'Rechazado por Jefe Japonés' %}
+                                <div class="bg-light p-3 rounded border-start border-danger border-3">
+                                    <p class="text-danger mb-1 fw-bold small">Comentarios Jefatura Japonesa:</p>
+                                    <p class="mb-0 small text-dark">{{ doc_seleccionado.comentarios_japones or 'Sin comentarios aún.' }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-7">
+                                <div class="ratio ratio-4x3 border rounded shadow-sm bg-light">
+                                    <iframe src="{{ url_for('static', filename=doc_seleccionado.ruta_archivo) }}" allowfullscreen></iframe>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-light p-4 rounded border mt-auto">
+                            {% if (session.get('rol') in ['Gerente', 'Supervisor', 'Asistente de Gerente', 'Admin'] and doc_seleccionado.estado == 'Pendiente Gerencia') or (session.get('rol') == 'Jefe Japonés' and doc_seleccionado.estado == 'Pendiente Jefe Japonés') %}
+                                <h5 class="fw-bold mb-3"><i class="bi bi-pencil-square me-2"></i> Emitir Dictamen</h5>
+                                <form action="{{ url_for('jefe.procesar_documento', doc_id=doc_seleccionado.id) }}" method="POST">
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">1. Decisión de Autorización:</label>
+                                        <select class="form-select border-primary" name="accion" id="select_accion" required onchange="toggleJapones()">
+                                            <option value="" disabled selected>-- Selecciona si apruebas o rechazas --</option>
+                                            <option value="aprobar" class="text-success fw-bold">✅ Aprobar solicitud</option>
+                                            <option value="rechazar" class="text-danger fw-bold">❌ Rechazar solicitud</option>
+                                        </select>
+                                    </div>
+
+                                    {% if session.get('rol') in ['Gerente', 'Supervisor', 'Asistente de Gerente', 'Admin'] %}
+                                        <div class="mb-3 bg-white p-3 rounded border-start border-danger border-4 shadow-sm" id="div_japones" style="display: none;">
+                                            <label class="form-label fw-bold text-danger">2. Escalar a Jefatura Japonesa (Autorización Final):</label>
+                                            <select class="form-select" name="aprobador_2" id="select_aprobador_2">
+                                                <option value="" disabled selected>-- Elige a qué directivo enviar la autorización --</option>
+                                                {% for jap in japoneses %}
+                                                    <option value="{{ jap.num_nomina }}">{{ jap.nombre }} {{ jap.apellido }} ({{ jap.num_nomina }})</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    {% endif %}
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Comentarios / Motivo (Obligatorio en rechazos):</label>
+                                        <textarea class="form-control" name="comentarios" rows="3" placeholder="Escribe aquí las observaciones o razón del dictamen..."></textarea>
+                                    </div>
+                                    
+                                    <div class="text-end">
+                                        <button type="submit" class="btn btn-primary fw-bold px-4 shadow-sm">
+                                            <i class="bi bi-send-check-fill me-1"></i> Procesar Documento
+                                        </button>
+                                    </div>
+                                </form>
+                            {% else %}
+                                <div class="text-center py-2 text-muted">
+                                    <i class="bi bi-lock-fill text-secondary fs-4 d-block mb-1"></i>
+                                    <span class="small fw-bold d-block text-uppercase">Solicitud Archivada / Procesada</span>
+                                    <p class="mb-0 x-small">Ya has emitido un dictamen para este archivo. Puedes consultar el documento y el historial superior, pero el registro no puede ser modificado.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                </div>
+            {% else %}
+                <div class="card shadow-sm border-0 h-100 d-flex align-items-center justify-content-center bg-light py-5">
+                    <div class="text-center text-muted">
+                        <i class="bi bi-file-earmark-text display-1 mb-3 text-secondary opacity-50"></i>
+                        <h4 class="fw-bold">Ningún documento seleccionado</h4>
+                        <p>Haz clic en una solicitud de la bandeja izquierda para previsualizar el PDF<br>y consultar sus detalles.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
     </div>
-  </div>
 </div>
+
+<style>
+    .nav-tabs .nav-link.active {
+        color: #212529 !important; /* Fuerza a que el texto activo sea oscuro y legible */
+        background-color: #fff !important;
+        border-color: #dee2e6 #dee2e6 #fff !important;
+    }
+</style>
+
+<script>
+    function toggleJapones() {
+        var accion = document.getElementById("select_accion");
+        var divJap = document.getElementById("div_japones");
+        var selJap = document.getElementById("select_aprobador_2");
+        
+        if (accion && divJap && selJap) {
+            if (accion.value === 'aprobar') {
+                divJap.style.display = "block";
+                selJap.required = true;
+            } else {
+                divJap.style.display = "none";
+                selJap.required = false;
+                selJap.value = "";
+            }
+        }
+    }
+
+    // 🌟 PERSISTENCIA DE PESTAÑAS (localStorage)
+    document.addEventListener("DOMContentLoaded", function() {
+        // Al dar clic en cualquier pestaña, guardamos su ID en el navegador
+        var tabButtons = document.querySelectorAll('#panelTabs button');
+        tabButtons.forEach(function(button) {
+            button.addEventListener('shown.bs.tab', function(e) {
+                localStorage.setItem('activeTab_jefePanel', e.target.id);
+            });
+        });
+
+        // Al recargar la página, leemos si había una pestaña guardada
+        var activeTabId = localStorage.getItem('activeTab_jefePanel');
+        if (activeTabId) {
+            var tabTrigger = document.getElementById(activeTabId);
+            if (tabTrigger) {
+                // Forzamos a Bootstrap a activar la pestaña que tenía guardada
+                var tab = new bootstrap.Tab(tabTrigger);
+                tab.show();
+            }
+        }
+    });
+</script>
 {% endblock %}

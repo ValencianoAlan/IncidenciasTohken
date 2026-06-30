@@ -2,6 +2,9 @@ import os
 from flask import Flask, redirect, url_for
 from config import Config
 
+from datetime import timedelta # 🌟 IMPORTACIÓN NECESARIA
+from flask import Flask, session
+
 # Importar controladores
 from controllers.usuario_controller import usuario_bp
 from controllers.jefe_controller import jefe_bp
@@ -21,6 +24,7 @@ app.config["MAIL_PORT"] = 587                  # Puerto seguro [cite: 2889]
 app.config["MAIL_USE_TLS"] = True              # Conexión cifrada [cite: 2890]
 app.config["MAIL_USERNAME"] = "soporte@tohken.mx"        # Tu correo corporativo [cite: 2891]
 app.config["MAIL_PASSWORD"] = "rhfd pdgy njmh dhag"          # Contraseña de aplicación
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=15)
 
 # Ahora la raíz de tu web redirige directamente al Login
 @app.route('/')
@@ -31,3 +35,4 @@ if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
     app.run(debug=True)
+    
